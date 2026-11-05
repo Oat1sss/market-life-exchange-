@@ -1,0 +1,400 @@
+// MarketLife — schema generator Prisma (see docs/DATABASE.md).
+//
+// Conventions: snake_case columns, uuid PKs with database-side defaults,
+// monetary values in BIGINT minor units (1 credit = 100 minor units), quantities
+// as INTEGER whole units. Table-level CHECK constraints and the partial unique
+// index (one ACTIVE game per user) live in ../prisma/migrations/*/check_constraints.sql.
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum GameStatus {
+  ACTIVE
+  RETIRED
+  DECEASED
+}
+
+enum CharacterBackground {
+  SCHOLAR
+  HUSTLER
+  CREATIVE
+}
+
+enum AssetKind {
+  STOCK
+  CRYPTO
+}
+
+enum AssetSector {
+  TECH
+  HEALTH
+  ENERGY
+  CONSUMER
+  CRYPTO
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  CANCELLED
+  REJECTED
+}
+
+enum LedgerAccount {
+  CASH
+  ASSET
+}
+
+enum LedgerDirection {
+  DEBIT
+  CREDIT
+}
+
+enum LedgerReason {
+  DEPOSIT
+  TRADE_BUY
+  TRADE_SELL
+  FEE
+  SALARY
+  EXPENSE
+  EDUCATION
+  LIFE_EVENT
+  ADJUSTMENT
+}
+
+enum CareerEndReason {
+  HIRED
+  PROMOTED
+  RESIGNED
+  LAID_OFF
+}
+
+enum EducationStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum ExpenseCategory {
+  RENT
+  FOOD
+  TRANSPORT
+  SUBSCRIPTION
+  OTHER
+}
+
+enum ExpenseCadence {
+  MONTHLY
+  ANNUAL
+}
+
+enum MarketEventType {
+  RATE_CHANGE
+  INFLATION
+  EARNINGS
+  PRODUCT
+  SECTOR_DISRUPTION
+  REGIME
+}
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique @db.VarChar(320)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  displayName  String   @map("display_name") @db.VarChar(80)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  games Game[]
+
+  @@map("users")
+}
+
+model Game {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  seed      BigInt     @db.BigInt
+  status    GameStatus @default(ACTIVE)
+  tick      Int        @default(0)
+  startDate DateTime   @default(dbgenerated("CURRENT_DATE")) @map("start_date") @db.Date
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  character          Character?
+  portfolio          Portfolio?
+  orders             Order[]
+  ledgerEntries      LedgerEntry[]
+  expenseRules       ExpenseRule[]
+  pricePoints        PricePoint[]
+  lifeEvents         LifeEvent[]
+  marketEvents       MarketEvent[]
+  playerAchievements PlayerAchievement[]
+
+  @@index([userId, status])
+  @@map("games")
+}
+
+model Character {
+  id         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId     String              @unique @map("game_id") @db.Uuid
+  firstName  String              @map("first_name") @db.VarChar(50)
+  lastName   String              @map("last_name") @db.VarChar(50)
+  background CharacterBackground
+  health     Int                 @default(50)
+  happiness  Int                 @default(50)
+  knowledge  Int                 @default(50)
+  reputation Int                 @default(50)
+  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  game       Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  careers    Career[]
+  educations Education[]
+
+  @@map("characters")
+}
+
+model Portfolio {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId    String   @unique @map("game_id") @db.Uuid
+  cashMinor BigInt   @default(0) @map("cash_minor") @db.BigInt
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  game     Game          @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  holdings Holding[]
+  ledger   LedgerEntry[]
+
+  @@map("portfolios")
+}
+
+/// Static seeded catalog, shared across all games.
+model Asset {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  symbol           String      @unique @db.VarChar(8)
+  name             String      @db.VarChar(80)
+  sector           AssetSector
+  kind             AssetKind
+  fundamentalMinor BigInt      @map("fundamental_minor") @db.BigInt
+  volatilityBp     Int         @map("volatility_bp")
+  betaBp           Int         @map("beta_bp")
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pricePoints PricePoint[]
+  holdings    Holding[]
+  orders      Order[]
+  ledger      LedgerEntry[]
+
+  @@map("assets")
+}
+
+model PricePoint {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId           String   @map("game_id") @db.Uuid
+  assetId          String   @map("asset_id") @db.Uuid
+  tick             Int
+  priceMinor       BigInt   @map("price_minor") @db.BigInt
+  sentimentBp      Int      @map("sentiment_bp")
+  fundamentalMinor BigInt   @map("fundamental_minor") @db.BigInt
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  game  Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, assetId, tick])
+  @@index([gameId, assetId(sort: Desc)])
+  @@map("price_points")
+}
+
+model Holding {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  portfolioId      String   @map("portfolio_id") @db.Uuid
+  assetId          String   @map("asset_id") @db.Uuid
+  quantity         Int
+  averageCostMinor BigInt   @map("average_cost_minor") @db.BigInt
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  asset     Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([portfolioId, assetId])
+  @@map("holdings")
+}
+
+model Order {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId          String      @map("game_id") @db.Uuid
+  assetId         String      @map("asset_id") @db.Uuid
+  side            OrderSide
+  type            OrderType
+  quantity        Int
+  limitPriceMinor BigInt?     @map("limit_price_minor") @db.BigInt
+  status          OrderStatus @default(PENDING)
+  fillPriceMinor  BigInt?     @map("fill_price_minor") @db.BigInt
+  grossMinor      BigInt?     @map("gross_minor") @db.BigInt
+  feeMinor        BigInt?     @map("fee_minor") @db.BigInt
+  netMinor        BigInt?     @map("net_minor") @db.BigInt
+  tickPlaced      Int         @map("tick_placed")
+  tickResolved    Int?        @map("tick_resolved")
+  idempotencyKey  String      @map("idempotency_key") @db.Uuid
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  game  Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, idempotencyKey])
+  @@index([gameId, status])
+  @@index([gameId, createdAt(sort: Desc)])
+  @@map("orders")
+}
+
+/// Append-only audit trail. created_at/updated_at audit columns are intentionally
+/// omitted: rows must never be mutated; corrections use compensating
+/// ADJUSTMENT entries instead.
+model LedgerEntry {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId            String          @map("game_id") @db.Uuid
+  portfolioId       String          @map("portfolio_id") @db.Uuid
+  sequence          Int
+  account           LedgerAccount
+  assetId           String?         @map("asset_id") @db.Uuid
+  direction         LedgerDirection
+  amountMinor       BigInt          @map("amount_minor") @db.BigInt
+  balanceAfterMinor BigInt          @map("balance_after_minor") @db.BigInt
+  reason            LedgerReason
+  refType           String          @map("ref_type") @db.VarChar(40)
+  refId             String          @map("ref_id") @db.Uuid
+  tick              Int
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  game      Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  asset     Asset?    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, sequence])
+  @@index([gameId, createdAt])
+  @@map("ledger_entries")
+}
+
+model Career {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  characterId       String           @unique @map("character_id") @db.Uuid
+  title             String           @db.VarChar(60)
+  employer          String           @db.VarChar(60)
+  annualSalaryMinor BigInt           @map("annual_salary_minor") @db.BigInt
+  level             Int              @default(1)
+  startedTick       Int              @map("started_tick")
+  endedTick         Int?             @map("ended_tick")
+  endReason         CareerEndReason? @map("end_reason")
+
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@map("careers")
+}
+
+model Education {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  characterId   String          @map("character_id") @db.Uuid
+  programKey    String          @map("program_key") @db.VarChar(40)
+  name          String          @db.VarChar(80)
+  tuitionMinor  BigInt          @map("tuition_minor") @db.BigInt
+  knowledgeGain Int             @map("knowledge_gain")
+  durationTicks Int             @map("duration_ticks")
+  startedTick   Int             @map("started_tick")
+  completesTick Int             @map("completes_tick")
+  status        EducationStatus @default(IN_PROGRESS)
+
+  character Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@index([characterId, status])
+  @@map("educations")
+}
+
+model ExpenseRule {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId      String          @map("game_id") @db.Uuid
+  label       String          @db.VarChar(60)
+  category    ExpenseCategory
+  amountMinor BigInt          @map("amount_minor") @db.BigInt
+  cadence     ExpenseCadence  @default(MONTHLY)
+  active      Boolean         @default(true)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId, active])
+  @@map("expense_rules")
+}
+
+model LifeEvent {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId      String    @map("game_id") @db.Uuid
+  templateKey String    @map("template_key") @db.VarChar(40)
+  title       String    @db.VarChar(80)
+  body        String    @db.Text
+  choices     Json
+  chosenKey   String?   @map("chosen_key") @db.VarChar(40)
+  outcome     Json?
+  tick        Int
+  resolvedAt  DateTime? @map("resolved_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, templateKey, tick])
+  @@index([gameId, tick])
+  @@map("life_events")
+}
+
+model MarketEvent {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId    String          @map("game_id") @db.Uuid
+  tick      Int
+  type      MarketEventType
+  title     String          @db.VarChar(80)
+  body      String          @db.VarChar(160)
+  effects   Json
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, tick, type, title])
+  @@map("market_events")
+}
+
+model Achievement {
+  key         String  @id @db.VarChar(40)
+  name        String  @db.VarChar(80)
+  description String  @db.VarChar(200)
+  hidden      Boolean @default(false)
+
+  unlockedBy PlayerAchievement[]
+
+  @@map("achievements")
+}
+
+model PlayerAchievement {
+  gameId         String   @map("game_id") @db.Uuid
+  achievementKey String   @map("achievement_key") @db.VarChar(40)
+  unlockedAt     DateTime @default(now()) @map("unlocked_at") @db.Timestamptz(6)
+
+  game        Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementKey], references: [key])
+
+  @@id([gameId, achievementKey])
+  @@map("player_achievements")
+}
