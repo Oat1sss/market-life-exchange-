@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { advanceAction, type ActionState } from "@/app/actions/game";
+import { IconRefresh } from "@/components/icons";
 
 export function AdvanceButton({ isLarge = false }: { isLarge?: boolean }) {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
@@ -10,19 +11,27 @@ export function AdvanceButton({ isLarge = false }: { isLarge?: boolean }) {
   );
 
   return (
-    <form action={formAction} className="inline-flex">
+    <form action={formAction} className="relative inline-flex flex-col items-end">
       <button
         type="submit"
-        disabled={isPending || Boolean(state?.error)}
+        disabled={isPending}
+        aria-label="Majukan pasar satu bulan"
         className={
           isLarge
-            ? "rounded border border-border-subtle bg-foreground px-5 py-3 text-base font-medium text-background hover:bg-foreground/90 disabled:opacity-50"
-            : "rounded border border-border-subtle bg-background px-4 py-2 text-sm font-medium hover:bg-foreground/5 disabled:opacity-50"
+            ? "inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-black text-[#04120e] transition hover:bg-brand-strong disabled:opacity-50"
+            : "inline-flex h-8 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-[11px] font-bold text-[#c7ccd4] transition hover:border-brand/40 hover:text-brand disabled:opacity-50"
         }
       >
-        {isPending ? "Advancing…" : state?.error == null ? "Advance a month" : "Try again"}
-        {state?.error ? <p className="mt-1 select-none text-xs text-red-600">{state.error}</p> : null}
+        <IconRefresh className={`h-3.5 w-3.5 ${isPending ? "animate-spin" : ""}`} />
+        <span className={isLarge ? "" : "hidden sm:inline"}>
+          {isPending ? "Memajukan…" : "Majukan"}
+        </span>
       </button>
+      {state?.error ? (
+        <p className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border border-down/30 bg-[#1a1113] p-2 text-right text-[10px] leading-4 text-down shadow-xl">
+          {state.error}
+        </p>
+      ) : null}
     </form>
   );
 }

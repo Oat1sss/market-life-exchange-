@@ -8,23 +8,18 @@
  */
 import { randomBytes } from "node:crypto";
 import { Prisma, type Character } from "@/generated/prisma/index";
-import { DEFAULT_EXPENSES } from "@/domain/expense-defaults";
 import {
   BACKGROUNDS,
   applyStatDelta,
-  baseStatDrift,
-  type Stats,
   type BackgroundKey,
 } from "@/domain/character";
 import { choiceStats } from "@/domain/life-events";
-import { ageAt, gameDateFor, isTerminalAge } from "@/domain/calendar";
+import { ageAt, gameDateFor } from "@/domain/calendar";
 import { monthlyPay } from "@/domain/payroll";
 import { nextPrice } from "@/domain/market/prices";
 import { rollMarketEvent, shockForSector, shockForAsset } from "@/domain/market/events";
 import {
   delayedRepairFollowupCost,
-  rollLifeEvent,
-  startupPayoffMinor,
   templateByKey,
 } from "@/domain/life-events";
 import { eligibleAchievements, type AchievementKey } from "@/domain/achievements";
@@ -32,9 +27,12 @@ import { programByKey } from "@/domain/education";
 import { prisma } from "@/server/db";
 import { appendLedgerRun, type LedgerDraft } from "./ledger";
 import { fillBuy, fillSell, FillError } from "./trade-fill";
+import { settleFutures } from "./futures-service";
+import { futuresPnlMinor } from "@/domain/futures";
 
-const START_CASH_MINOR = 240_000n; // 2,400 credits
-const ENTRY_ANNUAL_SALARY_MINOR = 360_000n; // 3,600 credits/year
+// Demo exchange accounts start with a simulated balance so every market is
+// reachable on day one. Real funding is simulated through the deposit flow.
+const START_CASH_MINOR = 10_000_000n; // 100,000.00 demo credits
 
 type Tx = Prisma.TransactionClient;
 
@@ -95,27 +93,6 @@ export async function createGame(
       data: { gameId: game.id, cashMinor: START_CASH_MINOR },
     });
 
-    await tx.expenseRule.createMany({
-      data: DEFAULT_EXPENSES.map((expense) => ({
-        gameId: game.id,
-        label: expense.label,
-        category: expense.category,
-        amountMinor: expense.amountMinor,
-        cadence: expense.cadence,
-      })),
-    });
-
-    await tx.career.create({
-      data: {
-        characterId: character.id,
-        title: "Junior clerk",
-        employer: "Beltline Grocery",
-        annualSalaryMinor: ENTRY_ANNUAL_SALARY_MINOR,
-        level: 1,
-        startedTick: 0,
-      },
-    });
-
     const assets = await tx.asset.findMany({ orderBy: { symbol: "asc" } });
     await tx.pricePoint.createMany({
       data: assets.map((asset) => ({
@@ -143,7 +120,7 @@ export async function createGame(
     ]);
 
     return { gameId: game.id };
-  });
+  }, { timeout: 20_000 });
 }
 
 export async function canCreateGame(userId: string): Promise<boolean> {
@@ -163,9 +140,10 @@ export interface AdvanceOutcome {
 }
 
 /**
- * Advance exactly one tick. Refuses when a life event awaits a choice.
- * Per-tick order (docs/GAME_DESIGN §2): salary → expenses → market →
- * limit orders → follow-ups already scheduled → stat drift → achievements.
+ * Advance the simulated market by one tick. This is a demo exchange, not a
+ * life sim: there are no salaries, bills or random life events. A tick only
+ * moves prices, settles futures, fills resting limit orders, and unlocks
+ * achievements.
  */
 export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
   return prisma.$transaction(async (tx) => {
@@ -180,77 +158,8 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
     if (!character || !portfolio) {
       throw new GameError("NO_GAME", "Game state incomplete in database.");
     }
-    const pendingEvents = await tx.lifeEvent.count({
-      where: { gameId: game.id, resolvedAt: null },
-    });
-    if (pendingEvents > 0) {
-      throw new GameError("PENDING_EVENT", "Resolve the pending life event first.");
-    }
-
     const drafts: Array<Omit<LedgerDraft, "gameId" | "tick">> = [];
     let cash = portfolio.cashMinor;
-
-    // ---- Salary --------------------------------------------------------
-    const career = await tx.career.findFirst({
-      where: { characterId: character.id, endedTick: null },
-    });
-    if (career) {
-      const pay = monthlyPay(career.annualSalaryMinor, game.tick);
-      if (pay.minor > 0n) {
-        cash += pay.minor;
-        drafts.push({
-          portfolioId: portfolio.id, account: "CASH", direction: "CREDIT",
-          amountMinor: pay.minor, balanceAfterMinor: cash, reason: "SALARY",
-          refType: "CAREER", refId: career.id,
-        });
-      }
-    }
-
-    // ---- Expenses (forced 20%-spread sales when cash falls short) ------
-    const expenses = await tx.expenseRule.findMany({
-      where: { gameId: game.id, active: true, cadence: "MONTHLY" },
-    });
-    let unpaidPenalty = 0;
-    for (const expense of expenses) {
-      if (expense.amountMinor <= cash) {
-        cash -= expense.amountMinor;
-        drafts.push({
-          portfolioId: portfolio.id, account: "CASH", direction: "DEBIT",
-          amountMinor: expense.amountMinor, balanceAfterMinor: cash,
-          reason: "EXPENSE", refType: "EXPENSE_RULE", refId: expense.id,
-        });
-        continue;
-      }
-      // Shortfall: liquidate holdings at −20% spreads, then pay any remainder.
-      const sale = await collectForcedSale(tx, game.id, portfolio.id, expense.amountMinor - cash, target);
-      if (sale.proceeds > 0n) {
-        cash += sale.proceeds;
-        drafts.push({
-          portfolioId: portfolio.id, account: "CASH", direction: "CREDIT",
-          amountMinor: sale.proceeds, balanceAfterMinor: cash,
-          reason: "TRADE_SELL", refType: "FORCED_SALE", refId: expense.id,
-        });
-        for (const leg of sale.legs) {
-          drafts.push({
-            portfolioId: portfolio.id, account: "ASSET", assetId: leg.assetId,
-            direction: "DEBIT", amountMinor: leg.basisMinor,
-            balanceAfterMinor: leg.remainingBasisMinor,
-            reason: "TRADE_SELL", refType: "FORCED_SALE", refId: expense.id,
-          });
-        }
-      }
-      // Release everything still owed, limited to available cash.
-      const paid = expense.amountMinor <= cash ? expense.amountMinor : cash;
-      if (paid > 0n) {
-        cash -= paid;
-        drafts.push({
-          portfolioId: portfolio.id, account: "CASH", direction: "DEBIT",
-          amountMinor: paid, balanceAfterMinor: cash,
-          reason: "EXPENSE", refType: "EXPENSE_RULE_PARTIAL", refId: expense.id,
-        });
-      }
-      if (expense.amountMinor > paid) unpaidPenalty += 5;
-    }
 
     // ---- Education completions -----------------------------------------
     const due = await tx.education.findMany({
@@ -264,54 +173,6 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
     for (const edu of due) {
       await tx.education.update({ where: { id: edu.id }, data: { status: "COMPLETED" } });
       knowledgeGain += edu.knowledgeGain;
-    }
-
-    // ---- Life-event follow-ups that were scheduled at past choices ------
-    const resolvedEvents = await tx.lifeEvent.findMany({
-      where: { gameId: game.id, resolvedAt: { not: null } },
-    });
-    for (const event of resolvedEvents) {
-      const outcome = (event.outcome ?? {}) as Record<string, unknown>;
-      const { followupCostMinor, followupAtTick, followupCharged, payoffAtTick, payoffCharged } =
-        outcome as {
-          followupCostMinor?: number;
-          followupAtTick?: number;
-          followupCharged?: boolean;
-          payoffAtTick?: number;
-          payoffCharged?: boolean;
-        };
-
-      if (followupAtTick === target && !followupCharged && (followupCostMinor ?? 0) > 0) {
-        const cost = BigInt(followupCostMinor!);
-        await tx.lifeEvent.update({
-          where: { id: event.id },
-          data: { outcome: { ...outcome, followupCharged: true } },
-        });
-        const paid = cash >= cost ? cost : cash;
-        cash -= paid;
-        drafts.push({
-          portfolioId: portfolio.id, account: "CASH", direction: "DEBIT",
-          amountMinor: paid, balanceAfterMinor: cash, reason: "LIFE_EVENT",
-          refType: "LIFE_EVENT_FOLLOWUP", refId: event.id,
-        });
-        if (paid < cost) unpaidPenalty += 5;
-      }
-
-      if (payoffAtTick === target && !payoffCharged) {
-        const payoff = startupPayoffMinor(game.seed, event.tick);
-        await tx.lifeEvent.update({
-          where: { id: event.id },
-          data: { outcome: { ...outcome, payoffCharged: true } },
-        });
-        if (payoff > 0n) {
-          cash += payoff;
-          drafts.push({
-            portfolioId: portfolio.id, account: "CASH", direction: "CREDIT",
-            amountMinor: payoff, balanceAfterMinor: cash, reason: "LIFE_EVENT",
-            refType: "LIFE_EVENT_PAYOFF", refId: event.id,
-          });
-        }
-      }
     }
 
     // ---- Market: one headline, then prices ------------------------------
@@ -346,9 +207,29 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
     }
 
     const freshPrices = new Map<string, bigint>();
+    const pricePointsToInsert: Array<{
+      gameId: string;
+      assetId: string;
+      tick: number;
+      priceMinor: bigint;
+      sentimentBp: number;
+      fundamentalMinor: bigint;
+    }> = [];
+
     for (const [assetIndex, asset] of assets.entries()) {
       const previous = previousPrices.get(asset.id);
-      if (!previous) continue;
+      if (!previous) {
+        pricePointsToInsert.push({
+          gameId: game.id,
+          assetId: asset.id,
+          tick: target,
+          priceMinor: asset.fundamentalMinor,
+          sentimentBp: 0,
+          fundamentalMinor: asset.fundamentalMinor,
+        });
+        freshPrices.set(asset.id, asset.fundamentalMinor);
+        continue;
+      }
       const shock = marketShock(event?.effects, asset.sector);
       const next = nextPrice({
         seed: game.seed,
@@ -363,14 +244,24 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
         eventShockMicro: shock * 100, // bp → micro
       });
       freshPrices.set(asset.id, next.priceMinor);
-      await tx.pricePoint.create({
-        data: {
-          gameId: game.id, assetId: asset.id, tick: target,
-          priceMinor: next.priceMinor, sentimentBp: next.sentimentBp,
-          fundamentalMinor: previous.fundamentalMinor,
-        },
+      pricePointsToInsert.push({
+        gameId: game.id,
+        assetId: asset.id,
+        tick: target,
+        priceMinor: next.priceMinor,
+        sentimentBp: next.sentimentBp,
+        fundamentalMinor: previous.fundamentalMinor,
       });
     }
+
+    if (pricePointsToInsert.length > 0) {
+      await tx.pricePoint.createMany({
+        data: pricePointsToInsert,
+      });
+    }
+
+    // ---- Futures mark-to-market: liquidate positions whose equity hit zero
+    await settleFutures(tx, game.id, target, freshPrices);
 
     // ---- Single settled cash write before limit fills ------------------
     await tx.portfolio.update({
@@ -410,35 +301,10 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
       }
     }
 
-    // ---- Stat drift, knowledge, aging -----------------------------------
-    let stats: Stats = {
-      health: character.health,
-      happiness: character.happiness,
-      knowledge: character.knowledge,
-      reputation: character.reputation,
-    };
-    const rawDrift = baseStatDrift(target);
-    stats = applyStatDelta(stats, {
-      ...rawDrift,
-      happiness: (rawDrift.happiness ?? 0) - unpaidPenalty,
-    });
     if (knowledgeGain > 0) {
-      stats.knowledge = Math.min(100, stats.knowledge + knowledgeGain);
       await tx.character.update({
         where: { id: character.id },
-        data: { knowledge: stats.knowledge },
-      });
-    }
-
-    // ---- Life events: at most one pending card per tick -----------------
-    const rolled = rollLifeEvent(game.seed, target);
-    if (rolled && !isTerminalAge(target)) {
-      await tx.lifeEvent.create({
-        data: {
-          gameId: game.id, templateKey: rolled.key,
-          title: rolled.title, body: rolled.body,
-          choices: rolled.choices as unknown as Prisma.InputJsonValue, tick: target,
-        },
+        data: { knowledge: Math.min(100, character.knowledge + knowledgeGain) },
       });
     }
 
@@ -453,18 +319,13 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
       currentAge: ageAt(target),
     });
 
-    // ---- Tick + terminal states ------------------------------------------
+    // ---- Tick ------------------------------------------------------------
     await tx.game.update({ where: { id: game.id }, data: { tick: target } });
-
-    const died = stats.health <= 0 || ageAt(target) >= 90;
-    if (died) {
-      await tx.game.update({ where: { id: game.id }, data: { status: "DECEASED" } });
-    }
 
     await appendLedgerRun(tx, game.id, drafts.map((draft) => ({ ...draft, tick: target })));
 
     return { tick: target, headline: event?.title ?? null };
-  });
+  }, { timeout: 20_000 });
 }
 
 function marketShock(
@@ -491,48 +352,6 @@ async function findGameForUpdate(tx: Tx, userId: string) {
   if (!game) throw new GameError("NO_GAME", "Create a character first.");
   await tx.$queryRaw`SELECT id FROM "games" WHERE id = ${game.id} FOR UPDATE`;
   return game;
-}
-
-interface ForcedSaleLegs {
-  proceeds: bigint;
-  legs: Array<{ assetId: string; basisMinor: bigint; remainingBasisMinor: bigint }>;
-}
-
-async function collectForcedSale(
-  tx: Tx,
-  gameId: string,
-  portfolioId: string,
-  neededMinor: bigint,
-  tick: number,
-): Promise<ForcedSaleLegs> {
-  const holdings = await tx.holding.findMany({
-    where: { portfolioId },
-    include: { asset: true },
-  });
-  const legs: ForcedSaleLegs["legs"] = [];
-  let proceeds = 0n;
-  for (const holding of holdings) {
-    if (proceeds >= neededMinor) break;
-    const point = await tx.pricePoint.findFirst({
-      where: { gameId, assetId: holding.assetId },
-      orderBy: { tick: "desc" },
-    });
-    const price = point?.priceMinor ?? holding.averageCostMinor;
-    const spreadPrice = (price * 80n) / 100n; // forced at −20%
-    const gross = spreadPrice * BigInt(holding.quantity);
-    const basis = holding.averageCostMinor * BigInt(holding.quantity);
-    proceeds += gross;
-    legs.push({ assetId: holding.assetId, basisMinor: basis, remainingBasisMinor: 0n });
-    await tx.holding.delete({ where: { id: holding.id } });
-  }
-  if (proceeds > 0n) {
-    await tx.portfolio.update({
-      where: { id: portfolioId },
-      data: { cashMinor: { increment: proceeds } },
-    });
-    void tick;
-  }
-  return { proceeds, legs };
 }
 
 async function netWorthOf(
@@ -738,7 +557,7 @@ export async function resolveLifeEvent(
         resolvedAt: new Date(),
       },
     });
-  });
+  }, { timeout: 20_000 });
 }
 
 /* -------------------------------------------------------------------- */
@@ -794,7 +613,7 @@ export async function enrollEducation(
         reason: "EDUCATION", refType: "EDUCATION", refId: education.id, tick: game.tick,
       },
     ]);
-  });
+  }, { timeout: 20_000 });
 }
 
 export interface EducationProgramView {
@@ -950,6 +769,28 @@ export async function gameSnapshot(userId: string): Promise<GameSnapshot | null>
     }
   }
 
+  // Open futures contribute margin + unrealized P&L to net worth.
+  const openFutures = await prisma.futuresPosition.findMany({
+    where: { gameId: game.id, status: "OPEN" },
+  });
+  let futuresEquity = 0n;
+  if (openFutures.length > 0) {
+    const futuresPoints = await prisma.pricePoint.findMany({
+      where: {
+        gameId: game.id,
+        tick: game.tick,
+        assetId: { in: openFutures.map((position) => position.assetId) },
+      },
+    });
+    const futuresPriceMap = new Map(futuresPoints.map((point) => [point.assetId, point.priceMinor]));
+    for (const position of openFutures) {
+      const mark = futuresPriceMap.get(position.assetId) ?? position.entryPriceMinor;
+      futuresEquity +=
+        position.marginMinor +
+        futuresPnlMinor(position.side, position.entryPriceMinor, mark, position.quantity);
+    }
+  }
+
   const activeCareer = game.character.careers[0];
   const salaryNet = activeCareer ? monthlyPay(activeCareer.annualSalaryMinor, game.tick).minor : 0n;
 
@@ -1016,7 +857,7 @@ export async function gameSnapshot(userId: string): Promise<GameSnapshot | null>
     date: date.label,
     age: currentAge,
     portfolioValue,
-    netWorth: game.portfolio.cashMinor + portfolioValue,
+    netWorth: game.portfolio.cashMinor + portfolioValue + futuresEquity,
     salaryNet,
     pendingLifeEvent: pendingLifeEventView,
     recentLedger,

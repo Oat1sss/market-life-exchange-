@@ -75,6 +75,19 @@ enum LedgerReason {
   EDUCATION
   LIFE_EVENT
   ADJUSTMENT
+  FUTURES_MARGIN
+  FUTURES_PNL
+}
+
+enum FuturesSide {
+  LONG
+  SHORT
+}
+
+enum FuturesStatus {
+  OPEN
+  CLOSED
+  LIQUIDATED
 }
 
 enum CareerEndReason {
@@ -145,6 +158,7 @@ model Game {
   lifeEvents          LifeEvent[]
   marketEvents        MarketEvent[]
   playerAchievements  PlayerAchievement[]
+  futuresPositions    FuturesPosition[]
 
   @@index([userId, status])
   @@map("games")
@@ -198,6 +212,7 @@ model Asset {
   holdings    Holding[]
   orders      Order[]
   ledger      LedgerEntry[]
+  futures     FuturesPosition[]
 
   @@map("assets")
 }
@@ -261,6 +276,35 @@ model Order {
   @@index([gameId, status])
   @@index([gameId, createdAt(sort: Desc)])
   @@map("orders")
+}
+
+/// Leveraged long/short position. Margin leaves cash when the position opens;
+/// closing credits back margin + P&L − close fee. P&L uses integer minor units.
+model FuturesPosition {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId          String         @map("game_id") @db.Uuid
+  assetId         String         @map("asset_id") @db.Uuid
+  side            FuturesSide
+  quantity        Int
+  leverage        Int
+  entryPriceMinor BigInt         @map("entry_price_minor") @db.BigInt
+  marginMinor     BigInt         @map("margin_minor") @db.BigInt
+  openFeeMinor    BigInt         @map("open_fee_minor") @db.BigInt
+  closeFeeMinor   BigInt?        @map("close_fee_minor") @db.BigInt
+  realizedMinor   BigInt?        @map("realized_minor") @db.BigInt
+  status          FuturesStatus  @default(OPEN)
+  openedTick      Int            @map("opened_tick")
+  closedTick      Int?           @map("closed_tick")
+  idempotencyKey  String         @map("idempotency_key") @db.Uuid
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  game  Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, idempotencyKey])
+  @@index([gameId, status])
+  @@map("futures_positions")
 }
 
 /// Append-only audit trail. created_at/updated_at audit columns are intentionally

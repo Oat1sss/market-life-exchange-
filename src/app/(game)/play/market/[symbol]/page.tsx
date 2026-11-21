@@ -1,12 +1,33 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { maybeUserId } from "@/server/session";
 import { gameSnapshot } from "@/server/services/game-service";
 import { portfolioSnapshot } from "@/server/services/trade-service";
 import { prisma } from "@/server/db";
 import { currency } from "@/domain/money";
-import TradeForm from "@/components/game/trade-form";
+import { analyzePrices } from "@/domain/market/analysis";
+import { SpotOrderForm } from "@/components/game/spot-order-form";
+import { ExchangeCandles } from "@/components/game/exchange-candles";
+import { TokocryptoOrderBook } from "@/components/game/tokocrypto-orderbook";
+import { TokocryptoConsole } from "@/components/game/tokocrypto-console";
+import {
+  EmptyState,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  StatCard,
+} from "@/components/game/ui";
+import { IconChevronLeft, IconCandles, IconCoin, IconWallet } from "@/components/icons";
 
 export const instant = false;
+
+const SECTOR_LABELS: Record<string, string> = {
+  TECH: "Teknologi",
+  HEALTH: "Kesehatan",
+  ENERGY: "Energi",
+  CONSUMER: "Konsumen",
+  CRYPTO: "Kripto",
+};
 
 export default async function MarketDetailPage({
   params,
@@ -39,231 +60,264 @@ export default async function MarketDetailPage({
   const currentPrice = currentPoint?.priceMinor ?? asset.fundamentalMinor;
   const prevPrice = prevPoint?.priceMinor ?? currentPrice;
   const change = currentPrice - prevPrice;
+  const changePct =
+    prevPrice > 0n
+      ? Number(((currentPrice - prevPrice) * 10_000n) / prevPrice) / 100
+      : 0;
+  const isUp = change >= 0n;
+
+  const history = await prisma.pricePoint.findMany({
+    where: { gameId: game.gameId, assetId: asset.id },
+    orderBy: { tick: "asc" },
+    take: 240,
+  });
+  const points = (
+    history.length > 0
+      ? history
+      : [{ tick: game.tick, priceMinor: currentPrice }]
+  ).map((point) => ({ tick: point.tick, priceMinor: point.priceMinor }));
+  const analysis = analyzePrices(points);
+
+  const holding = portfolio?.holdings.find((h) => h.symbol === symbol);
+  const openOrders = (portfolio?.pendingOrders ?? [])
+    .filter((order) => order.symbol === symbol)
+    .map((order) => ({
+      id: order.id,
+      symbol: order.symbol,
+      side: order.side as "BUY" | "SELL",
+      type: order.type as "MARKET" | "LIMIT",
+      quantity: order.quantity,
+      limitPriceMinor: order.limitPriceMinor,
+    }));
+  const recentTrades = (portfolio?.history ?? [])
+    .filter((trade) => trade.symbol === symbol)
+    .slice(0, 10)
+    .map((trade) => ({
+      id: trade.id,
+      symbol: trade.symbol,
+      side: trade.side as "BUY" | "SELL",
+      quantity: trade.quantity,
+      priceMinor: trade.priceMinor,
+      feeMinor: trade.feeMinor,
+    }));
+  const holdingViews = holding
+    ? [
+        {
+          symbol: holding.symbol,
+          quantity: holding.quantity,
+          avgCostMinor: holding.avgCostMinor,
+          currentPriceMinor: holding.currentPriceMinor,
+          marketValueMinor: holding.marketValueMinor,
+        },
+      ]
+    : [];
+  const holdingQuantity = Object.fromEntries(
+    (portfolio?.holdings ?? []).map((row) => [row.symbol, row.quantity]),
+  );
+  const markets = assets.map((row) => ({
+    symbol: row.symbol,
+    name: row.name,
+    priceMinor:
+      row.id === asset.id
+        ? currentPrice
+        : (history.find((point) => point.assetId === row.id)?.priceMinor ??
+          row.fundamentalMinor),
+  }));
 
   return (
-    <>
-      <header className="mb-6 flex items-baseline justify-between">
-        <div>
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">{asset.symbol}</h1>
-            <span className="text-sm uppercase tracking-wider text-muted">{asset.sector}</span>
-          </div>
-          <p className="mt-1 text-sm text-muted">{asset.name}</p>
-        </div>
-        <div className="text-right tabular-nums">
-          <div className="text-2xl font-medium">{currency(currentPrice)}</div>
-          <div
-            className={`text-sm font-medium ${
-              change > 0n
-                ? "text-green-700"
-                : change < 0n
-                  ? "text-red-700"
-                  : "text-muted"
+    <div className="space-y-4">
+      <PageHeader
+        eyebrow={`${asset.kind === "CRYPTO" ? "Kripto" : "Saham"} · ${
+          SECTOR_LABELS[asset.sector] ?? asset.sector
+        }`}
+        title={`${asset.symbol}/CR`}
+        description={asset.name}
+        back={
+          <Link
+            href="/play/market"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-muted transition hover:text-white"
+          >
+            <IconChevronLeft className="h-3.5 w-3.5" />
+            Kembali ke pasar
+          </Link>
+        }
+        actions={
+          <>
+            <Link
+              href="/play/wallet"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-xs font-bold text-[#c7ccd4] transition hover:border-brand/40 hover:text-brand"
+            >
+              <IconWallet className="h-3.5 w-3.5" />
+              Tambah dana
+            </Link>
+            {asset.kind === "CRYPTO" ? (
+              <Link
+                href={`/play/crypto/${asset.symbol}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-xs font-bold text-gold transition hover:bg-gold/20"
+              >
+                <IconCoin className="h-3.5 w-3.5" />
+                Terminal kripto
+              </Link>
+            ) : null}
+          </>
+        }
+      />
+
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-line bg-surface px-4 py-3">
+        <div className="flex items-baseline gap-3">
+          <span
+            className={`text-2xl font-black tabular-nums ${
+              isUp ? "text-up" : "text-down"
             }`}
           >
-            {change > 0n ? "+" : ""}
-            {currency(change)} today
-          </div>
-        </div>
-      </header>
-
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-widest text-muted">
-          Order
-        </h2>
-        {portfolio ? (
-          <TradeForm symbols={[asset.symbol]} />
-        ) : (
-          <p className="rounded border border-border-subtle bg-background p-4 text-sm text-muted">
-            No active game found for this session.
-          </p>
-        )}
-      </section>
-
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-widest text-muted">
-          My holding
-        </h2>
-        {portfolio && portfolio.holdings.find((h) => h.symbol === asset.symbol) ? (
-          <HoldingLine holding={portfolio.holdings.find((h) => h.symbol === asset.symbol)!} />
-        ) : (            <p className="rounded border border-border-subtle bg-background p-4 text-sm text-muted">
-            You do not hold {asset.symbol} yet.
-          </p>
-        )}
-
-        {!portfolio && (
-          <p className="rounded border border-border-subtle bg-background p-4 text-sm text-muted">
-            No active game found for this session.
-          </p>
-        )}
-      </section>
-
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-widest text-muted">
-          Open orders
-        </h2>
-        {portfolio && (
-          <OrdersList
-            orders={portfolio.pendingOrders.filter((o) => o.symbol === asset.symbol)}
-          />
-        )}
-
-        {!portfolio && (
-          <p className="rounded border border-border-subtle bg-background p-4 text-sm text-muted">
-            No active game found for this session.
-          </p>
-        )}
-      </section>
-
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-widest text-muted">
-          Recent trades
-        </h2>
-        {portfolio && (
-          <TradesList
-            trades={portfolio.history.filter((t) => t.symbol === asset.symbol).slice(0, 10)}
-          />
-        )}
-
-        {!portfolio && (
-          <p className="rounded border border-border-subtle bg-background p-4 text-sm text-muted">
-            No active game found for this session.
-          </p>
-        )}
-      </section>
-    </>
-  );
-}
-
-function HoldingLine({ holding }: { holding: { symbol: string; quantity: number; avgCostMinor: bigint; currentPriceMinor: bigint; marketValueMinor: bigint } }) {
-  const qty = BigInt(holding.quantity);
-  const pnl = holding.marketValueMinor - holding.avgCostMinor * qty;
-  return (
-    <ul className="space-y-2">
-      <li className="rounded border border-border-subtle bg-background p-3 text-sm">
-        <div className="flex items-baseline justify-between">
-          <span className="font-semibold">{holding.symbol}</span>
-          <span className="tabular-nums text-muted">
-            {holding.quantity.toLocaleString("en-US")} shares
+            {currency(currentPrice)}
+          </span>
+          <span
+            className={`rounded px-1.5 py-0.5 text-[11px] font-black tabular-nums ${
+              isUp ? "bg-up/10 text-up" : "bg-down/10 text-down"
+            }`}
+          >
+            {isUp ? "+" : ""}
+            {changePct.toFixed(2)}%
           </span>
         </div>
-        <div className="mt-1 grid gap-x-4 grid-cols-2 text-xs">
-          <div className="flex justify-between">
-            <span className="text-muted">Avg cost</span>
-            <span className="tabular-nums">{currency(holding.avgCostMinor)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted">Current</span>
-            <span className="tabular-nums">{currency(holding.currentPriceMinor)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted">Value</span>
-            <span className="tabular-nums font-medium">{currency(holding.marketValueMinor)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted">P&amp;L</span>
-            <span className={`tabular-nums font-medium ${pnl >= 0n ? "text-green-700" : "text-red-700"}`}>
-              {pnl >= 0n ? "+" : ""}
-              {currency(pnl)}
-            </span>
-          </div>
+        <span className="text-[11px] text-muted">
+          {change >= 0n ? "+" : ""}
+          {currency(change)} pada tick #{game.tick}
+        </span>
+        <div className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-1 text-[10px] text-muted">
+          <span>
+            Tertinggi{" "}
+            <strong className="tabular-nums text-up">{currency(analysis.highMinor)}</strong>
+          </span>
+          <span>
+            Terendah{" "}
+            <strong className="tabular-nums text-down">{currency(analysis.lowMinor)}</strong>
+          </span>
+          <span>
+            Volatilitas{" "}
+            <strong className="tabular-nums text-gold">
+              {(analysis.volatilityBp / 100).toFixed(1)}%
+            </strong>
+          </span>
+          <span>
+            Fair value{" "}
+            <strong className="tabular-nums text-brand">
+              {currency(asset.fundamentalMinor)}
+            </strong>
+          </span>
         </div>
-      </li>
-    </ul>
-  );
-}
+      </div>
 
-function OrdersList({ orders }: { orders: Array<{ id: string; symbol: string; side: "BUY" | "SELL"; type: "MARKET" | "LIMIT"; quantity: number; limitPriceMinor: bigint | null; filled: boolean }> }) {
-  return (
-    <ul className="space-y-2">
-      {orders.map((o) => (
-        <li
-          key={o.id}
-          className="rounded border border-border-subtle bg-background p-3 text-sm"
-        >
-          <div className="flex items-baseline justify-between">
-            <span className="font-mono text-xs text-muted">{o.id.slice(0, 8)}</span>
-            <span
-              className={`text-xs font-medium ${
-                o.side === "BUY" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-              }`}
-            >
-              {o.side}
-            </span>
-          </div>
-          <div className="mt-1 flex items-baseline justify-between">
-            <span className="text-muted">{o.type}</span>
-            <span className="tabular-nums">{o.quantity.toLocaleString("en-US")} shares</span>
-          </div>
-          {o.limitPriceMinor != null && (
-            <div className="mt-1 flex items-baseline justify-between">
-              <span className="text-muted">Limit</span>
-              <span className="tabular-nums">{currency(o.limitPriceMinor)}</span>
+      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Harga terakhir"
+          value={currency(currentPrice)}
+          tone={isUp ? "up" : "down"}
+          hint={`Tick #${game.tick}`}
+          icon={<IconCandles className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Perubahan"
+          value={`${isUp ? "+" : ""}${changePct.toFixed(2)}%`}
+          tone={isUp ? "up" : "down"}
+          hint={currency(change)}
+        />
+        <StatCard
+          label="Kepemilikan"
+          value={holding ? `${holding.quantity.toLocaleString("en-US")} unit` : "0 unit"}
+          hint={
+            holding
+              ? `${currency(holding.marketValueMinor)} nilai pasar`
+              : "Belum memiliki aset ini"
+          }
+        />
+        <StatCard
+          label="Saldo tersedia"
+          value={currency(game.cashMinor)}
+          tone="brand"
+          hint="Siap dipakai order"
+        />
+      </dl>
+
+      <div className="grid gap-4 xl:grid-cols-12">
+        <div className="space-y-4 xl:col-span-8">
+          <ExchangeCandles points={points} symbol={asset.symbol} />
+
+          <Panel>
+            <PanelHeader
+              title={`Tentang ${asset.symbol}`}
+              subtitle={`${asset.name} · ${SECTOR_LABELS[asset.sector] ?? asset.sector}`}
+            />
+            <div className="grid gap-4 p-4 text-xs leading-6 text-muted sm:grid-cols-2">
+              <p>
+                <span className="font-bold text-white">{asset.symbol}</span> adalah
+                instrumen simulasi dalam MarketLife Exchange. Harga bergerak
+                setiap kali pasar dimajukan dan dipengaruhi volatilitas sektor{" "}
+                <span className="font-bold text-[#c7ccd4]">
+                  {SECTOR_LABELS[asset.sector] ?? asset.sector}
+                </span>
+                .
+              </p>
+              <p>
+                Gunakan grafik candlestick, MA 5/20, dan buku pesanan untuk
+                menentukan area masuk. Order market langsung tereksekusi,
+                sedangkan limit menunggu di tick berikutnya.
+              </p>
             </div>
-          )}
-          <div className="mt-1 flex items-baseline justify-between">
-            <span className="text-muted text-xs">Status</span>
-            <span className={`text-xs ${o.filled ? "text-green-700" : "text-amber-700"}`}>
-              {o.filled ? "Filled" : "Pending"}
-            </span>
-          </div>
-        </li>
-      ))}
-      {orders.length === 0 && (
-        <li className="rounded border border-dashed border-border-subtle p-4 text-center text-sm text-muted">
-          No open orders for this asset.
-        </li>
-      )}
-    </ul>
-  );
-}
+          </Panel>
+        </div>
 
-function TradesList({ trades }: { trades: Array<{ id: string; symbol: string; side: "BUY" | "SELL"; quantity: number; priceMinor: bigint; feeMinor: bigint; createdAt: number }> }) {
-  return (
-    <ul className="space-y-2">
-      {trades.map((t) => {
-        const total = BigInt(t.quantity) * t.priceMinor + t.feeMinor;
-        return (
-          <li
-            key={t.id}
-            className="rounded border border-border-subtle bg-background p-3 text-sm"
+        <div className="space-y-4 xl:col-span-4">
+          <SpotOrderForm
+            markets={markets}
+            defaultSymbol={asset.symbol}
+            cashMinor={game.cashMinor}
+            holdings={holdingQuantity}
+          />
+          <TokocryptoOrderBook
+            currentPriceMinor={currentPrice}
+            isUp={isUp}
+            symbol={asset.symbol}
+          />
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold text-white">Konsol trading</h2>
+            <p className="mt-0.5 text-[11px] text-muted">
+              Pantau pesanan, kepemilikan, dan riwayat transaksi aset ini.
+            </p>
+          </div>
+          <Link
+            href="/play/portfolio"
+            className="text-[10px] font-bold text-brand transition hover:text-brand-strong"
           >
-            <div className="flex items-baseline justify-between">
-              <span className="font-mono text-xs text-muted">{t.id.slice(0, 8)}</span>
-              <span
-                className={`text-xs font-medium ${
-                  t.side === "BUY" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                }`}
-              >
-                {t.side}
-              </span>
-            </div>
-            <div className="mt-1 grid gap-x-4 grid-cols-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted">Qty</span>
-                <span className="tabular-nums">{t.quantity.toLocaleString("en-US")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Price</span>
-                <span className="tabular-nums">{currency(t.priceMinor)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Fee</span>
-                <span className="tabular-nums">{currency(t.feeMinor)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">Total</span>
-                <span className="tabular-nums font-medium">{currency(total)}</span>
-              </div>
-            </div>
-          </li>
-        );
-      })}
-      {trades.length === 0 && (
-        <li className="rounded border border-dashed border-border-subtle p-4 text-center text-sm text-muted">
-          No trades for this asset yet.
-        </li>
-      )}
-    </ul>
+            Buka portofolio →
+          </Link>
+        </div>
+        <TokocryptoConsole
+          positions={[]}
+          openOrders={openOrders}
+          holdings={holdingViews}
+          tradeHistory={recentTrades}
+          showFutures={false}
+          holdingsLabel="Kepemilikan Saya"
+          emptyHoldingsLabel={`Anda belum memiliki ${asset.symbol}.`}
+          defaultTab="ORDERS"
+        />
+      </div>
+
+      {!portfolio ? (
+        <Panel>
+          <EmptyState>
+            Data portofolio belum tersedia untuk sesi ini. Muat ulang halaman
+            atau buka kembali akun demo.
+          </EmptyState>
+        </Panel>
+      ) : null}
+    </div>
   );
 }

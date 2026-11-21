@@ -49,6 +49,7 @@ describe("Fase 8: Multi-tick Simulation & Accounting Invariants", () => {
     });
 
     const TICKS_TO_SIMULATE = 6;
+    const assetCount = await prisma.asset.count();
 
     for (let t = 1; t <= TICKS_TO_SIMULATE; t++) {
       // 1. If a life event is pending, resolve it so advance is unblocked
@@ -130,11 +131,11 @@ describe("Fase 8: Multi-tick Simulation & Accounting Invariants", () => {
         expect(h.averageCostMinor).toBeGreaterThan(0n);
       }
 
-      // Invariant 4: Price points exist for all 5 assets at this tick
+      // Invariant 4: Price points exist for every seeded asset at this tick
       const pricePoints = await prisma.pricePoint.findMany({
         where: { gameId, tick: t },
       });
-      expect(pricePoints.length).toBe(5);
+      expect(pricePoints.length).toBe(assetCount);
     }
   });
 });

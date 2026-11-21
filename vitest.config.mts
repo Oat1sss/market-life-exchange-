@@ -13,8 +13,9 @@ export default defineConfig({
     // for MVP-task tests; a dedicated test database arrives with Phase 8.
     setupFiles: ["dotenv/config"],
     environment: "node",
-    testTimeout: 30000,
-    hookTimeout: 30000,
+    // DB-backed simulations take ~40s against a managed (remote) Postgres.
+    testTimeout: 120000,
+    hookTimeout: 120000,
     include: ["tests/**/*.test.ts"],
     coverage: {
       provider: "v8",

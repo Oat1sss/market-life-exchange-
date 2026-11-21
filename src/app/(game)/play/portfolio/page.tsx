@@ -1,14 +1,35 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { maybeUserId } from "@/server/session";
-
-export const instant = false;
-import { portfolioSnapshot, type HoldingRow, type PortfolioSnapshot } from "@/server/services/trade-service";
+import {
+  portfolioSnapshot,
+  type HoldingRow,
+  type PortfolioSnapshot,
+} from "@/server/services/trade-service";
 import { gameSnapshot } from "@/server/services/game-service";
 import { currency } from "@/domain/money";
-import TradeForm from "@/components/game/trade-form";
+import { SpotOrderForm } from "@/components/game/spot-order-form";
+import { Sparkline, type ChartPoint } from "@/components/game/price-chart";
+import { CancelOrderButton } from "@/components/game/cancel-order-button";
+import {
+  EmptyState,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  SideBadge,
+  StatCard,
+  StatusBadge,
+} from "@/components/game/ui";
+import {
+  IconArrowRight,
+  IconCandles,
+  IconChartUp,
+  IconPie,
+  IconWallet,
+} from "@/components/icons";
 import { prisma } from "@/server/db";
 
-
+export const instant = false;
 
 export default async function PortfolioPage() {
   const userId = await maybeUserId();
@@ -18,249 +39,421 @@ export default async function PortfolioPage() {
   if (!game) redirect("/play/new");
 
   const portfolio = await portfolioSnapshot(userId);
-  const allAssets = await prisma.asset.findMany({
-    select: { symbol: true },
-    orderBy: { symbol: "asc" },
+  const holdings = portfolio?.holdings ?? [];
+  const pendingOrders = portfolio?.pendingOrders ?? [];
+  const history = portfolio?.history ?? [];
+
+  const assets = await prisma.asset.findMany({ orderBy: { symbol: "asc" } });
+  const points = await prisma.pricePoint.findMany({
+    where: { gameId: game.gameId, tick: game.tick },
   });
-  const symbols = allAssets.map((a) => a.symbol);
+  const priceByAsset = new Map(points.map((point) => [point.assetId, point.priceMinor]));
+  const markets = assets.map((asset) => ({
+    symbol: asset.symbol,
+    name: asset.name,
+    priceMinor: priceByAsset.get(asset.id) ?? asset.fundamentalMinor,
+  }));
+  const holdingQuantity = Object.fromEntries(
+    holdings.map((holding) => [holding.symbol, holding.quantity]),
+  );
+
+  const assetIdBySymbol = new Map(assets.map((asset) => [asset.symbol, asset.id]));
+  const sparkBySymbol = new Map<string, ChartPoint[]>();
+  for (const holding of holdings) {
+    const assetId = assetIdBySymbol.get(holding.symbol);
+    const series = assetId ? portfolio?.priceHistory.get(assetId) : undefined;
+    if (series && series.length > 1) sparkBySymbol.set(holding.symbol, series);
+  }
+
+  const cashMinor = portfolio?.cashMinor ?? game.cashMinor;
+  const holdingsValue = portfolio?.holdingsValueMinor ?? 0n;
+  const netWorth = cashMinor + holdingsValue;
+  const unrealized = holdings.reduce((sum, holding) => sum + holding.unrealizedMinor, 0n);
+  const allocation =
+    netWorth > 0n ? Number((holdingsValue * 10_000n) / netWorth) / 100 : 0;
 
   return (
-    <>
-      <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Portfolio</h1>
-          <p className="mt-1 text-sm text-muted">
-            Month {game.tick} · Portfolio value: {currency(portfolio?.portfolioValue ?? 0n)} · Cash: {currency(portfolio?.cashMinor ?? 0n)}
-          </p>
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Akun demo · Portofolio spot"
+        title="Portofolio saya"
+        description={`Ringkasan aset, order aktif, dan riwayat transaksi. Pasar ke-${game.tick} · ${game.date}.`}
+        actions={
+          <>
+            <Link
+              href="/play/market"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-xs font-bold text-[#c7ccd4] transition hover:border-brand/40 hover:text-brand"
+            >
+              <IconCandles className="h-3.5 w-3.5" />
+              Jelajahi pasar
+            </Link>
+            <Link
+              href="/play/wallet"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-xs font-black text-[#04120e] transition hover:bg-brand-strong"
+            >
+              <IconWallet className="h-3.5 w-3.5" />
+              Tambah dana
+            </Link>
+          </>
+        }
+      />
+
+      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Total ekuitas"
+          value={currency(netWorth)}
+          tone="brand"
+          hint={`${holdings.length} aset · ${pendingOrders.length} order aktif`}
+          icon={<IconPie className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Saldo tunai"
+          value={currency(cashMinor)}
+          hint="Siap dipakai order spot"
+          icon={<IconWallet className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Nilai aset"
+          value={currency(holdingsValue)}
+          hint={`${allocation.toFixed(2)}% dari ekuitas`}
+          icon={<IconCandles className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Unrealized P&L"
+          value={`${unrealized > 0n ? "+" : ""}${currency(unrealized)}`}
+          tone={unrealized > 0n ? "up" : unrealized < 0n ? "down" : "default"}
+          hint="Perubahan nilai aset terhadap harga beli"
+          icon={<IconChartUp className="h-4 w-4" />}
+        />
+      </dl>
+
+      <Panel>
+        <PanelHeader
+          title="Alokasi portofolio"
+          subtitle={`Aset ${allocation.toFixed(2)}% · Kas ${(100 - allocation).toFixed(2)}%`}
+          action={
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted">
+              Tick #{game.tick}
+            </span>
+          }
+        />
+        <div className="space-y-2.5 p-4">
+          <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-line">
+            <div
+              className="h-full bg-brand transition-all duration-500"
+              style={{ width: `${Math.max(0, Math.min(100, allocation))}%` }}
+            />
+            <div
+              className="h-full bg-gold/80 transition-all duration-500"
+              style={{ width: `${Math.max(0, 100 - allocation)}%` }}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-muted">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-brand" />
+              Aset {currency(holdingsValue)}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-gold/80" />
+              Kas {currency(cashMinor)}
+            </span>
+          </div>
         </div>
-      </header>
+      </Panel>
 
-      {/* Holdings Section */}
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-widest text-muted">
-          Current Holdings
-        </h2>
-        <HoldingsTable holdings={portfolio?.holdings ?? []} />
-      </section>
+      <div className="grid gap-4 xl:grid-cols-12">
+        <div className="space-y-4 xl:col-span-8">
+          <Panel>
+            <PanelHeader
+              title="Kepemilikan"
+              subtitle="Harga mark mengikuti tick pasar terakhir"
+              action={
+                <Link
+                  href="/play/market"
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-brand transition hover:text-brand-strong"
+                >
+                  Tambah aset
+                  <IconArrowRight className="h-3 w-3" />
+                </Link>
+              }
+            />
+            <HoldingsTable holdings={holdings} sparks={sparkBySymbol} />
+          </Panel>
 
-      {/* Open Orders Section */}
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-widest text-muted">
-          Open Orders (Resting Limits)
-        </h2>
-        <OrdersTable orders={portfolio?.pendingOrders ?? []} />
-      </section>
+          <Panel>
+            <PanelHeader
+              title="Order terbuka"
+              subtitle="Order limit menunggu harga target di tick berikutnya"
+            />
+            <OrdersTable orders={pendingOrders} />
+          </Panel>
 
-      {/* Trade History Section */}
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-widest text-muted">
-          Trade History
-        </h2>
-        <TradesTable trades={portfolio?.history ?? []} />
-      </section>
+          <Panel>
+            <PanelHeader
+              title="Riwayat transaksi"
+              subtitle="25 transaksi terakhir di akun ini"
+            />
+            <TradesTable trades={history} />
+          </Panel>
+        </div>
 
-      {/* Order Placement Form */}
-      <section className="rounded border border-border-subtle bg-background p-4">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-widest text-muted">
-          Place an order
-        </h2>
-        <TradeForm symbols={symbols} />
-      </section>
-    </>
+        <div className="space-y-4 xl:col-span-4">
+          <SpotOrderForm
+            markets={markets}
+            cashMinor={cashMinor}
+            holdings={holdingQuantity}
+          />
+
+          <Panel className="overflow-hidden">
+            <div className="border-b border-line bg-gradient-to-r from-gold/10 to-transparent px-4 py-3">
+              <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#c7ccd4]">
+                Catatan portofolio
+              </h2>
+            </div>
+            <div className="space-y-3 p-4 text-[11px] leading-5 text-muted">
+              <p>
+                <span className="font-bold text-up">Unrealized P&L</span> menghitung
+                selisih nilai pasar dengan harga rata-rata beli, belum termasuk
+                biaya transaksi.
+              </p>
+              <p>
+                Order <span className="font-bold text-gold">limit</span> dapat
+                dibatalkan kapan saja sebelum tereksekusi. Dana tidak terkunci
+                saat order dibuat.
+              </p>
+              <p>
+                Jual aset lewat panel order di samping, atau buka halaman aset
+                untuk grafik candlestick dan analisis lengkap.
+              </p>
+            </div>
+          </Panel>
+        </div>
+      </div>
+    </div>
   );
 }
 
-function HoldingsTable({ holdings }: { holdings: HoldingRow[] }) {
+function HoldingsTable({
+  holdings,
+  sparks,
+}: {
+  holdings: HoldingRow[];
+  sparks: Map<string, ChartPoint[]>;
+}) {
   return (
-    <div className="overflow-x-auto rounded border border-border-subtle">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[720px] text-left text-xs">
         <thead>
-          <tr className="border-b border-border-subtle bg-foreground/[0.02]">
-            <th className="px-4 py-2 text-left text-xs uppercase tracking-widest text-muted">Symbol</th>
-            <th className="px-4 py-2 text-left text-xs uppercase tracking-widest text-muted">Name</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Shares</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Avg cost</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Mark</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Value</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Unrealized P&amp;L</th>
+          <tr className="border-b border-line text-[10px] uppercase tracking-wider text-muted">
+            <th className="px-4 py-2.5 font-semibold">Aset</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Jumlah</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Rata-rata</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Harga mark</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Nilai pasar</th>
+            <th className="px-3 py-2.5 text-right font-semibold">P&amp;L</th>
+            <th className="hidden px-4 py-2.5 text-right font-semibold lg:table-cell">
+              Tren
+            </th>
           </tr>
         </thead>
-        <tbody>
-          {holdings.map((h) => {
+        <tbody className="divide-y divide-line/60">
+          {holdings.map((holding) => {
+            const up = holding.unrealizedMinor >= 0n;
+            const series = sparks.get(holding.symbol);
             return (
-              <tr key={h.symbol} className="border-b border-border-subtle/50 hover:bg-foreground/[0.01]">
-                <td className="px-4 py-2 font-medium">{h.symbol}</td>
-                <td className="px-4 py-2 text-muted">{h.name}</td>
-                <td className="px-4 py-2 text-right tabular-nums">
-                  {h.quantity.toLocaleString("en-US")}
+              <tr key={holding.symbol} className="transition hover:bg-surface-2/40">
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/play/market/${holding.symbol}`}
+                    className="flex items-center gap-2.5"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand/12 text-[10px] font-black text-brand">
+                      {holding.symbol.slice(0, 2)}
+                    </span>
+                    <span>
+                      <span className="block font-bold text-white">
+                        {holding.symbol}
+                      </span>
+                      <span className="block text-[10px] uppercase text-[#5e6673]">
+                        {holding.name}
+                      </span>
+                    </span>
+                  </Link>
                 </td>
-                <td className="px-4 py-2 text-right tabular-nums">
-                  {currency(h.avgCostMinor)}
+                <td className="px-3 py-3 text-right tabular-nums text-[#c7ccd4]">
+                  {holding.quantity.toLocaleString("en-US")}
                 </td>
-                <td className="px-4 py-2 text-right tabular-nums">
-                  {currency(h.currentPriceMinor)}
+                <td className="px-3 py-3 text-right tabular-nums text-muted">
+                  {currency(holding.avgCostMinor)}
                 </td>
-                <td className="px-4 py-2 text-right tabular-nums font-medium">
-                  {currency(h.marketValueMinor)}
+                <td className="px-3 py-3 text-right tabular-nums text-white">
+                  {currency(holding.currentPriceMinor)}
+                </td>
+                <td className="px-3 py-3 text-right font-semibold tabular-nums text-white">
+                  {currency(holding.marketValueMinor)}
                 </td>
                 <td
-                  className={`px-4 py-2 text-right tabular-nums font-medium ${
-                    h.unrealizedMinor > 0n
-                      ? "text-green-700"
-                      : h.unrealizedMinor < 0n
-                        ? "text-red-700"
-                        : "text-muted"
+                  className={`px-3 py-3 text-right font-bold tabular-nums ${
+                    up ? "text-up" : "text-down"
                   }`}
                 >
-                  {h.unrealizedMinor > 0n ? "+" : ""}
-                  {currency(h.unrealizedMinor)}
+                  {up ? "+" : ""}
+                  {currency(holding.unrealizedMinor)}
+                </td>
+                <td className="hidden px-4 py-3 lg:table-cell">
+                  {series ? (
+                    <div className="ml-auto w-24">
+                      <Sparkline
+                        points={series}
+                        id={`portfolio-${holding.symbol}`}
+                        positive={up}
+                      />
+                    </div>
+                  ) : (
+                    <span className="block text-right text-[10px] text-[#5e6673]">
+                      —
+                    </span>
+                  )}
                 </td>
               </tr>
             );
           })}
-          {holdings.length === 0 && (
+          {holdings.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted">
-                No active holdings. Buy assets on the market page.
+              <td colSpan={7} className="px-4 py-6">
+                <EmptyState>
+                  Belum ada kepemilikan. Pilih aset di panel order untuk membuat
+                  transaksi pertama.
+                </EmptyState>
               </td>
             </tr>
-          )}
+          ) : null}
         </tbody>
       </table>
     </div>
   );
 }
 
-function OrdersTable({
-  orders,
-}: {
-  orders: PortfolioSnapshot["pendingOrders"];
-}) {
+function OrdersTable({ orders }: { orders: PortfolioSnapshot["pendingOrders"] }) {
   return (
-    <div className="overflow-x-auto rounded border border-border-subtle">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[640px] text-left text-xs">
         <thead>
-          <tr className="border-b border-border-subtle bg-foreground/[0.02]">
-            <th className="px-4 py-2 text-left text-xs uppercase tracking-widest text-muted">Order ID</th>
-            <th className="px-4 py-2 text-left text-xs uppercase tracking-widest text-muted">Symbol</th>
-            <th className="px-4 py-2 text-center text-xs uppercase tracking-widest text-muted">Side</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Type</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Qty</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Limit Price</th>
-            <th className="px-4 py-2 text-center text-xs uppercase tracking-widest text-muted">Status</th>
+          <tr className="border-b border-line text-[10px] uppercase tracking-wider text-muted">
+            <th className="px-4 py-2.5 font-semibold">Pasangan</th>
+            <th className="px-3 py-2.5 font-semibold">Sisi</th>
+            <th className="px-3 py-2.5 font-semibold">Tipe</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Harga limit</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Jumlah</th>
+            <th className="px-3 py-2.5 text-center font-semibold">Status</th>
+            <th className="px-4 py-2.5 text-right font-semibold">Aksi</th>
           </tr>
         </thead>
-        <tbody>
-          {orders.map((o) => (
-            <tr key={o.id} className="border-b border-border-subtle/50">
-              <td className="px-4 py-2 font-mono text-xs">{o.id.slice(0, 8)}</td>
-              <td className="px-4 py-2 font-medium">{o.symbol}</td>
-              <td className="px-4 py-2 text-center">
-                <span
-                  className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                    o.side === "BUY" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {o.side}
-                </span>
+        <tbody className="divide-y divide-line/60">
+          {orders.map((order) => (
+            <tr key={order.id} className="transition hover:bg-surface-2/40">
+              <td className="px-4 py-3">
+                <span className="font-bold text-white">{order.symbol}</span>
+                <span className="ml-1.5 text-[10px] text-[#5e6673]">/CR</span>
               </td>
-              <td className="px-4 py-2 text-right">{o.type}</td>
-              <td className="px-4 py-2 text-right tabular-nums">
-                {o.quantity.toLocaleString("en-US")}
+              <td className="px-3 py-3">
+                <SideBadge side={order.side} />
               </td>
-              <td className="px-4 py-2 text-right tabular-nums">
-                {o.limitPriceMinor != null ? currency(o.limitPriceMinor) : "—"}
+              <td className="px-3 py-3 text-[#c7ccd4]">
+                {order.type === "LIMIT" ? "Limit" : "Market"}
               </td>
-              <td className="px-4 py-2 text-center">
-                <span className="text-xs font-medium text-amber-700">Pending</span>
+              <td className="px-3 py-3 text-right tabular-nums text-white">
+                {order.limitPriceMinor != null
+                  ? currency(order.limitPriceMinor)
+                  : "—"}
+              </td>
+              <td className="px-3 py-3 text-right tabular-nums text-[#c7ccd4]">
+                {order.quantity.toLocaleString("en-US")}
+              </td>
+              <td className="px-3 py-3 text-center">
+                <StatusBadge status="PENDING" />
+              </td>
+              <td className="px-4 py-3 text-right">
+                <CancelOrderButton orderId={order.id} />
               </td>
             </tr>
           ))}
-          {orders.length === 0 && (
+          {orders.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-4 py-4 text-center text-sm text-muted">
-                No open resting orders.
+              <td colSpan={7} className="px-4 py-6">
+                <EmptyState>
+                  Tidak ada order terbuka. Order limit yang belum tereksekusi
+                  akan muncul di sini.
+                </EmptyState>
               </td>
             </tr>
-          )}
+          ) : null}
         </tbody>
       </table>
     </div>
   );
 }
 
-function TradesTable({
-  trades,
-}: {
-  trades: PortfolioSnapshot["history"];
-}) {
+function TradesTable({ trades }: { trades: PortfolioSnapshot["history"] }) {
   return (
-    <div className="overflow-x-auto rounded border border-border-subtle">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[760px] text-left text-xs">
         <thead>
-          <tr className="border-b border-border-subtle bg-foreground/[0.02]">
-            <th className="px-4 py-2 text-left text-xs uppercase tracking-widest text-muted">Trade ID</th>
-            <th className="px-4 py-2 text-left text-xs uppercase tracking-widest text-muted">Symbol</th>
-            <th className="px-4 py-2 text-center text-xs uppercase tracking-widest text-muted">Side</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Type</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Qty</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Fill Price</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Fee</th>
-            <th className="px-4 py-2 text-right text-xs uppercase tracking-widest text-muted">Net Total</th>
-            <th className="px-4 py-2 text-center text-xs uppercase tracking-widest text-muted">Status</th>
+          <tr className="border-b border-line text-[10px] uppercase tracking-wider text-muted">
+            <th className="px-4 py-2.5 font-semibold">Waktu</th>
+            <th className="px-3 py-2.5 font-semibold">Pasangan</th>
+            <th className="px-3 py-2.5 font-semibold">Sisi</th>
+            <th className="px-3 py-2.5 font-semibold">Tipe</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Jumlah</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Harga</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Biaya</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Total</th>
+            <th className="px-4 py-2.5 text-center font-semibold">Status</th>
           </tr>
         </thead>
-        <tbody>
-          {trades.map((t) => {
-            return (
-              <tr key={t.id} className="border-b border-border-subtle/50">
-                <td className="px-4 py-2 font-mono text-xs">{t.id.slice(0, 8)}</td>
-                <td className="px-4 py-2 font-medium">{t.symbol}</td>
-                <td className="px-4 py-2 text-center">
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      t.side === "BUY" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {t.side}
-                  </span>
-                </td>
-                <td className="px-4 py-2 text-right">{t.type}</td>
-                <td className="px-4 py-2 text-right tabular-nums">
-                  {t.quantity.toLocaleString("en-US")}
-                </td>
-                <td className="px-4 py-2 text-right tabular-nums">
-                  {t.fillPriceMinor != null ? currency(t.fillPriceMinor) : "—"}
-                </td>
-                <td className="px-4 py-2 text-right tabular-nums text-muted">
-                  {currency(t.feeMinor)}
-                </td>
-                <td className="px-4 py-2 text-right tabular-nums font-medium">
-                  {t.netMinor != null ? currency(t.netMinor) : "—"}
-                </td>
-                <td className="px-4 py-2 text-center">
-                  <span
-                    className={`text-xs font-medium ${
-                      t.status === "FILLED"
-                        ? "text-emerald-700"
-                        : t.status === "CANCELLED"
-                          ? "text-muted"
-                          : "text-red-700"
-                    }`}
-                  >
-                    {t.status}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-          {trades.length === 0 && (
-            <tr>
-              <td colSpan={9} className="px-4 py-4 text-center text-sm text-muted">
-                No trades yet.
+        <tbody className="divide-y divide-line/60">
+          {trades.map((trade) => (
+            <tr key={trade.id} className="transition hover:bg-surface-2/40">
+              <td className="px-4 py-3 tabular-nums text-muted">
+                #{trade.tickResolved ?? trade.tickPlaced}
+              </td>
+              <td className="px-3 py-3 font-bold text-white">{trade.symbol}</td>
+              <td className="px-3 py-3">
+                <SideBadge side={trade.side} />
+              </td>
+              <td className="px-3 py-3 text-[#c7ccd4]">
+                {trade.type === "LIMIT" ? "Limit" : "Market"}
+              </td>
+              <td className="px-3 py-3 text-right tabular-nums text-[#c7ccd4]">
+                {trade.quantity.toLocaleString("en-US")}
+              </td>
+              <td className="px-3 py-3 text-right tabular-nums text-white">
+                {trade.fillPriceMinor != null
+                  ? currency(trade.fillPriceMinor)
+                  : trade.limitPriceMinor != null
+                    ? currency(trade.limitPriceMinor)
+                    : "—"}
+              </td>
+              <td className="px-3 py-3 text-right tabular-nums text-muted">
+                {currency(trade.feeMinor)}
+              </td>
+              <td className="px-3 py-3 text-right font-semibold tabular-nums text-white">
+                {trade.netMinor != null ? currency(trade.netMinor) : "—"}
+              </td>
+              <td className="px-4 py-3 text-center">
+                <StatusBadge status={trade.status} />
               </td>
             </tr>
-          )}
+          ))}
+          {trades.length === 0 ? (
+            <tr>
+              <td colSpan={9} className="px-4 py-6">
+                <EmptyState>
+                  Belum ada transaksi. Order pertama Anda akan tercatat di sini.
+                </EmptyState>
+              </td>
+            </tr>
+          ) : null}
         </tbody>
       </table>
     </div>

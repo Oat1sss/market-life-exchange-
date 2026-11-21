@@ -1,8 +1,8 @@
 /**
  * Integration tests for GameService:
- * - Task 4: createGame (transaction: game, character, portfolio, expenses, starting prices)
+ * - Task 4: createGame (transaction: game, character, portfolio, starting prices)
  * - Task 5: advanceGame + ledger consistency
- * - Task 7: life events, education, careers, achievements
+ * - Task 7: education and achievements
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { prisma } from "@/server/db";
@@ -14,7 +14,6 @@ import {
   gameSnapshot,
   enrollEducation,
   educationState,
-  resolveLifeEvent,
   GameError,
 } from "@/server/services/game-service";
 
@@ -40,7 +39,7 @@ async function createTestUser(): Promise<string> {
 }
 
 describe("Task 4: createGame and initial game transaction", () => {
-  it("creates game, character, portfolio, default expenses, initial career, and price points in one transaction", async () => {
+  it("creates game, character, portfolio, demo balance, and price points in one transaction", async () => {
     const userId = await createTestUser();
 
     expect(await canCreateGame(userId)).toBe(true);
@@ -75,22 +74,22 @@ describe("Task 4: createGame and initial game transaction", () => {
     expect(game.character?.background).toBe("SCHOLAR");
     expect(game.character?.knowledge).toBe(70);
 
-    // Verify portfolio: starting cash 240,000 minor units (2,400 credits)
-    expect(game.portfolio?.cashMinor).toBe(240_000n);
+    // Verify portfolio: demo accounts start with 10,000,000 minor units (100,000 credits)
+    expect(game.portfolio?.cashMinor).toBe(10_000_000n);
 
-    // Verify default expenses
-    expect(game.expenseRules.length).toBeGreaterThan(0);
+    // Demo exchange has no bills to pay
+    expect(game.expenseRules.length).toBe(0);
 
-    // Verify initial career
+    // Demo exchange has no salary/career
     const career = await prisma.career.findFirst({
       where: { characterId: game.character!.id },
     });
-    expect(career).not.toBeNull();
-    expect(career?.title).toBe("Junior clerk");
-    expect(career?.annualSalaryMinor).toBe(360_000n);
+    expect(career).toBeNull();
 
-    // Verify price points for all 5 assets
-    expect(game.pricePoints.length).toBe(5);
+    // Verify a price point for every seeded asset
+    const assetCount = await prisma.asset.count();
+    expect(assetCount).toBeGreaterThan(0);
+    expect(game.pricePoints.length).toBe(assetCount);
     for (const point of game.pricePoints) {
       expect(point.tick).toBe(0);
       expect(point.priceMinor).toBeGreaterThan(0n);
@@ -103,13 +102,13 @@ describe("Task 4: createGame and initial game transaction", () => {
     });
     expect(entries.length).toBe(1);
     expect(entries[0]!.reason).toBe("DEPOSIT");
-    expect(entries[0]!.amountMinor).toBe(240_000n);
-    expect(entries[0]!.balanceAfterMinor).toBe(240_000n);
+    expect(entries[0]!.amountMinor).toBe(10_000_000n);
+    expect(entries[0]!.balanceAfterMinor).toBe(10_000_000n);
   });
 });
 
 describe("Task 5: advanceGame and dashboard snapshot", () => {
-  it("advances one tick, applies salary and expenses, and generates fresh prices", async () => {
+  it("advances one tick and generates fresh prices without changing cash", async () => {
     const userId = await createTestUser();
     const { gameId } = await createGame(userId, {
       firstName: "Taylor",
@@ -120,7 +119,7 @@ describe("Task 5: advanceGame and dashboard snapshot", () => {
     const initialSnapshot = await gameSnapshot(userId);
     expect(initialSnapshot).not.toBeNull();
     expect(initialSnapshot?.tick).toBe(0);
-    expect(initialSnapshot?.cashMinor).toBe(240_000n);
+    expect(initialSnapshot?.cashMinor).toBe(10_000_000n);
 
     // Advance 1 tick
     const outcome = await advanceGame(userId);
@@ -128,12 +127,14 @@ describe("Task 5: advanceGame and dashboard snapshot", () => {
 
     const afterAdvance = await gameSnapshot(userId);
     expect(afterAdvance?.tick).toBe(1);
+    // No salary/expenses exist, so a market-only tick leaves cash untouched.
+    expect(afterAdvance?.cashMinor).toBe(10_000_000n);
 
     // Check price points at tick 1
     const tick1Prices = await prisma.pricePoint.findMany({
       where: { gameId, tick: 1 },
     });
-    expect(tick1Prices.length).toBe(5);
+    expect(tick1Prices.length).toBe(await prisma.asset.count());
 
     // Verify cash balance invariant: sum of CASH ledger deltas == portfolio.cashMinor
     const ledgerCashEntries = await prisma.ledgerEntry.findMany({
@@ -187,40 +188,4 @@ describe("Task 7: Life events, education, and achievements", () => {
     expect(afterCompletion!.character.knowledge).toBeGreaterThan(knowledgeBefore);
   });
 
-  it("gating advance when life event is pending until resolved", async () => {
-    const userId = await createTestUser();
-    const { gameId } = await createGame(userId, {
-      firstName: "Sam",
-      lastName: "Altman",
-      background: "SCHOLAR",
-    });
-
-    // Manually inject a pending life event at tick 1 to test gating
-    await prisma.lifeEvent.create({
-      data: {
-        gameId,
-        templateKey: "CAR_REPAIR",
-        title: "Car repair",
-        body: "Test car repair body",
-        tick: 1,
-        choices: [
-          { key: "PAY", label: "Pay 600 now", hint: "Cash -600" },
-          { key: "DELAY", label: "Drive it", hint: "Happiness -8" },
-        ],
-      },
-    });
-
-    // advanceGame should throw PENDING_EVENT
-    await expect(advanceGame(userId)).rejects.toThrowError(/pending/i);
-
-    // Resolve event with DELAY
-    await resolveLifeEvent(userId, {
-      templateKey: "CAR_REPAIR",
-      choiceKey: "DELAY",
-    });
-
-    // After resolution, advance succeeds
-    const outcome = await advanceGame(userId);
-    expect(outcome.tick).toBe(1);
-  });
 });

@@ -119,7 +119,7 @@ export async function placeOrder(
       });
       throw new TradeError(error.code, error.code === "OVERSELL" ? "Not enough shares." : "Not enough cash.");
     }
-  });
+  }, { timeout: 20_000 });
 }
 
 export async function cancelOrder(userId: string, orderId: string): Promise<void> {
@@ -138,7 +138,7 @@ export async function cancelOrder(userId: string, orderId: string): Promise<void
       where: { id: order.id },
       data: { status: "CANCELLED", tickResolved: game.tick },
     });
-  });
+  }, { timeout: 20_000 });
 }
 
 /* -------------------------------------------------------------------- */

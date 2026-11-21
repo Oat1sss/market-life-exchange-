@@ -17,17 +17,23 @@ function Field({
   type,
   autoComplete,
   errors,
+  hint,
 }: {
   id: string;
   label: string;
   type: string;
   autoComplete: string;
   errors?: string[];
+  hint?: string;
 }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium">
-        {label}
+    <div className="flex flex-col gap-1.5">
+      <label
+        htmlFor={id}
+        className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.14em] text-muted"
+      >
+        <span>{label}</span>
+        {hint ? <span className="font-semibold normal-case tracking-normal text-[#5e6673]">{hint}</span> : null}
       </label>
       <input
         id={id}
@@ -35,10 +41,10 @@ function Field({
         type={type}
         autoComplete={autoComplete}
         required
-        className="rounded border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600"
+        className="h-11 rounded-lg border border-line bg-elevated px-3 text-sm text-white outline-none transition placeholder:text-[#5e6673] focus:border-brand/60 focus:ring-2 focus:ring-brand/10"
       />
       {errors?.map((error) => (
-        <p key={error} className="text-xs text-red-700">
+        <p key={error} className="text-[11px] text-down">
           {error}
         </p>
       ))}
@@ -51,10 +57,19 @@ function Submit({ pending, label }: { pending: boolean; label: string }) {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded bg-amber-700 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-800 disabled:opacity-50"
+      className="h-11 w-full rounded-lg bg-brand px-3 text-sm font-black text-[#04120e] transition hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-50"
     >
-      {pending ? "Working…" : label}
+      {pending ? "Memproses…" : label}
     </button>
+  );
+}
+
+function Message({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="rounded-lg border border-down/30 bg-down/10 p-2.5 text-[11px] leading-5 text-down">
+      {message}
+    </p>
   );
 }
 
@@ -75,9 +90,14 @@ export function RegisterForm() {
         type="password"
         autoComplete="new-password"
         errors={state.errors?.password}
+        hint="Minimal 8 karakter"
       />
-      {state.message && <p className="text-sm text-red-700">{state.message}</p>}
-      <Submit pending={pending} label="Create account" />
+      <Message message={state.message} />
+      <Submit pending={pending} label="Buat akun demo" />
+      <p className="text-center text-[10px] leading-4 text-[#5e6673]">
+        Dengan mendaftar, kamu memahami bahwa seluruh saldo dan transaksi adalah
+        simulasi.
+      </p>
     </form>
   );
 }
@@ -100,8 +120,8 @@ export function LoginForm() {
         autoComplete="current-password"
         errors={state.errors?.password}
       />
-      {state.message && <p className="text-sm text-red-700">{state.message}</p>}
-      <Submit pending={pending} label="Log in" />
+      <Message message={state.message} />
+      <Submit pending={pending} label="Masuk ke terminal" />
     </form>
   );
 }

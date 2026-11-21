@@ -212,6 +212,26 @@ exports.Prisma.OrderScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.FuturesPositionScalarFieldEnum = {
+  id: 'id',
+  gameId: 'gameId',
+  assetId: 'assetId',
+  side: 'side',
+  quantity: 'quantity',
+  leverage: 'leverage',
+  entryPriceMinor: 'entryPriceMinor',
+  marginMinor: 'marginMinor',
+  openFeeMinor: 'openFeeMinor',
+  closeFeeMinor: 'closeFeeMinor',
+  realizedMinor: 'realizedMinor',
+  status: 'status',
+  openedTick: 'openedTick',
+  closedTick: 'closedTick',
+  idempotencyKey: 'idempotencyKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.LedgerEntryScalarFieldEnum = {
   id: 'id',
   gameId: 'gameId',
@@ -373,6 +393,17 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   REJECTED: 'REJECTED'
 };
 
+exports.FuturesSide = exports.$Enums.FuturesSide = {
+  LONG: 'LONG',
+  SHORT: 'SHORT'
+};
+
+exports.FuturesStatus = exports.$Enums.FuturesStatus = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED',
+  LIQUIDATED: 'LIQUIDATED'
+};
+
 exports.LedgerAccount = exports.$Enums.LedgerAccount = {
   CASH: 'CASH',
   ASSET: 'ASSET'
@@ -392,7 +423,9 @@ exports.LedgerReason = exports.$Enums.LedgerReason = {
   EXPENSE: 'EXPENSE',
   EDUCATION: 'EDUCATION',
   LIFE_EVENT: 'LIFE_EVENT',
-  ADJUSTMENT: 'ADJUSTMENT'
+  ADJUSTMENT: 'ADJUSTMENT',
+  FUTURES_MARGIN: 'FUTURES_MARGIN',
+  FUTURES_PNL: 'FUTURES_PNL'
 };
 
 exports.CareerEndReason = exports.$Enums.CareerEndReason = {
@@ -439,6 +472,7 @@ exports.Prisma.ModelName = {
   PricePoint: 'PricePoint',
   Holding: 'Holding',
   Order: 'Order',
+  FuturesPosition: 'FuturesPosition',
   LedgerEntry: 'LedgerEntry',
   Career: 'Career',
   Education: 'Education',

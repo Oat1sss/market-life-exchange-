@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AuthShell } from "@/components/auth-shell";
 import { LoginForm } from "@/components/auth-forms";
 import { maybeUserId } from "@/server/session";
 
@@ -10,18 +11,23 @@ export const instant = false;
 export default async function LoginPage() {
   if (await maybeUserId()) redirect("/play/new");
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-6">
-      <h1 className="mb-1 text-2xl font-semibold">Log in</h1>
-      <p className="mb-6 text-sm text-neutral-600">
-        Welcome back. Your saved life is waiting.
-      </p>
+    <AuthShell
+      eyebrow="Akun demo"
+      title="Masuk ke terminal"
+      subtitle="Lanjutkan portofolio, posisi futures, dan simulasi kehidupanmu."
+      footer={
+        <>
+          Belum punya akun?{" "}
+          <Link
+            href="/register"
+            className="font-bold text-brand underline-offset-4 hover:underline"
+          >
+            Daftar sekarang
+          </Link>
+        </>
+      }
+    >
       <LoginForm />
-      <p className="mt-6 text-sm text-neutral-600">
-        No account yet?{" "}
-        <Link href="/register" className="underline">
-          Create one
-        </Link>
-      </p>
-    </main>
+    </AuthShell>
   );
 }

@@ -36,8 +36,9 @@ export async function placeOrderAction(
 
   const revalidate = () => {
     revalidatePath("/play/market");
-    revalidatePath("/play/market");
     revalidatePath("/play/market/" + symbol);
+    revalidatePath("/play/crypto");
+    revalidatePath("/play/crypto/" + symbol);
     revalidatePath("/play/portfolio");
     revalidatePath("/play");
   };
@@ -94,7 +95,8 @@ export async function cancelOrderAction(
     if (error instanceof TradeError) return { error: error.message };
     return { error: "Could not cancel. Try again." };
   }
-  revalidatePath("/play/market");
+  revalidatePath("/play/market", "layout");
+  revalidatePath("/play/crypto", "layout");
   revalidatePath("/play/portfolio");
   return { ok: true };
 }
