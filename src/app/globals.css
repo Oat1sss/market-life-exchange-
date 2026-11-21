@@ -106,6 +106,15 @@ input[type="number"] {
   appearance: textfield;
 }
 
+/* Horizontal nav that scrolls without a visible scrollbar */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Exchange-style moving ticker */
 @keyframes ticker-scroll {
   from {

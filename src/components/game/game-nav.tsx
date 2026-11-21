@@ -29,7 +29,7 @@ export function GameNav() {
   return (
     <nav
       aria-label="Navigasi utama"
-      className="-mx-1 order-last flex w-full min-w-0 items-center gap-0.5 overflow-x-auto px-1 py-0.5 lg:order-none lg:w-auto lg:flex-1"
+      className="no-scrollbar -mx-1 order-last flex w-full min-w-0 items-center gap-0.5 overflow-x-auto px-1 py-0.5 lg:order-none lg:w-auto lg:flex-1"
     >
       {NAV_ITEMS.map((item) => {
         const exact = "exact" in item && item.exact;
