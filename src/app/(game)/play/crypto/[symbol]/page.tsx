@@ -184,7 +184,7 @@ export default async function TokocryptoDetailPage({
         <div className="flex items-center gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-black text-white">{asset.symbol}/IDR</span>
+              <span className="text-xl font-black text-white">{asset.symbol}</span>
               <span className="rounded bg-[#2b313a] px-2 py-0.5 text-[10px] font-bold text-[#848e9c]">
                 {asset.name}
               </span>
