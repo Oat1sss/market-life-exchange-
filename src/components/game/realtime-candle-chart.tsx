@@ -231,6 +231,104 @@ function RealtimeChartBody({
   const priceRef = useRef<number | null>(anchor > 0 ? anchor : null);
   const momentumRef = useRef(0);
   const stepRef = useRef(0);
+  const realFeedRef = useRef(false);
+  const [quoteCurrency, setQuoteCurrency] = useState<"IDR" | "USD" | "EUR" | "JPY" | "SGD">("IDR");
+
+  // Stream real-world Binance klines + WebSocket for crypto pairs
+  useEffect(() => {
+    if (kind !== "CRYPTO" || paused) return;
+    const pair = `${symbol.toUpperCase()}USDT`;
+    let cancelled = false;
+    let ws: WebSocket | null = null;
+    realFeedRef.current = false;
+    setLiveCandles([]);
+    setLivePrice(null);
+    const defaultRates: Record<string, number> = {
+      IDR: 16_200,
+      USD: 1,
+      EUR: 0.92,
+      JPY: 154,
+      SGD: 1.34,
+    };
+    let fxRate = defaultRates[quoteCurrency] ?? 1;
+
+    async function initRealFeed() {
+      try {
+        const [fxRes, klineRes] = await Promise.all([
+          quoteCurrency === "USD"
+            ? Promise.resolve(null)
+            : fetch(`https://api.frankfurter.app/latest?from=USD&to=${quoteCurrency}`).catch(() => null),
+          fetch(`https://api.binance.com/api/v3/klines?symbol=${pair}&interval=1h&limit=120`),
+        ]);
+        if (!klineRes.ok || cancelled) return;
+        if (fxRes?.ok) {
+          const fx = (await fxRes.json()) as { rates?: Record<string, number> };
+          if (fx.rates?.[quoteCurrency]) fxRate = fx.rates[quoteCurrency]!;
+        }
+        const raw = (await klineRes.json()) as Array<
+          [number, string, string, string, string, string]
+        >;
+        if (!Array.isArray(raw) || raw.length === 0 || cancelled) return;
+
+        const mapped: Candle[] = raw.map((k, idx) => ({
+          tick: idx + 1,
+          open: Number(k[1]) * fxRate,
+          high: Number(k[2]) * fxRate,
+          low: Number(k[3]) * fxRate,
+          close: Number(k[4]) * fxRate,
+          volume: Number(k[5]),
+          live: idx === raw.length - 1,
+        }));
+
+        realFeedRef.current = true;
+        setLiveCandles(mapped);
+        setLivePrice(mapped[mapped.length - 1]!.close);
+
+        ws = new WebSocket(
+          `wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@kline_1m`,
+        );
+        ws.onmessage = (event) => {
+          if (cancelled) return;
+          try {
+            const msg = JSON.parse(event.data as string) as {
+              k?: { o: string; h: string; l: string; c: string; v: string };
+            };
+            if (!msg.k) return;
+            const close = Number(msg.k.c) * fxRate;
+            const high = Number(msg.k.h) * fxRate;
+            const low = Number(msg.k.l) * fxRate;
+            const open = Number(msg.k.o) * fxRate;
+            const volume = Number(msg.k.v);
+            setLivePrice(close);
+            setLiveCandles((prev) => {
+              if (prev.length === 0) return prev;
+              const next = [...prev];
+              next[next.length - 1] = {
+                ...next[next.length - 1]!,
+                open,
+                high: Math.max(next[next.length - 1]!.high, high),
+                low: Math.min(next[next.length - 1]!.low, low),
+                close,
+                volume,
+                live: true,
+              };
+              return next;
+            });
+          } catch {
+            // ignore malformed frames
+          }
+        };
+      } catch {
+        // Fallback to simulated tape if offline or unsupported pair
+      }
+    }
+
+    initRealFeed();
+    return () => {
+      cancelled = true;
+      ws?.close();
+    };
+  }, [kind, symbol, paused, quoteCurrency]);
 
   const profile = useMemo(() => profileFor(symbol, kind), [symbol, kind]);
   const hue = useMemo(() => accentHue(symbol), [symbol]);
@@ -249,6 +347,7 @@ function RealtimeChartBody({
   useEffect(() => {
     if (paused || anchor <= 0) return;
     const timer = setInterval(() => {
+      if (realFeedRef.current) return;
       const current = priceRef.current ?? anchor;
       const step = stepRef.current;
       const next = liveStep(profile, current, momentumRef.current, step);
@@ -431,6 +530,23 @@ function RealtimeChartBody({
         >
           MA 5/20
         </button>
+
+        {kind === "CRYPTO" ? (
+          <select
+            aria-label="Pilih mata uang chart"
+            value={quoteCurrency}
+            onChange={(e) =>
+              setQuoteCurrency(e.target.value as "IDR" | "USD" | "EUR" | "JPY" | "SGD")
+            }
+            className="rounded border border-[#2b313a] bg-[#0b0e11] px-2 py-1 text-[10px] font-bold text-white outline-none focus:border-[#f0b90b]/60"
+          >
+            <option value="IDR">{symbol}/IDR</option>
+            <option value="USD">{symbol}/USD</option>
+            <option value="EUR">{symbol}/EUR</option>
+            <option value="JPY">{symbol}/JPY</option>
+            <option value="SGD">{symbol}/SGD</option>
+          </select>
+        ) : null}
 
         <div className="ml-auto flex items-center gap-2">
           <span

@@ -47,6 +47,8 @@ export interface OpenFuturesInput {
   side: FuturesSideValue;
   quantity: number;
   leverage: number;
+  stopLossMinor?: bigint | null;
+  takeProfitMinor?: bigint | null;
   idempotencyKey: string;
 }
 
@@ -113,6 +115,30 @@ export async function openFutures(
     if (!asset) throw new FuturesError("UNKNOWN_ASSET", "Simbol aset tidak dikenal.");
 
     const price = await markPrice(tx, game.id, asset.id);
+    const stopLoss = input.stopLossMinor ?? null;
+    const takeProfit = input.takeProfitMinor ?? null;
+    if (stopLoss !== null && stopLoss <= 0n) {
+      throw new FuturesError("BAD_QUANTITY", "Stop-loss harus lebih dari nol.");
+    }
+    if (takeProfit !== null && takeProfit <= 0n) {
+      throw new FuturesError("BAD_QUANTITY", "Take-profit harus lebih dari nol.");
+    }
+    if (input.side === "LONG") {
+      if (stopLoss !== null && stopLoss >= price) {
+        throw new FuturesError("BAD_QUANTITY", "Stop-loss LONG harus di bawah harga masuk.");
+      }
+      if (takeProfit !== null && takeProfit <= price) {
+        throw new FuturesError("BAD_QUANTITY", "Take-profit LONG harus di atas harga masuk.");
+      }
+    } else {
+      if (stopLoss !== null && stopLoss <= price) {
+        throw new FuturesError("BAD_QUANTITY", "Stop-loss SHORT harus di atas harga masuk.");
+      }
+      if (takeProfit !== null && takeProfit >= price) {
+        throw new FuturesError("BAD_QUANTITY", "Take-profit SHORT harus di bawah harga masuk.");
+      }
+    }
+
     const notional = notionalMinor(price, input.quantity);
     const margin = marginFor(notional, input.leverage);
     const openFee = feeSell(notional);
@@ -134,6 +160,8 @@ export async function openFutures(
         quantity: input.quantity,
         leverage: input.leverage,
         entryPriceMinor: price,
+        stopLossMinor: stopLoss,
+        takeProfitMinor: takeProfit,
         marginMinor: margin,
         openFeeMinor: openFee,
         openedTick: game.tick,
@@ -255,18 +283,66 @@ export async function settleFutures(
     const mark = prices.get(position.assetId);
     if (mark === undefined) continue;
     const pnl = futuresPnlMinor(position.side, position.entryPriceMinor, mark, position.quantity);
-    if (!isLiquidatable(position.marginMinor, pnl)) continue;
+    if (isLiquidatable(position.marginMinor, pnl)) {
+      await tx.futuresPosition.update({
+        where: { id: position.id },
+        data: {
+          status: "LIQUIDATED",
+          closedTick: tick,
+          closeFeeMinor: 0n,
+          realizedMinor: -position.marginMinor - position.openFeeMinor,
+        },
+      });
+      liquidated += 1;
+      continue;
+    }
 
-    await tx.futuresPosition.update({
-      where: { id: position.id },
-      data: {
-        status: "LIQUIDATED",
-        closedTick: tick,
-        closeFeeMinor: 0n,
-        realizedMinor: -position.marginMinor - position.openFeeMinor,
-      },
-    });
-    liquidated += 1;
+    const slHit =
+      position.stopLossMinor !== null &&
+      (position.side === "LONG"
+        ? mark <= position.stopLossMinor
+        : mark >= position.stopLossMinor);
+    const tpHit =
+      position.takeProfitMinor !== null &&
+      (position.side === "LONG"
+        ? mark >= position.takeProfitMinor
+        : mark <= position.takeProfitMinor);
+
+    if (slHit || tpHit) {
+      const closeFee = feeSell(mark * BigInt(position.quantity));
+      const payout = closePayoutMinor(position.marginMinor, pnl, closeFee);
+      const realized = payout - position.marginMinor - position.openFeeMinor;
+
+      await tx.futuresPosition.update({
+        where: { id: position.id },
+        data: {
+          status: "CLOSED",
+          closedTick: tick,
+          closeFeeMinor: closeFee,
+          realizedMinor: realized,
+        },
+      });
+
+      if (payout > 0n) {
+        const updated = await tx.portfolio.update({
+          where: { gameId },
+          data: { cashMinor: { increment: payout } },
+        });
+        await appendLedgerRun(tx, gameId, [
+          {
+            portfolioId: updated.id,
+            account: "CASH",
+            direction: "CREDIT",
+            amountMinor: payout,
+            balanceAfterMinor: updated.cashMinor,
+            reason: "FUTURES_PNL",
+            refType: "FUTURES",
+            refId: position.id,
+            tick,
+          },
+        ]);
+      }
+    }
   }
   return liquidated;
 }
@@ -279,6 +355,8 @@ export interface FuturesPositionView {
   quantity: number;
   leverage: number;
   entryPriceMinor: bigint;
+  stopLossMinor: bigint | null;
+  takeProfitMinor: bigint | null;
   markPriceMinor: bigint;
   marginMinor: bigint;
   openFeeMinor: bigint;
@@ -311,6 +389,8 @@ function toView(
     quantity: position.quantity,
     leverage: position.leverage,
     entryPriceMinor: position.entryPriceMinor,
+    stopLossMinor: position.stopLossMinor,
+    takeProfitMinor: position.takeProfitMinor,
     markPriceMinor: mark,
     marginMinor: position.marginMinor,
     openFeeMinor: position.openFeeMinor,

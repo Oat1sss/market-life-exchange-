@@ -75,9 +75,13 @@ export default async function ExchangeHome() {
   const snapshot = await gameSnapshot(userId);
   if (!snapshot) redirect("/play/start");
 
-  const [portfolio, futures] = await Promise.all([
+  const [portfolio, futures, latestEvent] = await Promise.all([
     portfolioSnapshot(userId),
     futuresSnapshot(userId),
+    prisma.marketEvent.findFirst({
+      where: { gameId: snapshot.gameId, tick: snapshot.tick },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
   const holdings = portfolio?.holdings ?? [];
   const futuresPositions = futures?.positions ?? [];
@@ -94,6 +98,25 @@ export default async function ExchangeHome() {
 
   return (
     <div className="space-y-5">
+      {latestEvent ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gold/30 bg-gold/10 px-4 py-2.5 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="rounded bg-gold/20 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-gold">
+              Berita Pasar
+            </span>
+            <span className="font-bold text-white">{latestEvent.title}</span>
+            <span className="hidden text-muted sm:inline">— {latestEvent.body}</span>
+          </div>
+          <Link
+            href="/play/market"
+            className="inline-flex items-center gap-1 font-bold text-gold transition hover:underline"
+          >
+            Perdagangkan
+            <IconArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      ) : null}
+
       <section className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-br from-surface via-[#151b20] to-[#0d1b17] p-5 shadow-[0_30px_90px_-50px_rgba(0,0,0,1)] sm:p-6">
         <div className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">

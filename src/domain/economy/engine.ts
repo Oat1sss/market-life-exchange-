@@ -59,7 +59,7 @@ function portion(amount: bigint, fraction: number): bigint {
 
 function pctBp(previous: bigint, next: bigint): number {
   if (previous === 0n) return 0;
-  return round(((Number(next) - Number(previous)) * BP) / Number(previous));
+  return Number(((next - previous) * BP_BIG) / previous);
 }
 
 function clampMoney(value: bigint, min: bigint, max: bigint): bigint {

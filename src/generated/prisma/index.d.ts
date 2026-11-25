@@ -13308,6 +13308,8 @@ export namespace Prisma {
     quantity: number | null
     leverage: number | null
     entryPriceMinor: number | null
+    stopLossMinor: number | null
+    takeProfitMinor: number | null
     marginMinor: number | null
     openFeeMinor: number | null
     closeFeeMinor: number | null
@@ -13320,6 +13322,8 @@ export namespace Prisma {
     quantity: number | null
     leverage: number | null
     entryPriceMinor: bigint | null
+    stopLossMinor: bigint | null
+    takeProfitMinor: bigint | null
     marginMinor: bigint | null
     openFeeMinor: bigint | null
     closeFeeMinor: bigint | null
@@ -13336,6 +13340,8 @@ export namespace Prisma {
     quantity: number | null
     leverage: number | null
     entryPriceMinor: bigint | null
+    stopLossMinor: bigint | null
+    takeProfitMinor: bigint | null
     marginMinor: bigint | null
     openFeeMinor: bigint | null
     closeFeeMinor: bigint | null
@@ -13356,6 +13362,8 @@ export namespace Prisma {
     quantity: number | null
     leverage: number | null
     entryPriceMinor: bigint | null
+    stopLossMinor: bigint | null
+    takeProfitMinor: bigint | null
     marginMinor: bigint | null
     openFeeMinor: bigint | null
     closeFeeMinor: bigint | null
@@ -13376,6 +13384,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: number
+    stopLossMinor: number
+    takeProfitMinor: number
     marginMinor: number
     openFeeMinor: number
     closeFeeMinor: number
@@ -13394,6 +13404,8 @@ export namespace Prisma {
     quantity?: true
     leverage?: true
     entryPriceMinor?: true
+    stopLossMinor?: true
+    takeProfitMinor?: true
     marginMinor?: true
     openFeeMinor?: true
     closeFeeMinor?: true
@@ -13406,6 +13418,8 @@ export namespace Prisma {
     quantity?: true
     leverage?: true
     entryPriceMinor?: true
+    stopLossMinor?: true
+    takeProfitMinor?: true
     marginMinor?: true
     openFeeMinor?: true
     closeFeeMinor?: true
@@ -13422,6 +13436,8 @@ export namespace Prisma {
     quantity?: true
     leverage?: true
     entryPriceMinor?: true
+    stopLossMinor?: true
+    takeProfitMinor?: true
     marginMinor?: true
     openFeeMinor?: true
     closeFeeMinor?: true
@@ -13442,6 +13458,8 @@ export namespace Prisma {
     quantity?: true
     leverage?: true
     entryPriceMinor?: true
+    stopLossMinor?: true
+    takeProfitMinor?: true
     marginMinor?: true
     openFeeMinor?: true
     closeFeeMinor?: true
@@ -13462,6 +13480,8 @@ export namespace Prisma {
     quantity?: true
     leverage?: true
     entryPriceMinor?: true
+    stopLossMinor?: true
+    takeProfitMinor?: true
     marginMinor?: true
     openFeeMinor?: true
     closeFeeMinor?: true
@@ -13569,6 +13589,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint
+    stopLossMinor: bigint | null
+    takeProfitMinor: bigint | null
     marginMinor: bigint
     openFeeMinor: bigint
     closeFeeMinor: bigint | null
@@ -13608,6 +13630,8 @@ export namespace Prisma {
     quantity?: boolean
     leverage?: boolean
     entryPriceMinor?: boolean
+    stopLossMinor?: boolean
+    takeProfitMinor?: boolean
     marginMinor?: boolean
     openFeeMinor?: boolean
     closeFeeMinor?: boolean
@@ -13630,6 +13654,8 @@ export namespace Prisma {
     quantity?: boolean
     leverage?: boolean
     entryPriceMinor?: boolean
+    stopLossMinor?: boolean
+    takeProfitMinor?: boolean
     marginMinor?: boolean
     openFeeMinor?: boolean
     closeFeeMinor?: boolean
@@ -13652,6 +13678,8 @@ export namespace Prisma {
     quantity?: boolean
     leverage?: boolean
     entryPriceMinor?: boolean
+    stopLossMinor?: boolean
+    takeProfitMinor?: boolean
     marginMinor?: boolean
     openFeeMinor?: boolean
     closeFeeMinor?: boolean
@@ -13674,6 +13702,8 @@ export namespace Prisma {
     quantity?: boolean
     leverage?: boolean
     entryPriceMinor?: boolean
+    stopLossMinor?: boolean
+    takeProfitMinor?: boolean
     marginMinor?: boolean
     openFeeMinor?: boolean
     closeFeeMinor?: boolean
@@ -13686,7 +13716,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type FuturesPositionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameId" | "assetId" | "side" | "quantity" | "leverage" | "entryPriceMinor" | "marginMinor" | "openFeeMinor" | "closeFeeMinor" | "realizedMinor" | "status" | "openedTick" | "closedTick" | "idempotencyKey" | "createdAt" | "updatedAt", ExtArgs["result"]["futuresPosition"]>
+  export type FuturesPositionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameId" | "assetId" | "side" | "quantity" | "leverage" | "entryPriceMinor" | "stopLossMinor" | "takeProfitMinor" | "marginMinor" | "openFeeMinor" | "closeFeeMinor" | "realizedMinor" | "status" | "openedTick" | "closedTick" | "idempotencyKey" | "createdAt" | "updatedAt", ExtArgs["result"]["futuresPosition"]>
   export type FuturesPositionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     game?: boolean | GameDefaultArgs<ExtArgs>
     asset?: boolean | AssetDefaultArgs<ExtArgs>
@@ -13714,6 +13744,8 @@ export namespace Prisma {
       quantity: number
       leverage: number
       entryPriceMinor: bigint
+      stopLossMinor: bigint | null
+      takeProfitMinor: bigint | null
       marginMinor: bigint
       openFeeMinor: bigint
       closeFeeMinor: bigint | null
@@ -14156,6 +14188,8 @@ export namespace Prisma {
     readonly quantity: FieldRef<"FuturesPosition", 'Int'>
     readonly leverage: FieldRef<"FuturesPosition", 'Int'>
     readonly entryPriceMinor: FieldRef<"FuturesPosition", 'BigInt'>
+    readonly stopLossMinor: FieldRef<"FuturesPosition", 'BigInt'>
+    readonly takeProfitMinor: FieldRef<"FuturesPosition", 'BigInt'>
     readonly marginMinor: FieldRef<"FuturesPosition", 'BigInt'>
     readonly openFeeMinor: FieldRef<"FuturesPosition", 'BigInt'>
     readonly closeFeeMinor: FieldRef<"FuturesPosition", 'BigInt'>
@@ -29683,6 +29717,8 @@ export namespace Prisma {
     quantity: 'quantity',
     leverage: 'leverage',
     entryPriceMinor: 'entryPriceMinor',
+    stopLossMinor: 'stopLossMinor',
+    takeProfitMinor: 'takeProfitMinor',
     marginMinor: 'marginMinor',
     openFeeMinor: 'openFeeMinor',
     closeFeeMinor: 'closeFeeMinor',
@@ -30988,6 +31024,8 @@ export namespace Prisma {
     quantity?: IntFilter<"FuturesPosition"> | number
     leverage?: IntFilter<"FuturesPosition"> | number
     entryPriceMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
+    stopLossMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
+    takeProfitMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
     marginMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
     openFeeMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
     closeFeeMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
@@ -31010,6 +31048,8 @@ export namespace Prisma {
     quantity?: SortOrder
     leverage?: SortOrder
     entryPriceMinor?: SortOrder
+    stopLossMinor?: SortOrderInput | SortOrder
+    takeProfitMinor?: SortOrderInput | SortOrder
     marginMinor?: SortOrder
     openFeeMinor?: SortOrder
     closeFeeMinor?: SortOrderInput | SortOrder
@@ -31036,6 +31076,8 @@ export namespace Prisma {
     quantity?: IntFilter<"FuturesPosition"> | number
     leverage?: IntFilter<"FuturesPosition"> | number
     entryPriceMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
+    stopLossMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
+    takeProfitMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
     marginMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
     openFeeMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
     closeFeeMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
@@ -31058,6 +31100,8 @@ export namespace Prisma {
     quantity?: SortOrder
     leverage?: SortOrder
     entryPriceMinor?: SortOrder
+    stopLossMinor?: SortOrderInput | SortOrder
+    takeProfitMinor?: SortOrderInput | SortOrder
     marginMinor?: SortOrder
     openFeeMinor?: SortOrder
     closeFeeMinor?: SortOrderInput | SortOrder
@@ -31086,6 +31130,8 @@ export namespace Prisma {
     quantity?: IntWithAggregatesFilter<"FuturesPosition"> | number
     leverage?: IntWithAggregatesFilter<"FuturesPosition"> | number
     entryPriceMinor?: BigIntWithAggregatesFilter<"FuturesPosition"> | bigint | number
+    stopLossMinor?: BigIntNullableWithAggregatesFilter<"FuturesPosition"> | bigint | number | null
+    takeProfitMinor?: BigIntNullableWithAggregatesFilter<"FuturesPosition"> | bigint | number | null
     marginMinor?: BigIntWithAggregatesFilter<"FuturesPosition"> | bigint | number
     openFeeMinor?: BigIntWithAggregatesFilter<"FuturesPosition"> | bigint | number
     closeFeeMinor?: BigIntNullableWithAggregatesFilter<"FuturesPosition"> | bigint | number | null
@@ -32834,6 +32880,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -32856,6 +32904,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -32874,6 +32924,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -32896,6 +32948,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -32916,6 +32970,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -32934,6 +32990,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -32954,6 +33012,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -34945,6 +35005,8 @@ export namespace Prisma {
     quantity?: SortOrder
     leverage?: SortOrder
     entryPriceMinor?: SortOrder
+    stopLossMinor?: SortOrder
+    takeProfitMinor?: SortOrder
     marginMinor?: SortOrder
     openFeeMinor?: SortOrder
     closeFeeMinor?: SortOrder
@@ -34961,6 +35023,8 @@ export namespace Prisma {
     quantity?: SortOrder
     leverage?: SortOrder
     entryPriceMinor?: SortOrder
+    stopLossMinor?: SortOrder
+    takeProfitMinor?: SortOrder
     marginMinor?: SortOrder
     openFeeMinor?: SortOrder
     closeFeeMinor?: SortOrder
@@ -34977,6 +35041,8 @@ export namespace Prisma {
     quantity?: SortOrder
     leverage?: SortOrder
     entryPriceMinor?: SortOrder
+    stopLossMinor?: SortOrder
+    takeProfitMinor?: SortOrder
     marginMinor?: SortOrder
     openFeeMinor?: SortOrder
     closeFeeMinor?: SortOrder
@@ -34997,6 +35063,8 @@ export namespace Prisma {
     quantity?: SortOrder
     leverage?: SortOrder
     entryPriceMinor?: SortOrder
+    stopLossMinor?: SortOrder
+    takeProfitMinor?: SortOrder
     marginMinor?: SortOrder
     openFeeMinor?: SortOrder
     closeFeeMinor?: SortOrder
@@ -35013,6 +35081,8 @@ export namespace Prisma {
     quantity?: SortOrder
     leverage?: SortOrder
     entryPriceMinor?: SortOrder
+    stopLossMinor?: SortOrder
+    takeProfitMinor?: SortOrder
     marginMinor?: SortOrder
     openFeeMinor?: SortOrder
     closeFeeMinor?: SortOrder
@@ -38705,6 +38775,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -38725,6 +38797,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -39255,6 +39329,8 @@ export namespace Prisma {
     quantity?: IntFilter<"FuturesPosition"> | number
     leverage?: IntFilter<"FuturesPosition"> | number
     entryPriceMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
+    stopLossMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
+    takeProfitMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
     marginMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
     openFeeMinor?: BigIntFilter<"FuturesPosition"> | bigint | number
     closeFeeMinor?: BigIntNullableFilter<"FuturesPosition"> | bigint | number | null
@@ -40049,6 +40125,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -40069,6 +40147,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -42558,6 +42638,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -42879,6 +42961,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -42899,6 +42983,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -42918,6 +43004,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -43349,6 +43437,8 @@ export namespace Prisma {
     quantity: number
     leverage: number
     entryPriceMinor: bigint | number
+    stopLossMinor?: bigint | number | null
+    takeProfitMinor?: bigint | number | null
     marginMinor: bigint | number
     openFeeMinor: bigint | number
     closeFeeMinor?: bigint | number | null
@@ -43526,6 +43616,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -43546,6 +43638,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
@@ -43565,6 +43659,8 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     leverage?: IntFieldUpdateOperationsInput | number
     entryPriceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    stopLossMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    takeProfitMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
     marginMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     openFeeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     closeFeeMinor?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null

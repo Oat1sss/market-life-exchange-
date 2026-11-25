@@ -135,14 +135,13 @@ export async function fillSell(tx: Tx, ctx: FillContext): Promise<{ realizedMino
     });
   }
 
-  const portfolio = await tx.portfolio.findUniqueOrThrow({ where: { id: ctx.portfolioId } });
-  await tx.portfolio.update({
-    where: { id: portfolio.id },
+  const portfolio = await tx.portfolio.update({
+    where: { id: ctx.portfolioId },
     data: {
       cashMinor: { increment: net },
     },
   });
-  const cashAfter = portfolio.cashMinor + net;
+  const cashAfter = portfolio.cashMinor;
   await appendLedgerRun(tx, ctx.gameId, [
     {
       portfolioId: ctx.portfolioId, account: "ASSET", assetId: ctx.assetId,

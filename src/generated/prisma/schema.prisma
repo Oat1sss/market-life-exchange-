@@ -314,6 +314,8 @@ model FuturesPosition {
   quantity        Int
   leverage        Int
   entryPriceMinor BigInt        @map("entry_price_minor") @db.BigInt
+  stopLossMinor   BigInt?       @map("stop_loss_minor") @db.BigInt
+  takeProfitMinor BigInt?       @map("take_profit_minor") @db.BigInt
   marginMinor     BigInt        @map("margin_minor") @db.BigInt
   openFeeMinor    BigInt        @map("open_fee_minor") @db.BigInt
   closeFeeMinor   BigInt?       @map("close_fee_minor") @db.BigInt

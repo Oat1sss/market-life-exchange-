@@ -10,6 +10,14 @@ import { AdvanceButton } from "@/components/game/advance-button";
 import { GameNav } from "@/components/game/game-nav";
 import { MarketTicker } from "@/components/game/market-ticker";
 
+function traderRank(cashMinor: bigint, tick: number): { label: string; tone: string } {
+  if (cashMinor >= 100_000_000_000_00n) return { label: "Whale", tone: "border-gold/40 bg-gold/10 text-gold" };
+  if (cashMinor >= 25_000_000_000_00n) return { label: "Market Maker", tone: "border-brand/40 bg-brand/10 text-brand" };
+  if (tick >= 24 || cashMinor >= 12_000_000_000_00n) return { label: "Swing Trader", tone: "border-up/40 bg-up/10 text-up" };
+  if (tick >= 6) return { label: "Scalper", tone: "border-line bg-surface-2 text-white" };
+  return { label: "Rookie", tone: "border-line bg-surface text-muted" };
+}
+
 export default async function GameLayout({
   children,
 }: {
@@ -22,6 +30,7 @@ export default async function GameLayout({
 
   const game = await prisma.game.findFirst({
     where: { userId, status: "ACTIVE" },
+    orderBy: { createdAt: "desc" },
     select: {
       id: true,
       tick: true,
@@ -45,14 +54,22 @@ export default async function GameLayout({
 
           <div className="ml-auto flex shrink-0 items-center gap-1.5">
             {game?.portfolio ? (
-              <div className="hidden rounded-lg border border-line bg-surface px-3 py-1.5 text-right md:block">
-                <div className="text-[9px] font-bold uppercase tracking-wider text-muted">
-                  Saldo
+              <>
+                <span
+                  title={`Peringkat Trader · Bulan ke-${game.tick}`}
+                  className={`hidden rounded-md border px-2 py-1 text-[10px] font-black uppercase tracking-wider sm:inline-flex ${traderRank(game.portfolio.cashMinor, game.tick).tone}`}
+                >
+                  {traderRank(game.portfolio.cashMinor, game.tick).label}
+                </span>
+                <div className="rounded-lg border border-line bg-surface px-2.5 py-1 text-right sm:px-3 sm:py-1.5">
+                  <div className="hidden text-[9px] font-bold uppercase tracking-wider text-muted sm:block">
+                    Saldo
+                  </div>
+                  <div className="text-[11px] font-black tabular-nums text-white sm:text-xs">
+                    {currency(game.portfolio.cashMinor)}
+                  </div>
                 </div>
-                <div className="text-xs font-black tabular-nums text-white">
-                  {currency(game.portfolio.cashMinor)}
-                </div>
-              </div>
+              </>
             ) : null}
 
             <Link

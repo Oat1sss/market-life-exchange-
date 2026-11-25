@@ -27,6 +27,8 @@ export default function FuturesForm({
   const [side, setSide] = useState<"LONG" | "SHORT">("LONG");
   const [leverage, setLeverage] = useState<number>(5);
   const [quantity, setQuantity] = useState<string>("1");
+  const [stopLoss, setStopLoss] = useState<string>("");
+  const [takeProfit, setTakeProfit] = useState<string>("");
 
   return (
     <form action={formAction} className="space-y-4">
@@ -34,6 +36,8 @@ export default function FuturesForm({
       <input type="hidden" name="side" value={side} />
       <input type="hidden" name="leverage" value={leverage} />
       <input type="hidden" name="quantity" value={quantity} />
+      <input type="hidden" name="stopLoss" value={stopLoss} />
+      <input type="hidden" name="takeProfit" value={takeProfit} />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
@@ -114,6 +118,36 @@ export default function FuturesForm({
             step="1"
             value={quantity}
             onChange={(event) => setQuantity(event.target.value)}
+            className={fieldClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted">
+            Stop-Loss (opsional)
+          </span>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="cth. 1500.00"
+            value={stopLoss}
+            onChange={(event) => setStopLoss(event.target.value)}
+            className={fieldClass}
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted">
+            Take-Profit (opsional)
+          </span>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="cth. 2500.00"
+            value={takeProfit}
+            onChange={(event) => setTakeProfit(event.target.value)}
             className={fieldClass}
           />
         </label>

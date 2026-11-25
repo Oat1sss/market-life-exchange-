@@ -177,7 +177,13 @@ export function applyDirective(world: World, directive: DirectiveInput): NewsSto
     }
 
     case "EXPANSION": {
-      const capex = company.revenueMinor / 6n;
+      const desiredCapex = company.revenueMinor / 6n;
+      const capex =
+        company.cashMinor > 0n
+          ? desiredCapex > company.cashMinor
+            ? company.cashMinor
+            : desiredCapex
+          : 0n;
       company.cashMinor -= capex;
       company.debtMinor += (company.revenueMinor * 2n) / 10n;
       company.growthBp = clamp(company.growthBp + 120, -600, 1_200);

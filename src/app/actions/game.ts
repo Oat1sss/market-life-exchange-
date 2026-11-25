@@ -100,7 +100,6 @@ export async function advanceAction(): Promise<ActionState> {
   revalidatePath("/play");
   revalidatePath("/play/market");
   revalidatePath("/play/portfolio");
-  revalidatePath("/play");
   return { ok: true };
 }
 
@@ -135,7 +134,6 @@ export async function enrollAction(
     if (error instanceof GameError) return { error: error.message };
     return { error: "Could not enroll. Try again." };
   }
-  revalidatePath("/play");
   revalidatePath("/play");
   return { ok: true };
 }

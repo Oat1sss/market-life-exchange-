@@ -23,6 +23,15 @@ function revalidateCrypto(symbol?: string) {
   if (symbol) revalidatePath(`/play/crypto/${symbol}`);
 }
 
+function parseOptionalMinor(input: string): bigint | null {
+  if (!input) return null;
+  const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(input.replace(/,/g, ""));
+  if (!match) return null;
+  const whole = BigInt(match[1]!) * 100n;
+  const fraction = BigInt((match[2] ?? "").padEnd(2, "0") || "0");
+  return whole + fraction;
+}
+
 export async function openFuturesAction(
   _previous: ActionState,
   formData: FormData,
@@ -32,6 +41,8 @@ export async function openFuturesAction(
   const side = clean(formData.get("side"));
   const quantity = Number(clean(formData.get("quantity")));
   const leverage = Number(clean(formData.get("leverage")));
+  const stopLossRaw = clean(formData.get("stopLoss"));
+  const takeProfitRaw = clean(formData.get("takeProfit"));
   const idempotencyKey = clean(formData.get("idempotencyKey"));
 
   if (side !== "LONG" && side !== "SHORT") {
@@ -48,12 +59,23 @@ export async function openFuturesAction(
     return { error: "Referensi posisi tidak valid. Muat ulang halaman." };
   }
 
+  const stopLossMinor = parseOptionalMinor(stopLossRaw);
+  const takeProfitMinor = parseOptionalMinor(takeProfitRaw);
+  if (stopLossRaw && stopLossMinor === null) {
+    return { error: "Format Stop-Loss tidak valid (contoh: 1500.00)." };
+  }
+  if (takeProfitRaw && takeProfitMinor === null) {
+    return { error: "Format Take-Profit tidak valid (contoh: 2000.00)." };
+  }
+
   try {
     await openFutures(userId, {
       symbol,
       side: side as FuturesSide,
       quantity,
       leverage,
+      stopLossMinor,
+      takeProfitMinor,
       idempotencyKey,
     });
   } catch (error) {

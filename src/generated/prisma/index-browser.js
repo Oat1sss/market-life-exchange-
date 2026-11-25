@@ -220,6 +220,8 @@ exports.Prisma.FuturesPositionScalarFieldEnum = {
   quantity: 'quantity',
   leverage: 'leverage',
   entryPriceMinor: 'entryPriceMinor',
+  stopLossMinor: 'stopLossMinor',
+  takeProfitMinor: 'takeProfitMinor',
   marginMinor: 'marginMinor',
   openFeeMinor: 'openFeeMinor',
   closeFeeMinor: 'closeFeeMinor',
