@@ -21,6 +21,11 @@ export function ClosePositionButton({ positionId }: { readonly positionId: strin
           {state.error}
         </p>
       ) : null}
+      {state?.ok ? (
+        <p className="max-w-40 text-right text-[10px] leading-4 text-up">
+          Posisi ditutup.
+        </p>
+      ) : null}
     </form>
   );
 }

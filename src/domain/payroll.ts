@@ -26,7 +26,7 @@ export function monthlyPay(annualSalaryMinor: bigint, tick: number): MonthlyPay 
 
 /** Net of any future taxes — MVP has no income tax. */
 export function formatMonthlyPay(pay: MonthlyPay): string {
-  return formatMinor(pay.minor, { symbol: "CR " });
+  return formatMinor(pay.minor, { symbol: "Rp " });
 }
 
 export function annualToMoney(annual: bigint): Money {

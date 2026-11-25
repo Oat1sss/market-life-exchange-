@@ -44,7 +44,7 @@ export function TokocryptoOrderBook({
 
       {/* Header labels */}
       <div className="mb-1 flex justify-between text-[10px] uppercase tracking-wider text-[#848e9c]">
-        <span>Harga (CR)</span>
+        <span>Harga (Rp)</span>
         <span>Ukuran ({symbol})</span>
       </div>
 

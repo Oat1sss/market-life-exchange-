@@ -198,7 +198,7 @@ export function SpotOrderForm({
           >
             {markets.map((market) => (
               <option key={market.symbol} value={market.symbol}>
-                {market.symbol}/CR{market.name ? ` — ${market.name}` : ""}
+                {market.symbol}/IDR{market.name ? ` — ${market.name}` : ""}
               </option>
             ))}
           </select>
@@ -207,7 +207,7 @@ export function SpotOrderForm({
         {type === "LIMIT" ? (
           <label className="block">
             <span className="mb-1 flex items-center justify-between text-[11px] text-muted">
-              <span>Harga limit (CR)</span>
+              <span>Harga limit (Rp)</span>
               <span className="tabular-nums">Pasar: {currency(marketPriceMinor)}</span>
             </span>
             <div className="flex h-10 items-center rounded-lg border border-line bg-elevated px-3 focus-within:border-brand/60">
@@ -220,7 +220,7 @@ export function SpotOrderForm({
                 className="w-full bg-transparent text-sm font-semibold tabular-nums text-white outline-none placeholder:text-[#5e6673]"
                 placeholder="0.00"
               />
-              <span className="ml-2 text-[10px] font-black text-muted">CR</span>
+              <span className="ml-2 text-[10px] font-black text-muted">Rp</span>
             </div>
           </label>
         ) : null}

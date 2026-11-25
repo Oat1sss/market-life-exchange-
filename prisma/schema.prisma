@@ -77,6 +77,11 @@ enum LedgerReason {
   ADJUSTMENT
   FUTURES_MARGIN
   FUTURES_PNL
+  BOND_BUY
+  BOND_SELL
+  BOND_COUPON
+  BOND_MATURITY
+  DIVIDEND
 }
 
 enum FuturesSide {
@@ -88,6 +93,21 @@ enum FuturesStatus {
   OPEN
   CLOSED
   LIQUIDATED
+}
+
+enum BondTradeSide {
+  BUY
+  SELL
+}
+
+/// Board actions a controlling shareholder can order. Applied during economy
+/// replay at `at_month`, so a directive is an input to the deterministic world
+/// rather than a mutation of it.
+enum DirectiveKind {
+  DIVIDEND
+  BUYBACK
+  EXPANSION
+  CUT_COSTS
 }
 
 enum CareerEndReason {
@@ -159,6 +179,9 @@ model Game {
   marketEvents        MarketEvent[]
   playerAchievements  PlayerAchievement[]
   futuresPositions    FuturesPosition[]
+  bondHoldings        BondHolding[]
+  bondTrades          BondTrade[]
+  directives          CompanyDirective[]
 
   @@index([userId, status])
   @@map("games")
@@ -305,6 +328,68 @@ model FuturesPosition {
   @@unique([gameId, idempotencyKey])
   @@index([gameId, status])
   @@map("futures_positions")
+}
+
+/// Fixed-income position. One unit is one bond with 100 credits of face value;
+/// `bondKey` points at the static catalog line (GB2, GB10, CAAA, CBBB), so no
+/// per-asset row is needed. Coupons settle monthly and principal returns at
+/// maturity, both driven by the deterministic macro replay.
+model BondHolding {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId        String   @map("game_id") @db.Uuid
+  bondKey       String   @map("bond_key") @db.VarChar(16)
+  quantity      Int
+  costMinor     BigInt   @map("cost_minor") @db.BigInt
+  purchasedTick Int      @map("purchased_tick")
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, bondKey])
+  @@map("bond_holdings")
+}
+
+/// Every bond fill, kept for history and idempotent retries of the form action.
+model BondTrade {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId         String        @map("game_id") @db.Uuid
+  bondKey        String        @map("bond_key") @db.VarChar(16)
+  side           BondTradeSide
+  quantity       Int
+  priceMinor     BigInt        @map("price_minor") @db.BigInt
+  grossMinor     BigInt        @map("gross_minor") @db.BigInt
+  feeMinor       BigInt        @map("fee_minor") @db.BigInt
+  netMinor       BigInt        @map("net_minor") @db.BigInt
+  tick           Int
+  idempotencyKey String        @map("idempotency_key") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, idempotencyKey])
+  @@index([gameId, createdAt(sort: Desc)])
+  @@map("bond_trades")
+}
+
+/// One resolved board decision. `payout_minor` is the company cash distribution
+/// recorded when the directive was issued so replay subtracts a stable amount;
+/// `player_payout_minor` is the shareholder's share already credited to cash.
+model CompanyDirective {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId            String        @map("game_id") @db.Uuid
+  companySymbol     String        @map("company_symbol") @db.VarChar(12)
+  kind              DirectiveKind
+  atMonth           Int           @map("at_month")
+  payoutMinor       BigInt        @default(0) @map("payout_minor") @db.BigInt
+  playerPayoutMinor BigInt        @default(0) @map("player_payout_minor") @db.BigInt
+  idempotencyKey    String        @map("idempotency_key") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, idempotencyKey])
+  @@index([gameId, atMonth])
+  @@map("company_directives")
 }
 
 /// Append-only audit trail. created_at/updated_at audit columns are intentionally

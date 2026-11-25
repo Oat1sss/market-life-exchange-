@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import {
   IconBolt,
   IconCandles,
+  IconChartUp,
   IconCoin,
-  IconGraduation,
   IconHome,
   IconPie,
+  IconShield,
   IconWallet,
 } from "@/components/icons";
 import { cx } from "./ui";
@@ -16,10 +17,12 @@ import { cx } from "./ui";
 const NAV_ITEMS = [
   { href: "/play", label: "Beranda", icon: IconHome, exact: true },
   { href: "/play/market", label: "Pasar", icon: IconCandles },
+  { href: "/play/economy", label: "Ekonomi", icon: IconChartUp },
+  { href: "/play/bonds", label: "Obligasi", icon: IconShield },
   { href: "/play/crypto", label: "Kripto", icon: IconCoin },
   { href: "/play/wallet", label: "Dompet", icon: IconWallet },
   { href: "/play/portfolio", label: "Portofolio", icon: IconPie },
-  { href: "/play/academy", label: "Akademi", icon: IconGraduation },
+  { href: "/play/forex", label: "Forex", icon: IconChartUp },
   { href: "/play/arcade", label: "Arcade", icon: IconBolt },
 ] as const;
 

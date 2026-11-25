@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { currency, formatMinor } from "@/domain/money";
+import { currency } from "@/domain/money";
 import { CancelOrderButton } from "./cancel-order-button";
 import { ClosePositionButton } from "./close-position-button";
 
@@ -75,12 +75,12 @@ export function TokocryptoConsole({
   return (
     <div className="rounded-xl border border-[#2b313a] bg-[#181a20] p-4 text-[#eaecef] shadow-xl">
       {/* Tokocrypto Console Tabs */}
-      <div className="flex border-b border-[#2b313a] pb-2 text-xs font-bold uppercase tracking-wider">
+      <div className="no-scrollbar -mx-1 flex items-center overflow-x-auto border-b border-[#2b313a] px-1 pb-2 text-xs font-bold uppercase tracking-wider">
         {showFutures ? (
           <button
             type="button"
             onClick={() => setActiveTab("POSITIONS")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 transition ${
+            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 transition ${
               activeTab === "POSITIONS"
                 ? "border-b-2 border-[#00c087] text-[#00c087]"
                 : "text-[#848e9c] hover:text-[#eaecef]"
@@ -96,7 +96,7 @@ export function TokocryptoConsole({
         <button
           type="button"
           onClick={() => setActiveTab("ORDERS")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 transition ${
+          className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 transition ${
             activeTab === "ORDERS"
               ? "border-b-2 border-[#00c087] text-[#00c087]"
               : "text-[#848e9c] hover:text-[#eaecef]"
@@ -111,7 +111,7 @@ export function TokocryptoConsole({
         <button
           type="button"
           onClick={() => setActiveTab("HOLDINGS")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 transition ${
+          className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 transition ${
             activeTab === "HOLDINGS"
               ? "border-b-2 border-[#00c087] text-[#00c087]"
               : "text-[#848e9c] hover:text-[#eaecef]"
@@ -126,7 +126,7 @@ export function TokocryptoConsole({
         <button
           type="button"
           onClick={() => setActiveTab("HISTORY")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 transition ${
+          className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 transition ${
             activeTab === "HISTORY"
               ? "border-b-2 border-[#00c087] text-[#00c087]"
               : "text-[#848e9c] hover:text-[#eaecef]"
@@ -169,7 +169,7 @@ export function TokocryptoConsole({
                     <tr key={pos.id} className="hover:bg-[#1e2329]/50">
                       <td className="py-2.5 font-medium">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold">{pos.symbol}/CR</span>
+                          <span className="font-bold">{pos.symbol}/IDR</span>
                           <span
                             className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
                               pos.side === "LONG"
@@ -192,7 +192,7 @@ export function TokocryptoConsole({
                         {currency(pos.liquidationPriceMinor)}
                       </td>
                       <td className="py-2.5 text-right tabular-nums">
-                        {formatMinor(pos.marginMinor)}
+                        {currency(pos.marginMinor)}
                       </td>
                       <td
                         className={`py-2.5 text-right font-bold tabular-nums ${

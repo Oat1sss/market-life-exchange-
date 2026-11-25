@@ -7,7 +7,6 @@ import {
   IconBolt,
   IconCandles,
   IconChartUp,
-  IconGraduation,
   IconShield,
 } from "@/components/icons";
 import { Sparkline, type ChartPoint } from "@/components/game/price-chart";
@@ -101,9 +100,9 @@ const FEATURES = [
     tone: "text-up bg-up/10 ring-up/20",
   },
   {
-    icon: IconGraduation,
-    title: "Akademi & karier",
-    body: "Investasikan saldo untuk kursus, tingkatkan pengetahuan, dan buka peluang karier dengan gaji lebih besar.",
+    icon: IconChartUp,
+    title: "Forex & valas",
+    body: "Pantau kurs rupiah terhadap mata uang utama, hitung konversi, dan pahami spread sebelum menukar valas.",
     tone: "text-[#8b9dff] bg-[#8b9dff]/10 ring-[#8b9dff]/20",
   },
 ] as const;
@@ -112,7 +111,7 @@ const STEPS = [
   {
     number: "01",
     title: "Buka akun demo",
-    body: "Pilih profil trader dan mulai dengan saldo virtual CR 100.000,00. Tanpa KTP, tanpa deposit.",
+    body: "Pilih profil trader dan mulai dengan saldo virtual Rp 100.000,00. Tanpa KTP, tanpa deposit.",
   },
   {
     number: "02",
@@ -154,7 +153,7 @@ export default async function Home() {
             {[
               { href: loggedIn ? "/play/market" : "/register", label: "Pasar" },
               { href: loggedIn ? "/play/crypto" : "/register", label: "Kripto" },
-              { href: loggedIn ? "/play/academy" : "/register", label: "Akademi" },
+              { href: loggedIn ? "/play/forex" : "/register", label: "Forex" },
               { href: "#cara-kerja", label: "Cara kerja" },
             ].map((item) => (
               <Link
@@ -241,7 +240,7 @@ export default async function Home() {
                   ["50+", "Pasar kripto"],
                   ["50+", "Saham fiksi"],
                   ["20x", "Leverage"],
-                  ["CR 100rb", "Saldo awal"],
+                  ["Rp 100rb", "Saldo awal"],
                 ].map(([value, label]) => (
                   <div
                     key={label}
@@ -264,7 +263,7 @@ export default async function Home() {
                     <BrandMark className="h-9 w-9" />
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-black text-white">BTC/CR</span>
+                        <span className="text-sm font-black text-white">BTC/IDR</span>
                         <span className="rounded bg-line-soft px-1 py-px text-[9px] font-bold text-muted">
                           Spot
                         </span>
@@ -385,7 +384,7 @@ export default async function Home() {
                         </span>
                         <div>
                           <p className="text-sm font-black text-white group-hover:text-brand">
-                            {market.symbol}/CR
+                            {market.symbol}/IDR
                           </p>
                           <p className="text-[10px] text-muted">{market.name}</p>
                         </div>

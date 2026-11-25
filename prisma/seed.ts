@@ -3,7 +3,7 @@
  * Run with `prisma db seed`. Idempotent: safe to run repeatedly.
  *
  * Prices are quoted in whole credits; `fundamentalMinor` stores minor units
- * (1 credit = 100 minor units), so a 45,000.00 CR coin is 4,500,000n.
+ * (1 credit = 100 minor units), so a 45.000,00 rupiah coin is 4,500,000n.
  */
 import "dotenv/config";
 import type {

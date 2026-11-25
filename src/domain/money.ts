@@ -1,5 +1,5 @@
 /**
- * Money — an immutable amount in integer minor units (1 credit = 100 minor units).
+ * Money — an immutable amount in integer minor units (1 rupiah = 100 sen).
  *
  * Authoritative accounting must never use floating point. Every amount in the
  * game database is a BIGINT of minor units; this module is the only place
@@ -52,7 +52,7 @@ export function divRound(
 const PARSE_PATTERN = /^([+-]?)(\d{1,3}(?:,\d{3})*|\d+)(?:\.(\d{1,2}))?$/;
 
 export interface MoneyFormatOptions {
-  /** Prefix such as "$" or "CR ". Rendered after the sign. */
+  /** Prefix such as "$" or "Rp ". Rendered after the sign. */
   symbol?: string;
   /** Render an explicit "+" for positive amounts. */
   showPlus?: boolean;
@@ -70,14 +70,14 @@ export function formatMinor(
   const absolute = negative ? -minor : minor;
   const units = absolute / MINOR_UNITS_PER_UNIT;
   const cents = absolute % MINOR_UNITS_PER_UNIT;
-  const grouped = units.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const grouped = units.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   const sign = negative ? "-" : options.showPlus && minor > 0n ? "+" : "";
-  return `${sign}${options.symbol ?? ""}${grouped}.${cents
+  return `${sign}${options.symbol ?? ""}${grouped},${cents
     .toString()
     .padStart(2, "0")}`;
 }
 
-/** Convenience formatter with currency symbol (default: "CR " or "$") */
+/** Convenience formatter with currency symbol (default: "Rp ") */
 export function currency(
   minor: bigint | number,
   symbolOrOptions?: string | MoneyFormatOptions,
@@ -86,7 +86,7 @@ export function currency(
   if (typeof symbolOrOptions === "string") {
     return formatMinor(m, { symbol: symbolOrOptions });
   }
-  return formatMinor(m, { symbol: "CR ", ...symbolOrOptions });
+  return formatMinor(m, { symbol: "Rp ", ...symbolOrOptions });
 }
 
 export class Money {

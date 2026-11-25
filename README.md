@@ -6,7 +6,8 @@ MVP saat ini mencakup:
 - Task 4: pembuatan karakter dan game baru (`/play/new`)
 - Task 5: dashboard dan advance game (`/play`)
 - Task 6: market, order market/limit, dan portfolio (`/play/market`, `/play/market/[symbol]`, `/play/portfolio`)
-- Task 7: life events, education, karier, dan achievements (`/play`, `/play/academy`)
+- Task 7: life events, karier, dan achievements (`/play`)
+- Pasar forex dengan kuotasi valas deterministik dan konverter mata uang (`/play/forex`)
 - Fase 8: tes invariant (idempotency, rollback order, gating life event, multi-tick accounting)
 
 Semua aturan game hanya berjalan di server. Client hanya mengirim form dan menampilkan hasil.
@@ -21,7 +22,7 @@ Semua aturan game hanya berjalan di server. Client hanya mengirim form dan menam
 - Zod
 - Vitest
 
-Money disimpan dalam satuan minor (1 kredit = 100 minor unit). Perhitungan uang harus tetap integer; floating point tidak boleh digunakan di path yang mengandung nilai keuangan.
+Money disimpan dalam satuan minor (1 rupiah = 100 sen) dan ditampilkan dengan format Indonesia (`Rp 100.000,00`). Perhitungan uang harus tetap integer; floating point tidak boleh digunakan di path yang mengandung nilai keuangan.
 
 ## Cara menjalankan
 
@@ -43,7 +44,8 @@ Halaman game berada di bawah `/play/*`:
 - `/play/market`
 - `/play/market/[symbol]`
 - `/play/portfolio`
-- `/play/academy`
+- `/play/crypto`
+- `/play/forex`
 
 ## Pengerjaan bertahap
 

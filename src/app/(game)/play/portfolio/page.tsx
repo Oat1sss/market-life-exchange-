@@ -354,7 +354,7 @@ function OrdersTable({ orders }: { orders: PortfolioSnapshot["pendingOrders"] })
             <tr key={order.id} className="transition hover:bg-surface-2/40">
               <td className="px-4 py-3">
                 <span className="font-bold text-white">{order.symbol}</span>
-                <span className="ml-1.5 text-[10px] text-[#5e6673]">/CR</span>
+                <span className="ml-1.5 text-[10px] text-[#5e6673]">/IDR</span>
               </td>
               <td className="px-3 py-3">
                 <SideBadge side={order.side} />

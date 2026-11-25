@@ -34,16 +34,18 @@ export async function openFuturesAction(
   const leverage = Number(clean(formData.get("leverage")));
   const idempotencyKey = clean(formData.get("idempotencyKey"));
 
-  if (side !== "LONG" && side !== "SHORT") return { error: "Pick LONG or SHORT." };
-  if (!/^[A-Z]{3,8}$/.test(symbol)) return { error: "Unknown symbol." };
+  if (side !== "LONG" && side !== "SHORT") {
+    return { error: "Pilih arah LONG atau SHORT." };
+  }
+  if (!/^[A-Z]{3,8}$/.test(symbol)) return { error: "Simbol aset tidak dikenal." };
   if (!Number.isInteger(quantity) || quantity <= 0) {
-    return { error: "Quantity must be a positive whole number." };
+    return { error: "Jumlah kontrak harus bilangan bulat positif." };
   }
   if (!Number.isInteger(leverage) || leverage < 1 || leverage > 20) {
-    return { error: "Leverage must be between 1x and 20x." };
+    return { error: "Leverage harus antara 1x dan 20x." };
   }
   if (!/^[0-9a-f-]{36}$/i.test(idempotencyKey)) {
-    return { error: "Missing position reference, reload the page." };
+    return { error: "Referensi posisi tidak valid. Muat ulang halaman." };
   }
 
   try {
@@ -56,7 +58,7 @@ export async function openFuturesAction(
     });
   } catch (error) {
     if (error instanceof FuturesError) return { error: error.message };
-    return { error: "Could not open the position. Try again." };
+    return { error: "Posisi gagal dibuka. Coba lagi." };
   }
 
   revalidateCrypto(symbol);
@@ -73,7 +75,7 @@ export async function closeFuturesAction(
     await closeFutures(userId, positionId);
   } catch (error) {
     if (error instanceof FuturesError) return { error: error.message };
-    return { error: "Could not close the position. Try again." };
+    return { error: "Posisi gagal ditutup. Coba lagi." };
   }
 
   revalidateCrypto();

@@ -3,7 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { placeOrderAction } from "@/app/actions/trade";
 import { openFuturesAction } from "@/app/actions/futures";
-import { currency, formatMinor } from "@/domain/money";
+import { currency } from "@/domain/money";
 import { LEVERAGE_OPTIONS, liquidationPriceMinor, marginFor } from "@/domain/futures";
 
 interface TokocryptoTerminalProps {
@@ -55,6 +55,11 @@ export function TokocryptoTerminal({
   const feeMultiplier = 1001n; // 1 + 0.1% fee
   const maxBuyUnits = unitPrice > 0n ? Number((cashMinor * 1000n) / (unitPrice * feeMultiplier)) : 0;
   const maxSellUnits = holdingQuantity;
+  const spotInsufficient =
+    parsedSpotQty <= 0 ||
+    (spotSide === "BUY"
+      ? spotEstimatedTotal > cashMinor
+      : parsedSpotQty > maxSellUnits);
 
   // Quick percentage sizing for Spot
   const applySpotPercentage = (pct: number) => {
@@ -79,8 +84,9 @@ export function TokocryptoTerminal({
   const maxFuturesUnits = marginPerUnit > 0n ? Number(cashMinor / marginPerUnit) : 0;
 
   const applyFuturesPercentage = (pct: number) => {
-    const targetUnits = Math.max(0, Math.floor(maxFuturesUnits * pct));
-    setFuturesQty(targetUnits > 0 ? targetUnits.toString() : "1");
+    if (maxFuturesUnits <= 0) return;
+    const targetUnits = Math.max(1, Math.floor(maxFuturesUnits * pct));
+    setFuturesQty(targetUnits.toString());
   };
 
   const estimatedLiquidation = liquidationPriceMinor(
@@ -200,7 +206,7 @@ export function TokocryptoTerminal({
             {spotType === "LIMIT" && (
               <div>
                 <div className="mb-1 flex justify-between text-xs text-[#848e9c]">
-                  <span>Harga Limit (CR)</span>
+                  <span>Harga Limit (Rp)</span>
                   <span className="tabular-nums">Pasar: {currency(priceMinor)}</span>
                 </div>
                 <div className="flex items-center rounded-lg border border-[#2b313a] bg-[#12161a] px-3 py-2 text-sm focus-within:border-[#00c087]">
@@ -213,7 +219,7 @@ export function TokocryptoTerminal({
                     className="w-full bg-transparent font-medium tabular-nums text-white outline-none"
                     placeholder="0.00"
                   />
-                  <span className="text-xs font-bold text-[#848e9c]">CR</span>
+                  <span className="text-xs font-bold text-[#848e9c]">Rp</span>
                 </div>
               </div>
             )}
@@ -275,7 +281,7 @@ export function TokocryptoTerminal({
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={spotPending || parsedSpotQty <= 0}
+              disabled={spotPending || spotInsufficient}
               className={`w-full rounded-lg py-3 text-sm font-bold uppercase tracking-wider text-white transition disabled:opacity-50 ${
                 spotSide === "BUY"
                   ? "bg-[#0ecb81] hover:bg-[#00c087]"
@@ -284,7 +290,13 @@ export function TokocryptoTerminal({
             >
               {spotPending
                 ? "Memproses…"
-                : `${spotSide === "BUY" ? "Beli" : "Jual"} ${symbol}`}
+                : parsedSpotQty <= 0
+                  ? "Jumlah Tidak Valid"
+                  : spotSide === "BUY" && spotEstimatedTotal > cashMinor
+                    ? "Saldo Tidak Cukup"
+                    : spotSide === "SELL" && parsedSpotQty > maxSellUnits
+                      ? "Aset Tidak Cukup"
+                      : `${spotSide === "BUY" ? "Beli" : "Jual"} ${symbol}`}
             </button>
 
             {spotState?.error && (
@@ -395,7 +407,8 @@ export function TokocryptoTerminal({
                   key={pct}
                   type="button"
                   onClick={() => applyFuturesPercentage(pct)}
-                  className="rounded border border-[#2b313a] bg-[#1e2329] py-1 text-xs font-semibold text-[#848e9c] transition hover:border-[#f0b90b] hover:text-[#f0b90b]"
+                  disabled={maxFuturesUnits <= 0}
+                  className="rounded border border-[#2b313a] bg-[#1e2329] py-1 text-xs font-semibold text-[#848e9c] transition hover:border-[#f0b90b] hover:text-[#f0b90b] disabled:opacity-40"
                 >
                   {pct * 100}%
                 </button>
@@ -413,7 +426,7 @@ export function TokocryptoTerminal({
               <div className="flex justify-between text-[#848e9c]">
                 <span>Margin Diperlukan:</span>
                 <span className="font-semibold tabular-nums text-[#00c087]">
-                  {formatMinor(futuresRequiredMargin)}
+                  {currency(futuresRequiredMargin)}
                 </span>
               </div>
               <div className="flex justify-between text-[#848e9c]">

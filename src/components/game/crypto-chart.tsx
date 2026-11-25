@@ -137,7 +137,7 @@ export function CryptoTechnicalChart({
           )}
         </div>
         <div className="font-mono text-muted">
-          High: CR {formatMinor(BigInt(Math.round(maxPrice)))} · Low: CR {formatMinor(BigInt(Math.round(minPrice)))}
+          High: Rp {formatMinor(BigInt(Math.round(maxPrice)))} · Low: Rp {formatMinor(BigInt(Math.round(minPrice)))}
         </div>
       </div>
 
@@ -270,7 +270,7 @@ export function CryptoTechnicalChart({
             Tick {first.tick}
           </text>
           <text x={WIDTH / 2} y={height - 6} textAnchor="middle">
-            Range: CR {formatMinor(BigInt(Math.round(minPrice)))} – CR {formatMinor(BigInt(Math.round(maxPrice)))}
+            Range: Rp {formatMinor(BigInt(Math.round(minPrice)))} – Rp {formatMinor(BigInt(Math.round(maxPrice)))}
           </text>
           <text x={WIDTH - 4} y={height - 6} textAnchor="end">
             Tick {last.tick} (Latest)

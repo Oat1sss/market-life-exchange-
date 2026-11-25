@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { placeOrderAction } from "@/app/actions/trade";
 
 type Side = "BUY" | "SELL";
@@ -15,23 +15,18 @@ export default function TradeForm({ symbols, defaultSymbol }: TradeFormProps) {
   const [orderState, orderAction, orderPending] = useActionState<{
     ok?: boolean;
     error?: string;
-  }, FormData>(placeOrderAction, {});
+  }, FormData>(async (previous, formData) => {
+    // A fresh key per dispatch keeps retries of a failed order distinct while
+    // still letting the server reject an accidental replay of the same submit.
+    formData.set("idempotencyKey", crypto.randomUUID());
+    return placeOrderAction(previous, formData);
+  }, {});
 
   const [side, setSide] = useState<Side>("BUY");
-  const [idempotencyKey, setIdempotencyKey] = useState<string>("");
   const [type, setType] = useState<OrderType>("MARKET");
   const [symbol, setSymbol] = useState<string>(defaultSymbol ?? symbols[0] ?? "");
   const [quantity, setQuantity] = useState<string>("");
   const [limitPrice, setLimitPrice] = useState<string>("");
-
-  // One key per order attempt: keep it across retries after a validation
-  // error, then rotate it once the order is accepted so the next order is new.
-  useEffect(() => {
-    setIdempotencyKey(crypto.randomUUID());
-  }, []);
-  useEffect(() => {
-    if (orderState?.ok) setIdempotencyKey(crypto.randomUUID());
-  }, [orderState]);
 
   return (
     <div className="space-y-6">
@@ -51,7 +46,6 @@ export default function TradeForm({ symbols, defaultSymbol }: TradeFormProps) {
         <input type="hidden" name="type" value={type} />
         <input type="hidden" name="quantity" value={quantity} />
         <input type="hidden" name="limitPrice" value={limitPrice} />
-        <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
 
         <div>
           <label className="mb-1 block text-sm text-muted">Symbol</label>
@@ -121,7 +115,7 @@ export default function TradeForm({ symbols, defaultSymbol }: TradeFormProps) {
         {type === "LIMIT" && (
           <div>
             <label className="mb-1 block text-sm text-muted">
-              Limit price (CR)
+              Limit price (Rp)
             </label>
             <input
               type="number"

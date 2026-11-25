@@ -14,7 +14,7 @@ const GROUPS = [
     title: "Akun",
     links: [
       { href: "/play/wallet", label: "Dompet demo" },
-      { href: "/play/academy", label: "Akademi" },
+      { href: "/play/forex", label: "Forex" },
       { href: "/play/new", label: "Buka akun" },
     ],
   },

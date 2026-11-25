@@ -60,6 +60,26 @@ export type Order = $Result.DefaultSelection<Prisma.$OrderPayload>
  */
 export type FuturesPosition = $Result.DefaultSelection<Prisma.$FuturesPositionPayload>
 /**
+ * Model BondHolding
+ * Fixed-income position. One unit is one bond with 100 credits of face value;
+ * `bondKey` points at the static catalog line (GB2, GB10, CAAA, CBBB), so no
+ * per-asset row is needed. Coupons settle monthly and principal returns at
+ * maturity, both driven by the deterministic macro replay.
+ */
+export type BondHolding = $Result.DefaultSelection<Prisma.$BondHoldingPayload>
+/**
+ * Model BondTrade
+ * Every bond fill, kept for history and idempotent retries of the form action.
+ */
+export type BondTrade = $Result.DefaultSelection<Prisma.$BondTradePayload>
+/**
+ * Model CompanyDirective
+ * One resolved board decision. `payout_minor` is the company cash distribution
+ * recorded when the directive was issued so replay subtracts a stable amount;
+ * `player_payout_minor` is the shareholder's share already credited to cash.
+ */
+export type CompanyDirective = $Result.DefaultSelection<Prisma.$CompanyDirectivePayload>
+/**
  * Model LedgerEntry
  * Append-only audit trail. created_at/updated_at audit columns are intentionally
  * omitted: rows must never be mutated; corrections use compensating
@@ -196,7 +216,12 @@ export const LedgerReason: {
   LIFE_EVENT: 'LIFE_EVENT',
   ADJUSTMENT: 'ADJUSTMENT',
   FUTURES_MARGIN: 'FUTURES_MARGIN',
-  FUTURES_PNL: 'FUTURES_PNL'
+  FUTURES_PNL: 'FUTURES_PNL',
+  BOND_BUY: 'BOND_BUY',
+  BOND_SELL: 'BOND_SELL',
+  BOND_COUPON: 'BOND_COUPON',
+  BOND_MATURITY: 'BOND_MATURITY',
+  DIVIDEND: 'DIVIDEND'
 };
 
 export type LedgerReason = (typeof LedgerReason)[keyof typeof LedgerReason]
@@ -217,6 +242,24 @@ export const FuturesStatus: {
 };
 
 export type FuturesStatus = (typeof FuturesStatus)[keyof typeof FuturesStatus]
+
+
+export const BondTradeSide: {
+  BUY: 'BUY',
+  SELL: 'SELL'
+};
+
+export type BondTradeSide = (typeof BondTradeSide)[keyof typeof BondTradeSide]
+
+
+export const DirectiveKind: {
+  DIVIDEND: 'DIVIDEND',
+  BUYBACK: 'BUYBACK',
+  EXPANSION: 'EXPANSION',
+  CUT_COSTS: 'CUT_COSTS'
+};
+
+export type DirectiveKind = (typeof DirectiveKind)[keyof typeof DirectiveKind]
 
 
 export const CareerEndReason: {
@@ -317,6 +360,14 @@ export const FuturesSide: typeof $Enums.FuturesSide
 export type FuturesStatus = $Enums.FuturesStatus
 
 export const FuturesStatus: typeof $Enums.FuturesStatus
+
+export type BondTradeSide = $Enums.BondTradeSide
+
+export const BondTradeSide: typeof $Enums.BondTradeSide
+
+export type DirectiveKind = $Enums.DirectiveKind
+
+export const DirectiveKind: typeof $Enums.DirectiveKind
 
 export type CareerEndReason = $Enums.CareerEndReason
 
@@ -548,6 +599,36 @@ export class PrismaClient<
     * ```
     */
   get futuresPosition(): Prisma.FuturesPositionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.bondHolding`: Exposes CRUD operations for the **BondHolding** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BondHoldings
+    * const bondHoldings = await prisma.bondHolding.findMany()
+    * ```
+    */
+  get bondHolding(): Prisma.BondHoldingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.bondTrade`: Exposes CRUD operations for the **BondTrade** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BondTrades
+    * const bondTrades = await prisma.bondTrade.findMany()
+    * ```
+    */
+  get bondTrade(): Prisma.BondTradeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.companyDirective`: Exposes CRUD operations for the **CompanyDirective** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CompanyDirectives
+    * const companyDirectives = await prisma.companyDirective.findMany()
+    * ```
+    */
+  get companyDirective(): Prisma.CompanyDirectiveDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.ledgerEntry`: Exposes CRUD operations for the **LedgerEntry** model.
@@ -1084,6 +1165,9 @@ export namespace Prisma {
     Holding: 'Holding',
     Order: 'Order',
     FuturesPosition: 'FuturesPosition',
+    BondHolding: 'BondHolding',
+    BondTrade: 'BondTrade',
+    CompanyDirective: 'CompanyDirective',
     LedgerEntry: 'LedgerEntry',
     Career: 'Career',
     Education: 'Education',
@@ -1107,7 +1191,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "game" | "character" | "portfolio" | "asset" | "pricePoint" | "holding" | "order" | "futuresPosition" | "ledgerEntry" | "career" | "education" | "expenseRule" | "lifeEvent" | "marketEvent" | "achievement" | "playerAchievement"
+      modelProps: "user" | "game" | "character" | "portfolio" | "asset" | "pricePoint" | "holding" | "order" | "futuresPosition" | "bondHolding" | "bondTrade" | "companyDirective" | "ledgerEntry" | "career" | "education" | "expenseRule" | "lifeEvent" | "marketEvent" | "achievement" | "playerAchievement"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1774,6 +1858,228 @@ export namespace Prisma {
           count: {
             args: Prisma.FuturesPositionCountArgs<ExtArgs>
             result: $Utils.Optional<FuturesPositionCountAggregateOutputType> | number
+          }
+        }
+      }
+      BondHolding: {
+        payload: Prisma.$BondHoldingPayload<ExtArgs>
+        fields: Prisma.BondHoldingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BondHoldingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BondHoldingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>
+          }
+          findFirst: {
+            args: Prisma.BondHoldingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BondHoldingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>
+          }
+          findMany: {
+            args: Prisma.BondHoldingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>[]
+          }
+          create: {
+            args: Prisma.BondHoldingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>
+          }
+          createMany: {
+            args: Prisma.BondHoldingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BondHoldingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>[]
+          }
+          delete: {
+            args: Prisma.BondHoldingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>
+          }
+          update: {
+            args: Prisma.BondHoldingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>
+          }
+          deleteMany: {
+            args: Prisma.BondHoldingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BondHoldingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BondHoldingUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>[]
+          }
+          upsert: {
+            args: Prisma.BondHoldingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondHoldingPayload>
+          }
+          aggregate: {
+            args: Prisma.BondHoldingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBondHolding>
+          }
+          groupBy: {
+            args: Prisma.BondHoldingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BondHoldingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BondHoldingCountArgs<ExtArgs>
+            result: $Utils.Optional<BondHoldingCountAggregateOutputType> | number
+          }
+        }
+      }
+      BondTrade: {
+        payload: Prisma.$BondTradePayload<ExtArgs>
+        fields: Prisma.BondTradeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BondTradeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BondTradeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>
+          }
+          findFirst: {
+            args: Prisma.BondTradeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BondTradeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>
+          }
+          findMany: {
+            args: Prisma.BondTradeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>[]
+          }
+          create: {
+            args: Prisma.BondTradeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>
+          }
+          createMany: {
+            args: Prisma.BondTradeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BondTradeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>[]
+          }
+          delete: {
+            args: Prisma.BondTradeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>
+          }
+          update: {
+            args: Prisma.BondTradeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>
+          }
+          deleteMany: {
+            args: Prisma.BondTradeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BondTradeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BondTradeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>[]
+          }
+          upsert: {
+            args: Prisma.BondTradeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BondTradePayload>
+          }
+          aggregate: {
+            args: Prisma.BondTradeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBondTrade>
+          }
+          groupBy: {
+            args: Prisma.BondTradeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BondTradeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BondTradeCountArgs<ExtArgs>
+            result: $Utils.Optional<BondTradeCountAggregateOutputType> | number
+          }
+        }
+      }
+      CompanyDirective: {
+        payload: Prisma.$CompanyDirectivePayload<ExtArgs>
+        fields: Prisma.CompanyDirectiveFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CompanyDirectiveFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CompanyDirectiveFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>
+          }
+          findFirst: {
+            args: Prisma.CompanyDirectiveFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CompanyDirectiveFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>
+          }
+          findMany: {
+            args: Prisma.CompanyDirectiveFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>[]
+          }
+          create: {
+            args: Prisma.CompanyDirectiveCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>
+          }
+          createMany: {
+            args: Prisma.CompanyDirectiveCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CompanyDirectiveCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>[]
+          }
+          delete: {
+            args: Prisma.CompanyDirectiveDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>
+          }
+          update: {
+            args: Prisma.CompanyDirectiveUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>
+          }
+          deleteMany: {
+            args: Prisma.CompanyDirectiveDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CompanyDirectiveUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CompanyDirectiveUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>[]
+          }
+          upsert: {
+            args: Prisma.CompanyDirectiveUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyDirectivePayload>
+          }
+          aggregate: {
+            args: Prisma.CompanyDirectiveAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCompanyDirective>
+          }
+          groupBy: {
+            args: Prisma.CompanyDirectiveGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CompanyDirectiveGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CompanyDirectiveCountArgs<ExtArgs>
+            result: $Utils.Optional<CompanyDirectiveCountAggregateOutputType> | number
           }
         }
       }
@@ -2501,6 +2807,9 @@ export namespace Prisma {
     holding?: HoldingOmit
     order?: OrderOmit
     futuresPosition?: FuturesPositionOmit
+    bondHolding?: BondHoldingOmit
+    bondTrade?: BondTradeOmit
+    companyDirective?: CompanyDirectiveOmit
     ledgerEntry?: LedgerEntryOmit
     career?: CareerOmit
     education?: EducationOmit
@@ -2628,6 +2937,9 @@ export namespace Prisma {
     marketEvents: number
     playerAchievements: number
     futuresPositions: number
+    bondHoldings: number
+    bondTrades: number
+    directives: number
   }
 
   export type GameCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2639,6 +2951,9 @@ export namespace Prisma {
     marketEvents?: boolean | GameCountOutputTypeCountMarketEventsArgs
     playerAchievements?: boolean | GameCountOutputTypeCountPlayerAchievementsArgs
     futuresPositions?: boolean | GameCountOutputTypeCountFuturesPositionsArgs
+    bondHoldings?: boolean | GameCountOutputTypeCountBondHoldingsArgs
+    bondTrades?: boolean | GameCountOutputTypeCountBondTradesArgs
+    directives?: boolean | GameCountOutputTypeCountDirectivesArgs
   }
 
   // Custom InputTypes
@@ -2706,6 +3021,27 @@ export namespace Prisma {
    */
   export type GameCountOutputTypeCountFuturesPositionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: FuturesPositionWhereInput
+  }
+
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeCountBondHoldingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BondHoldingWhereInput
+  }
+
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeCountBondTradesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BondTradeWhereInput
+  }
+
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeCountDirectivesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CompanyDirectiveWhereInput
   }
 
 
@@ -4216,6 +4552,9 @@ export namespace Prisma {
     marketEvents?: boolean | Game$marketEventsArgs<ExtArgs>
     playerAchievements?: boolean | Game$playerAchievementsArgs<ExtArgs>
     futuresPositions?: boolean | Game$futuresPositionsArgs<ExtArgs>
+    bondHoldings?: boolean | Game$bondHoldingsArgs<ExtArgs>
+    bondTrades?: boolean | Game$bondTradesArgs<ExtArgs>
+    directives?: boolean | Game$directivesArgs<ExtArgs>
     _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["game"]>
 
@@ -4267,6 +4606,9 @@ export namespace Prisma {
     marketEvents?: boolean | Game$marketEventsArgs<ExtArgs>
     playerAchievements?: boolean | Game$playerAchievementsArgs<ExtArgs>
     futuresPositions?: boolean | Game$futuresPositionsArgs<ExtArgs>
+    bondHoldings?: boolean | Game$bondHoldingsArgs<ExtArgs>
+    bondTrades?: boolean | Game$bondTradesArgs<ExtArgs>
+    directives?: boolean | Game$directivesArgs<ExtArgs>
     _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type GameIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4290,6 +4632,9 @@ export namespace Prisma {
       marketEvents: Prisma.$MarketEventPayload<ExtArgs>[]
       playerAchievements: Prisma.$PlayerAchievementPayload<ExtArgs>[]
       futuresPositions: Prisma.$FuturesPositionPayload<ExtArgs>[]
+      bondHoldings: Prisma.$BondHoldingPayload<ExtArgs>[]
+      bondTrades: Prisma.$BondTradePayload<ExtArgs>[]
+      directives: Prisma.$CompanyDirectivePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4705,6 +5050,9 @@ export namespace Prisma {
     marketEvents<T extends Game$marketEventsArgs<ExtArgs> = {}>(args?: Subset<T, Game$marketEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarketEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     playerAchievements<T extends Game$playerAchievementsArgs<ExtArgs> = {}>(args?: Subset<T, Game$playerAchievementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerAchievementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     futuresPositions<T extends Game$futuresPositionsArgs<ExtArgs> = {}>(args?: Subset<T, Game$futuresPositionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FuturesPositionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    bondHoldings<T extends Game$bondHoldingsArgs<ExtArgs> = {}>(args?: Subset<T, Game$bondHoldingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    bondTrades<T extends Game$bondTradesArgs<ExtArgs> = {}>(args?: Subset<T, Game$bondTradesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    directives<T extends Game$directivesArgs<ExtArgs> = {}>(args?: Subset<T, Game$directivesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5370,6 +5718,78 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: FuturesPositionScalarFieldEnum | FuturesPositionScalarFieldEnum[]
+  }
+
+  /**
+   * Game.bondHoldings
+   */
+  export type Game$bondHoldingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    where?: BondHoldingWhereInput
+    orderBy?: BondHoldingOrderByWithRelationInput | BondHoldingOrderByWithRelationInput[]
+    cursor?: BondHoldingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BondHoldingScalarFieldEnum | BondHoldingScalarFieldEnum[]
+  }
+
+  /**
+   * Game.bondTrades
+   */
+  export type Game$bondTradesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    where?: BondTradeWhereInput
+    orderBy?: BondTradeOrderByWithRelationInput | BondTradeOrderByWithRelationInput[]
+    cursor?: BondTradeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BondTradeScalarFieldEnum | BondTradeScalarFieldEnum[]
+  }
+
+  /**
+   * Game.directives
+   */
+  export type Game$directivesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    where?: CompanyDirectiveWhereInput
+    orderBy?: CompanyDirectiveOrderByWithRelationInput | CompanyDirectiveOrderByWithRelationInput[]
+    cursor?: CompanyDirectiveWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CompanyDirectiveScalarFieldEnum | CompanyDirectiveScalarFieldEnum[]
   }
 
   /**
@@ -13903,6 +14323,3502 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: FuturesPositionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BondHolding
+   */
+
+  export type AggregateBondHolding = {
+    _count: BondHoldingCountAggregateOutputType | null
+    _avg: BondHoldingAvgAggregateOutputType | null
+    _sum: BondHoldingSumAggregateOutputType | null
+    _min: BondHoldingMinAggregateOutputType | null
+    _max: BondHoldingMaxAggregateOutputType | null
+  }
+
+  export type BondHoldingAvgAggregateOutputType = {
+    quantity: number | null
+    costMinor: number | null
+    purchasedTick: number | null
+  }
+
+  export type BondHoldingSumAggregateOutputType = {
+    quantity: number | null
+    costMinor: bigint | null
+    purchasedTick: number | null
+  }
+
+  export type BondHoldingMinAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    bondKey: string | null
+    quantity: number | null
+    costMinor: bigint | null
+    purchasedTick: number | null
+    updatedAt: Date | null
+  }
+
+  export type BondHoldingMaxAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    bondKey: string | null
+    quantity: number | null
+    costMinor: bigint | null
+    purchasedTick: number | null
+    updatedAt: Date | null
+  }
+
+  export type BondHoldingCountAggregateOutputType = {
+    id: number
+    gameId: number
+    bondKey: number
+    quantity: number
+    costMinor: number
+    purchasedTick: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BondHoldingAvgAggregateInputType = {
+    quantity?: true
+    costMinor?: true
+    purchasedTick?: true
+  }
+
+  export type BondHoldingSumAggregateInputType = {
+    quantity?: true
+    costMinor?: true
+    purchasedTick?: true
+  }
+
+  export type BondHoldingMinAggregateInputType = {
+    id?: true
+    gameId?: true
+    bondKey?: true
+    quantity?: true
+    costMinor?: true
+    purchasedTick?: true
+    updatedAt?: true
+  }
+
+  export type BondHoldingMaxAggregateInputType = {
+    id?: true
+    gameId?: true
+    bondKey?: true
+    quantity?: true
+    costMinor?: true
+    purchasedTick?: true
+    updatedAt?: true
+  }
+
+  export type BondHoldingCountAggregateInputType = {
+    id?: true
+    gameId?: true
+    bondKey?: true
+    quantity?: true
+    costMinor?: true
+    purchasedTick?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BondHoldingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BondHolding to aggregate.
+     */
+    where?: BondHoldingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BondHoldings to fetch.
+     */
+    orderBy?: BondHoldingOrderByWithRelationInput | BondHoldingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BondHoldingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BondHoldings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BondHoldings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BondHoldings
+    **/
+    _count?: true | BondHoldingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: BondHoldingAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: BondHoldingSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BondHoldingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BondHoldingMaxAggregateInputType
+  }
+
+  export type GetBondHoldingAggregateType<T extends BondHoldingAggregateArgs> = {
+        [P in keyof T & keyof AggregateBondHolding]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBondHolding[P]>
+      : GetScalarType<T[P], AggregateBondHolding[P]>
+  }
+
+
+
+
+  export type BondHoldingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BondHoldingWhereInput
+    orderBy?: BondHoldingOrderByWithAggregationInput | BondHoldingOrderByWithAggregationInput[]
+    by: BondHoldingScalarFieldEnum[] | BondHoldingScalarFieldEnum
+    having?: BondHoldingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BondHoldingCountAggregateInputType | true
+    _avg?: BondHoldingAvgAggregateInputType
+    _sum?: BondHoldingSumAggregateInputType
+    _min?: BondHoldingMinAggregateInputType
+    _max?: BondHoldingMaxAggregateInputType
+  }
+
+  export type BondHoldingGroupByOutputType = {
+    id: string
+    gameId: string
+    bondKey: string
+    quantity: number
+    costMinor: bigint
+    purchasedTick: number
+    updatedAt: Date
+    _count: BondHoldingCountAggregateOutputType | null
+    _avg: BondHoldingAvgAggregateOutputType | null
+    _sum: BondHoldingSumAggregateOutputType | null
+    _min: BondHoldingMinAggregateOutputType | null
+    _max: BondHoldingMaxAggregateOutputType | null
+  }
+
+  type GetBondHoldingGroupByPayload<T extends BondHoldingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BondHoldingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BondHoldingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BondHoldingGroupByOutputType[P]>
+            : GetScalarType<T[P], BondHoldingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BondHoldingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    bondKey?: boolean
+    quantity?: boolean
+    costMinor?: boolean
+    purchasedTick?: boolean
+    updatedAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bondHolding"]>
+
+  export type BondHoldingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    bondKey?: boolean
+    quantity?: boolean
+    costMinor?: boolean
+    purchasedTick?: boolean
+    updatedAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bondHolding"]>
+
+  export type BondHoldingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    bondKey?: boolean
+    quantity?: boolean
+    costMinor?: boolean
+    purchasedTick?: boolean
+    updatedAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bondHolding"]>
+
+  export type BondHoldingSelectScalar = {
+    id?: boolean
+    gameId?: boolean
+    bondKey?: boolean
+    quantity?: boolean
+    costMinor?: boolean
+    purchasedTick?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BondHoldingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameId" | "bondKey" | "quantity" | "costMinor" | "purchasedTick" | "updatedAt", ExtArgs["result"]["bondHolding"]>
+  export type BondHoldingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type BondHoldingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type BondHoldingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+
+  export type $BondHoldingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BondHolding"
+    objects: {
+      game: Prisma.$GamePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      gameId: string
+      bondKey: string
+      quantity: number
+      costMinor: bigint
+      purchasedTick: number
+      updatedAt: Date
+    }, ExtArgs["result"]["bondHolding"]>
+    composites: {}
+  }
+
+  type BondHoldingGetPayload<S extends boolean | null | undefined | BondHoldingDefaultArgs> = $Result.GetResult<Prisma.$BondHoldingPayload, S>
+
+  type BondHoldingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BondHoldingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BondHoldingCountAggregateInputType | true
+    }
+
+  export interface BondHoldingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BondHolding'], meta: { name: 'BondHolding' } }
+    /**
+     * Find zero or one BondHolding that matches the filter.
+     * @param {BondHoldingFindUniqueArgs} args - Arguments to find a BondHolding
+     * @example
+     * // Get one BondHolding
+     * const bondHolding = await prisma.bondHolding.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BondHoldingFindUniqueArgs>(args: SelectSubset<T, BondHoldingFindUniqueArgs<ExtArgs>>): Prisma__BondHoldingClient<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BondHolding that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BondHoldingFindUniqueOrThrowArgs} args - Arguments to find a BondHolding
+     * @example
+     * // Get one BondHolding
+     * const bondHolding = await prisma.bondHolding.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BondHoldingFindUniqueOrThrowArgs>(args: SelectSubset<T, BondHoldingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BondHoldingClient<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BondHolding that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondHoldingFindFirstArgs} args - Arguments to find a BondHolding
+     * @example
+     * // Get one BondHolding
+     * const bondHolding = await prisma.bondHolding.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BondHoldingFindFirstArgs>(args?: SelectSubset<T, BondHoldingFindFirstArgs<ExtArgs>>): Prisma__BondHoldingClient<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BondHolding that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondHoldingFindFirstOrThrowArgs} args - Arguments to find a BondHolding
+     * @example
+     * // Get one BondHolding
+     * const bondHolding = await prisma.bondHolding.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BondHoldingFindFirstOrThrowArgs>(args?: SelectSubset<T, BondHoldingFindFirstOrThrowArgs<ExtArgs>>): Prisma__BondHoldingClient<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BondHoldings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondHoldingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BondHoldings
+     * const bondHoldings = await prisma.bondHolding.findMany()
+     * 
+     * // Get first 10 BondHoldings
+     * const bondHoldings = await prisma.bondHolding.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const bondHoldingWithIdOnly = await prisma.bondHolding.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BondHoldingFindManyArgs>(args?: SelectSubset<T, BondHoldingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BondHolding.
+     * @param {BondHoldingCreateArgs} args - Arguments to create a BondHolding.
+     * @example
+     * // Create one BondHolding
+     * const BondHolding = await prisma.bondHolding.create({
+     *   data: {
+     *     // ... data to create a BondHolding
+     *   }
+     * })
+     * 
+     */
+    create<T extends BondHoldingCreateArgs>(args: SelectSubset<T, BondHoldingCreateArgs<ExtArgs>>): Prisma__BondHoldingClient<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BondHoldings.
+     * @param {BondHoldingCreateManyArgs} args - Arguments to create many BondHoldings.
+     * @example
+     * // Create many BondHoldings
+     * const bondHolding = await prisma.bondHolding.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BondHoldingCreateManyArgs>(args?: SelectSubset<T, BondHoldingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BondHoldings and returns the data saved in the database.
+     * @param {BondHoldingCreateManyAndReturnArgs} args - Arguments to create many BondHoldings.
+     * @example
+     * // Create many BondHoldings
+     * const bondHolding = await prisma.bondHolding.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BondHoldings and only return the `id`
+     * const bondHoldingWithIdOnly = await prisma.bondHolding.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BondHoldingCreateManyAndReturnArgs>(args?: SelectSubset<T, BondHoldingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BondHolding.
+     * @param {BondHoldingDeleteArgs} args - Arguments to delete one BondHolding.
+     * @example
+     * // Delete one BondHolding
+     * const BondHolding = await prisma.bondHolding.delete({
+     *   where: {
+     *     // ... filter to delete one BondHolding
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BondHoldingDeleteArgs>(args: SelectSubset<T, BondHoldingDeleteArgs<ExtArgs>>): Prisma__BondHoldingClient<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BondHolding.
+     * @param {BondHoldingUpdateArgs} args - Arguments to update one BondHolding.
+     * @example
+     * // Update one BondHolding
+     * const bondHolding = await prisma.bondHolding.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BondHoldingUpdateArgs>(args: SelectSubset<T, BondHoldingUpdateArgs<ExtArgs>>): Prisma__BondHoldingClient<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BondHoldings.
+     * @param {BondHoldingDeleteManyArgs} args - Arguments to filter BondHoldings to delete.
+     * @example
+     * // Delete a few BondHoldings
+     * const { count } = await prisma.bondHolding.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BondHoldingDeleteManyArgs>(args?: SelectSubset<T, BondHoldingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BondHoldings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondHoldingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BondHoldings
+     * const bondHolding = await prisma.bondHolding.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BondHoldingUpdateManyArgs>(args: SelectSubset<T, BondHoldingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BondHoldings and returns the data updated in the database.
+     * @param {BondHoldingUpdateManyAndReturnArgs} args - Arguments to update many BondHoldings.
+     * @example
+     * // Update many BondHoldings
+     * const bondHolding = await prisma.bondHolding.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BondHoldings and only return the `id`
+     * const bondHoldingWithIdOnly = await prisma.bondHolding.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BondHoldingUpdateManyAndReturnArgs>(args: SelectSubset<T, BondHoldingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BondHolding.
+     * @param {BondHoldingUpsertArgs} args - Arguments to update or create a BondHolding.
+     * @example
+     * // Update or create a BondHolding
+     * const bondHolding = await prisma.bondHolding.upsert({
+     *   create: {
+     *     // ... data to create a BondHolding
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BondHolding we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BondHoldingUpsertArgs>(args: SelectSubset<T, BondHoldingUpsertArgs<ExtArgs>>): Prisma__BondHoldingClient<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BondHoldings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondHoldingCountArgs} args - Arguments to filter BondHoldings to count.
+     * @example
+     * // Count the number of BondHoldings
+     * const count = await prisma.bondHolding.count({
+     *   where: {
+     *     // ... the filter for the BondHoldings we want to count
+     *   }
+     * })
+    **/
+    count<T extends BondHoldingCountArgs>(
+      args?: Subset<T, BondHoldingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BondHoldingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BondHolding.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondHoldingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BondHoldingAggregateArgs>(args: Subset<T, BondHoldingAggregateArgs>): Prisma.PrismaPromise<GetBondHoldingAggregateType<T>>
+
+    /**
+     * Group by BondHolding.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondHoldingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BondHoldingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BondHoldingGroupByArgs['orderBy'] }
+        : { orderBy?: BondHoldingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BondHoldingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBondHoldingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BondHolding model
+   */
+  readonly fields: BondHoldingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BondHolding.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BondHoldingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    game<T extends GameDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GameDefaultArgs<ExtArgs>>): Prisma__GameClient<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BondHolding model
+   */
+  interface BondHoldingFieldRefs {
+    readonly id: FieldRef<"BondHolding", 'String'>
+    readonly gameId: FieldRef<"BondHolding", 'String'>
+    readonly bondKey: FieldRef<"BondHolding", 'String'>
+    readonly quantity: FieldRef<"BondHolding", 'Int'>
+    readonly costMinor: FieldRef<"BondHolding", 'BigInt'>
+    readonly purchasedTick: FieldRef<"BondHolding", 'Int'>
+    readonly updatedAt: FieldRef<"BondHolding", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BondHolding findUnique
+   */
+  export type BondHoldingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which BondHolding to fetch.
+     */
+    where: BondHoldingWhereUniqueInput
+  }
+
+  /**
+   * BondHolding findUniqueOrThrow
+   */
+  export type BondHoldingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which BondHolding to fetch.
+     */
+    where: BondHoldingWhereUniqueInput
+  }
+
+  /**
+   * BondHolding findFirst
+   */
+  export type BondHoldingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which BondHolding to fetch.
+     */
+    where?: BondHoldingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BondHoldings to fetch.
+     */
+    orderBy?: BondHoldingOrderByWithRelationInput | BondHoldingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BondHoldings.
+     */
+    cursor?: BondHoldingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BondHoldings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BondHoldings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BondHoldings.
+     */
+    distinct?: BondHoldingScalarFieldEnum | BondHoldingScalarFieldEnum[]
+  }
+
+  /**
+   * BondHolding findFirstOrThrow
+   */
+  export type BondHoldingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which BondHolding to fetch.
+     */
+    where?: BondHoldingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BondHoldings to fetch.
+     */
+    orderBy?: BondHoldingOrderByWithRelationInput | BondHoldingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BondHoldings.
+     */
+    cursor?: BondHoldingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BondHoldings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BondHoldings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BondHoldings.
+     */
+    distinct?: BondHoldingScalarFieldEnum | BondHoldingScalarFieldEnum[]
+  }
+
+  /**
+   * BondHolding findMany
+   */
+  export type BondHoldingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which BondHoldings to fetch.
+     */
+    where?: BondHoldingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BondHoldings to fetch.
+     */
+    orderBy?: BondHoldingOrderByWithRelationInput | BondHoldingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BondHoldings.
+     */
+    cursor?: BondHoldingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BondHoldings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BondHoldings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BondHoldings.
+     */
+    distinct?: BondHoldingScalarFieldEnum | BondHoldingScalarFieldEnum[]
+  }
+
+  /**
+   * BondHolding create
+   */
+  export type BondHoldingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BondHolding.
+     */
+    data: XOR<BondHoldingCreateInput, BondHoldingUncheckedCreateInput>
+  }
+
+  /**
+   * BondHolding createMany
+   */
+  export type BondHoldingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BondHoldings.
+     */
+    data: BondHoldingCreateManyInput | BondHoldingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BondHolding createManyAndReturn
+   */
+  export type BondHoldingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * The data used to create many BondHoldings.
+     */
+    data: BondHoldingCreateManyInput | BondHoldingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BondHolding update
+   */
+  export type BondHoldingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BondHolding.
+     */
+    data: XOR<BondHoldingUpdateInput, BondHoldingUncheckedUpdateInput>
+    /**
+     * Choose, which BondHolding to update.
+     */
+    where: BondHoldingWhereUniqueInput
+  }
+
+  /**
+   * BondHolding updateMany
+   */
+  export type BondHoldingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BondHoldings.
+     */
+    data: XOR<BondHoldingUpdateManyMutationInput, BondHoldingUncheckedUpdateManyInput>
+    /**
+     * Filter which BondHoldings to update
+     */
+    where?: BondHoldingWhereInput
+    /**
+     * Limit how many BondHoldings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BondHolding updateManyAndReturn
+   */
+  export type BondHoldingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * The data used to update BondHoldings.
+     */
+    data: XOR<BondHoldingUpdateManyMutationInput, BondHoldingUncheckedUpdateManyInput>
+    /**
+     * Filter which BondHoldings to update
+     */
+    where?: BondHoldingWhereInput
+    /**
+     * Limit how many BondHoldings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BondHolding upsert
+   */
+  export type BondHoldingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BondHolding to update in case it exists.
+     */
+    where: BondHoldingWhereUniqueInput
+    /**
+     * In case the BondHolding found by the `where` argument doesn't exist, create a new BondHolding with this data.
+     */
+    create: XOR<BondHoldingCreateInput, BondHoldingUncheckedCreateInput>
+    /**
+     * In case the BondHolding was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BondHoldingUpdateInput, BondHoldingUncheckedUpdateInput>
+  }
+
+  /**
+   * BondHolding delete
+   */
+  export type BondHoldingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+    /**
+     * Filter which BondHolding to delete.
+     */
+    where: BondHoldingWhereUniqueInput
+  }
+
+  /**
+   * BondHolding deleteMany
+   */
+  export type BondHoldingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BondHoldings to delete
+     */
+    where?: BondHoldingWhereInput
+    /**
+     * Limit how many BondHoldings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BondHolding without action
+   */
+  export type BondHoldingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondHolding
+     */
+    select?: BondHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondHolding
+     */
+    omit?: BondHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondHoldingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BondTrade
+   */
+
+  export type AggregateBondTrade = {
+    _count: BondTradeCountAggregateOutputType | null
+    _avg: BondTradeAvgAggregateOutputType | null
+    _sum: BondTradeSumAggregateOutputType | null
+    _min: BondTradeMinAggregateOutputType | null
+    _max: BondTradeMaxAggregateOutputType | null
+  }
+
+  export type BondTradeAvgAggregateOutputType = {
+    quantity: number | null
+    priceMinor: number | null
+    grossMinor: number | null
+    feeMinor: number | null
+    netMinor: number | null
+    tick: number | null
+  }
+
+  export type BondTradeSumAggregateOutputType = {
+    quantity: number | null
+    priceMinor: bigint | null
+    grossMinor: bigint | null
+    feeMinor: bigint | null
+    netMinor: bigint | null
+    tick: number | null
+  }
+
+  export type BondTradeMinAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    bondKey: string | null
+    side: $Enums.BondTradeSide | null
+    quantity: number | null
+    priceMinor: bigint | null
+    grossMinor: bigint | null
+    feeMinor: bigint | null
+    netMinor: bigint | null
+    tick: number | null
+    idempotencyKey: string | null
+    createdAt: Date | null
+  }
+
+  export type BondTradeMaxAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    bondKey: string | null
+    side: $Enums.BondTradeSide | null
+    quantity: number | null
+    priceMinor: bigint | null
+    grossMinor: bigint | null
+    feeMinor: bigint | null
+    netMinor: bigint | null
+    tick: number | null
+    idempotencyKey: string | null
+    createdAt: Date | null
+  }
+
+  export type BondTradeCountAggregateOutputType = {
+    id: number
+    gameId: number
+    bondKey: number
+    side: number
+    quantity: number
+    priceMinor: number
+    grossMinor: number
+    feeMinor: number
+    netMinor: number
+    tick: number
+    idempotencyKey: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type BondTradeAvgAggregateInputType = {
+    quantity?: true
+    priceMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+  }
+
+  export type BondTradeSumAggregateInputType = {
+    quantity?: true
+    priceMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+  }
+
+  export type BondTradeMinAggregateInputType = {
+    id?: true
+    gameId?: true
+    bondKey?: true
+    side?: true
+    quantity?: true
+    priceMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+    idempotencyKey?: true
+    createdAt?: true
+  }
+
+  export type BondTradeMaxAggregateInputType = {
+    id?: true
+    gameId?: true
+    bondKey?: true
+    side?: true
+    quantity?: true
+    priceMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+    idempotencyKey?: true
+    createdAt?: true
+  }
+
+  export type BondTradeCountAggregateInputType = {
+    id?: true
+    gameId?: true
+    bondKey?: true
+    side?: true
+    quantity?: true
+    priceMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+    idempotencyKey?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type BondTradeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BondTrade to aggregate.
+     */
+    where?: BondTradeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BondTrades to fetch.
+     */
+    orderBy?: BondTradeOrderByWithRelationInput | BondTradeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BondTradeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BondTrades from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BondTrades.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BondTrades
+    **/
+    _count?: true | BondTradeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: BondTradeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: BondTradeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BondTradeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BondTradeMaxAggregateInputType
+  }
+
+  export type GetBondTradeAggregateType<T extends BondTradeAggregateArgs> = {
+        [P in keyof T & keyof AggregateBondTrade]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBondTrade[P]>
+      : GetScalarType<T[P], AggregateBondTrade[P]>
+  }
+
+
+
+
+  export type BondTradeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BondTradeWhereInput
+    orderBy?: BondTradeOrderByWithAggregationInput | BondTradeOrderByWithAggregationInput[]
+    by: BondTradeScalarFieldEnum[] | BondTradeScalarFieldEnum
+    having?: BondTradeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BondTradeCountAggregateInputType | true
+    _avg?: BondTradeAvgAggregateInputType
+    _sum?: BondTradeSumAggregateInputType
+    _min?: BondTradeMinAggregateInputType
+    _max?: BondTradeMaxAggregateInputType
+  }
+
+  export type BondTradeGroupByOutputType = {
+    id: string
+    gameId: string
+    bondKey: string
+    side: $Enums.BondTradeSide
+    quantity: number
+    priceMinor: bigint
+    grossMinor: bigint
+    feeMinor: bigint
+    netMinor: bigint
+    tick: number
+    idempotencyKey: string
+    createdAt: Date
+    _count: BondTradeCountAggregateOutputType | null
+    _avg: BondTradeAvgAggregateOutputType | null
+    _sum: BondTradeSumAggregateOutputType | null
+    _min: BondTradeMinAggregateOutputType | null
+    _max: BondTradeMaxAggregateOutputType | null
+  }
+
+  type GetBondTradeGroupByPayload<T extends BondTradeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BondTradeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BondTradeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BondTradeGroupByOutputType[P]>
+            : GetScalarType<T[P], BondTradeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BondTradeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    bondKey?: boolean
+    side?: boolean
+    quantity?: boolean
+    priceMinor?: boolean
+    grossMinor?: boolean
+    feeMinor?: boolean
+    netMinor?: boolean
+    tick?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bondTrade"]>
+
+  export type BondTradeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    bondKey?: boolean
+    side?: boolean
+    quantity?: boolean
+    priceMinor?: boolean
+    grossMinor?: boolean
+    feeMinor?: boolean
+    netMinor?: boolean
+    tick?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bondTrade"]>
+
+  export type BondTradeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    bondKey?: boolean
+    side?: boolean
+    quantity?: boolean
+    priceMinor?: boolean
+    grossMinor?: boolean
+    feeMinor?: boolean
+    netMinor?: boolean
+    tick?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["bondTrade"]>
+
+  export type BondTradeSelectScalar = {
+    id?: boolean
+    gameId?: boolean
+    bondKey?: boolean
+    side?: boolean
+    quantity?: boolean
+    priceMinor?: boolean
+    grossMinor?: boolean
+    feeMinor?: boolean
+    netMinor?: boolean
+    tick?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+  }
+
+  export type BondTradeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameId" | "bondKey" | "side" | "quantity" | "priceMinor" | "grossMinor" | "feeMinor" | "netMinor" | "tick" | "idempotencyKey" | "createdAt", ExtArgs["result"]["bondTrade"]>
+  export type BondTradeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type BondTradeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type BondTradeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+
+  export type $BondTradePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BondTrade"
+    objects: {
+      game: Prisma.$GamePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      gameId: string
+      bondKey: string
+      side: $Enums.BondTradeSide
+      quantity: number
+      priceMinor: bigint
+      grossMinor: bigint
+      feeMinor: bigint
+      netMinor: bigint
+      tick: number
+      idempotencyKey: string
+      createdAt: Date
+    }, ExtArgs["result"]["bondTrade"]>
+    composites: {}
+  }
+
+  type BondTradeGetPayload<S extends boolean | null | undefined | BondTradeDefaultArgs> = $Result.GetResult<Prisma.$BondTradePayload, S>
+
+  type BondTradeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BondTradeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BondTradeCountAggregateInputType | true
+    }
+
+  export interface BondTradeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BondTrade'], meta: { name: 'BondTrade' } }
+    /**
+     * Find zero or one BondTrade that matches the filter.
+     * @param {BondTradeFindUniqueArgs} args - Arguments to find a BondTrade
+     * @example
+     * // Get one BondTrade
+     * const bondTrade = await prisma.bondTrade.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BondTradeFindUniqueArgs>(args: SelectSubset<T, BondTradeFindUniqueArgs<ExtArgs>>): Prisma__BondTradeClient<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BondTrade that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BondTradeFindUniqueOrThrowArgs} args - Arguments to find a BondTrade
+     * @example
+     * // Get one BondTrade
+     * const bondTrade = await prisma.bondTrade.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BondTradeFindUniqueOrThrowArgs>(args: SelectSubset<T, BondTradeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BondTradeClient<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BondTrade that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondTradeFindFirstArgs} args - Arguments to find a BondTrade
+     * @example
+     * // Get one BondTrade
+     * const bondTrade = await prisma.bondTrade.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BondTradeFindFirstArgs>(args?: SelectSubset<T, BondTradeFindFirstArgs<ExtArgs>>): Prisma__BondTradeClient<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BondTrade that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondTradeFindFirstOrThrowArgs} args - Arguments to find a BondTrade
+     * @example
+     * // Get one BondTrade
+     * const bondTrade = await prisma.bondTrade.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BondTradeFindFirstOrThrowArgs>(args?: SelectSubset<T, BondTradeFindFirstOrThrowArgs<ExtArgs>>): Prisma__BondTradeClient<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BondTrades that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondTradeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BondTrades
+     * const bondTrades = await prisma.bondTrade.findMany()
+     * 
+     * // Get first 10 BondTrades
+     * const bondTrades = await prisma.bondTrade.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const bondTradeWithIdOnly = await prisma.bondTrade.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BondTradeFindManyArgs>(args?: SelectSubset<T, BondTradeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BondTrade.
+     * @param {BondTradeCreateArgs} args - Arguments to create a BondTrade.
+     * @example
+     * // Create one BondTrade
+     * const BondTrade = await prisma.bondTrade.create({
+     *   data: {
+     *     // ... data to create a BondTrade
+     *   }
+     * })
+     * 
+     */
+    create<T extends BondTradeCreateArgs>(args: SelectSubset<T, BondTradeCreateArgs<ExtArgs>>): Prisma__BondTradeClient<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BondTrades.
+     * @param {BondTradeCreateManyArgs} args - Arguments to create many BondTrades.
+     * @example
+     * // Create many BondTrades
+     * const bondTrade = await prisma.bondTrade.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BondTradeCreateManyArgs>(args?: SelectSubset<T, BondTradeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BondTrades and returns the data saved in the database.
+     * @param {BondTradeCreateManyAndReturnArgs} args - Arguments to create many BondTrades.
+     * @example
+     * // Create many BondTrades
+     * const bondTrade = await prisma.bondTrade.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BondTrades and only return the `id`
+     * const bondTradeWithIdOnly = await prisma.bondTrade.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BondTradeCreateManyAndReturnArgs>(args?: SelectSubset<T, BondTradeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BondTrade.
+     * @param {BondTradeDeleteArgs} args - Arguments to delete one BondTrade.
+     * @example
+     * // Delete one BondTrade
+     * const BondTrade = await prisma.bondTrade.delete({
+     *   where: {
+     *     // ... filter to delete one BondTrade
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BondTradeDeleteArgs>(args: SelectSubset<T, BondTradeDeleteArgs<ExtArgs>>): Prisma__BondTradeClient<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BondTrade.
+     * @param {BondTradeUpdateArgs} args - Arguments to update one BondTrade.
+     * @example
+     * // Update one BondTrade
+     * const bondTrade = await prisma.bondTrade.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BondTradeUpdateArgs>(args: SelectSubset<T, BondTradeUpdateArgs<ExtArgs>>): Prisma__BondTradeClient<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BondTrades.
+     * @param {BondTradeDeleteManyArgs} args - Arguments to filter BondTrades to delete.
+     * @example
+     * // Delete a few BondTrades
+     * const { count } = await prisma.bondTrade.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BondTradeDeleteManyArgs>(args?: SelectSubset<T, BondTradeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BondTrades.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondTradeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BondTrades
+     * const bondTrade = await prisma.bondTrade.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BondTradeUpdateManyArgs>(args: SelectSubset<T, BondTradeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BondTrades and returns the data updated in the database.
+     * @param {BondTradeUpdateManyAndReturnArgs} args - Arguments to update many BondTrades.
+     * @example
+     * // Update many BondTrades
+     * const bondTrade = await prisma.bondTrade.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BondTrades and only return the `id`
+     * const bondTradeWithIdOnly = await prisma.bondTrade.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BondTradeUpdateManyAndReturnArgs>(args: SelectSubset<T, BondTradeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BondTrade.
+     * @param {BondTradeUpsertArgs} args - Arguments to update or create a BondTrade.
+     * @example
+     * // Update or create a BondTrade
+     * const bondTrade = await prisma.bondTrade.upsert({
+     *   create: {
+     *     // ... data to create a BondTrade
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BondTrade we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BondTradeUpsertArgs>(args: SelectSubset<T, BondTradeUpsertArgs<ExtArgs>>): Prisma__BondTradeClient<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BondTrades.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondTradeCountArgs} args - Arguments to filter BondTrades to count.
+     * @example
+     * // Count the number of BondTrades
+     * const count = await prisma.bondTrade.count({
+     *   where: {
+     *     // ... the filter for the BondTrades we want to count
+     *   }
+     * })
+    **/
+    count<T extends BondTradeCountArgs>(
+      args?: Subset<T, BondTradeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BondTradeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BondTrade.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondTradeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BondTradeAggregateArgs>(args: Subset<T, BondTradeAggregateArgs>): Prisma.PrismaPromise<GetBondTradeAggregateType<T>>
+
+    /**
+     * Group by BondTrade.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BondTradeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BondTradeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BondTradeGroupByArgs['orderBy'] }
+        : { orderBy?: BondTradeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BondTradeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBondTradeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BondTrade model
+   */
+  readonly fields: BondTradeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BondTrade.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BondTradeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    game<T extends GameDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GameDefaultArgs<ExtArgs>>): Prisma__GameClient<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BondTrade model
+   */
+  interface BondTradeFieldRefs {
+    readonly id: FieldRef<"BondTrade", 'String'>
+    readonly gameId: FieldRef<"BondTrade", 'String'>
+    readonly bondKey: FieldRef<"BondTrade", 'String'>
+    readonly side: FieldRef<"BondTrade", 'BondTradeSide'>
+    readonly quantity: FieldRef<"BondTrade", 'Int'>
+    readonly priceMinor: FieldRef<"BondTrade", 'BigInt'>
+    readonly grossMinor: FieldRef<"BondTrade", 'BigInt'>
+    readonly feeMinor: FieldRef<"BondTrade", 'BigInt'>
+    readonly netMinor: FieldRef<"BondTrade", 'BigInt'>
+    readonly tick: FieldRef<"BondTrade", 'Int'>
+    readonly idempotencyKey: FieldRef<"BondTrade", 'String'>
+    readonly createdAt: FieldRef<"BondTrade", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BondTrade findUnique
+   */
+  export type BondTradeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which BondTrade to fetch.
+     */
+    where: BondTradeWhereUniqueInput
+  }
+
+  /**
+   * BondTrade findUniqueOrThrow
+   */
+  export type BondTradeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which BondTrade to fetch.
+     */
+    where: BondTradeWhereUniqueInput
+  }
+
+  /**
+   * BondTrade findFirst
+   */
+  export type BondTradeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which BondTrade to fetch.
+     */
+    where?: BondTradeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BondTrades to fetch.
+     */
+    orderBy?: BondTradeOrderByWithRelationInput | BondTradeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BondTrades.
+     */
+    cursor?: BondTradeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BondTrades from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BondTrades.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BondTrades.
+     */
+    distinct?: BondTradeScalarFieldEnum | BondTradeScalarFieldEnum[]
+  }
+
+  /**
+   * BondTrade findFirstOrThrow
+   */
+  export type BondTradeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which BondTrade to fetch.
+     */
+    where?: BondTradeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BondTrades to fetch.
+     */
+    orderBy?: BondTradeOrderByWithRelationInput | BondTradeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BondTrades.
+     */
+    cursor?: BondTradeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BondTrades from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BondTrades.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BondTrades.
+     */
+    distinct?: BondTradeScalarFieldEnum | BondTradeScalarFieldEnum[]
+  }
+
+  /**
+   * BondTrade findMany
+   */
+  export type BondTradeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which BondTrades to fetch.
+     */
+    where?: BondTradeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BondTrades to fetch.
+     */
+    orderBy?: BondTradeOrderByWithRelationInput | BondTradeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BondTrades.
+     */
+    cursor?: BondTradeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BondTrades from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BondTrades.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BondTrades.
+     */
+    distinct?: BondTradeScalarFieldEnum | BondTradeScalarFieldEnum[]
+  }
+
+  /**
+   * BondTrade create
+   */
+  export type BondTradeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BondTrade.
+     */
+    data: XOR<BondTradeCreateInput, BondTradeUncheckedCreateInput>
+  }
+
+  /**
+   * BondTrade createMany
+   */
+  export type BondTradeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BondTrades.
+     */
+    data: BondTradeCreateManyInput | BondTradeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BondTrade createManyAndReturn
+   */
+  export type BondTradeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * The data used to create many BondTrades.
+     */
+    data: BondTradeCreateManyInput | BondTradeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BondTrade update
+   */
+  export type BondTradeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BondTrade.
+     */
+    data: XOR<BondTradeUpdateInput, BondTradeUncheckedUpdateInput>
+    /**
+     * Choose, which BondTrade to update.
+     */
+    where: BondTradeWhereUniqueInput
+  }
+
+  /**
+   * BondTrade updateMany
+   */
+  export type BondTradeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BondTrades.
+     */
+    data: XOR<BondTradeUpdateManyMutationInput, BondTradeUncheckedUpdateManyInput>
+    /**
+     * Filter which BondTrades to update
+     */
+    where?: BondTradeWhereInput
+    /**
+     * Limit how many BondTrades to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BondTrade updateManyAndReturn
+   */
+  export type BondTradeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * The data used to update BondTrades.
+     */
+    data: XOR<BondTradeUpdateManyMutationInput, BondTradeUncheckedUpdateManyInput>
+    /**
+     * Filter which BondTrades to update
+     */
+    where?: BondTradeWhereInput
+    /**
+     * Limit how many BondTrades to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BondTrade upsert
+   */
+  export type BondTradeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BondTrade to update in case it exists.
+     */
+    where: BondTradeWhereUniqueInput
+    /**
+     * In case the BondTrade found by the `where` argument doesn't exist, create a new BondTrade with this data.
+     */
+    create: XOR<BondTradeCreateInput, BondTradeUncheckedCreateInput>
+    /**
+     * In case the BondTrade was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BondTradeUpdateInput, BondTradeUncheckedUpdateInput>
+  }
+
+  /**
+   * BondTrade delete
+   */
+  export type BondTradeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+    /**
+     * Filter which BondTrade to delete.
+     */
+    where: BondTradeWhereUniqueInput
+  }
+
+  /**
+   * BondTrade deleteMany
+   */
+  export type BondTradeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BondTrades to delete
+     */
+    where?: BondTradeWhereInput
+    /**
+     * Limit how many BondTrades to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BondTrade without action
+   */
+  export type BondTradeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BondTrade
+     */
+    select?: BondTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BondTrade
+     */
+    omit?: BondTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BondTradeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CompanyDirective
+   */
+
+  export type AggregateCompanyDirective = {
+    _count: CompanyDirectiveCountAggregateOutputType | null
+    _avg: CompanyDirectiveAvgAggregateOutputType | null
+    _sum: CompanyDirectiveSumAggregateOutputType | null
+    _min: CompanyDirectiveMinAggregateOutputType | null
+    _max: CompanyDirectiveMaxAggregateOutputType | null
+  }
+
+  export type CompanyDirectiveAvgAggregateOutputType = {
+    atMonth: number | null
+    payoutMinor: number | null
+    playerPayoutMinor: number | null
+  }
+
+  export type CompanyDirectiveSumAggregateOutputType = {
+    atMonth: number | null
+    payoutMinor: bigint | null
+    playerPayoutMinor: bigint | null
+  }
+
+  export type CompanyDirectiveMinAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    companySymbol: string | null
+    kind: $Enums.DirectiveKind | null
+    atMonth: number | null
+    payoutMinor: bigint | null
+    playerPayoutMinor: bigint | null
+    idempotencyKey: string | null
+    createdAt: Date | null
+  }
+
+  export type CompanyDirectiveMaxAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    companySymbol: string | null
+    kind: $Enums.DirectiveKind | null
+    atMonth: number | null
+    payoutMinor: bigint | null
+    playerPayoutMinor: bigint | null
+    idempotencyKey: string | null
+    createdAt: Date | null
+  }
+
+  export type CompanyDirectiveCountAggregateOutputType = {
+    id: number
+    gameId: number
+    companySymbol: number
+    kind: number
+    atMonth: number
+    payoutMinor: number
+    playerPayoutMinor: number
+    idempotencyKey: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CompanyDirectiveAvgAggregateInputType = {
+    atMonth?: true
+    payoutMinor?: true
+    playerPayoutMinor?: true
+  }
+
+  export type CompanyDirectiveSumAggregateInputType = {
+    atMonth?: true
+    payoutMinor?: true
+    playerPayoutMinor?: true
+  }
+
+  export type CompanyDirectiveMinAggregateInputType = {
+    id?: true
+    gameId?: true
+    companySymbol?: true
+    kind?: true
+    atMonth?: true
+    payoutMinor?: true
+    playerPayoutMinor?: true
+    idempotencyKey?: true
+    createdAt?: true
+  }
+
+  export type CompanyDirectiveMaxAggregateInputType = {
+    id?: true
+    gameId?: true
+    companySymbol?: true
+    kind?: true
+    atMonth?: true
+    payoutMinor?: true
+    playerPayoutMinor?: true
+    idempotencyKey?: true
+    createdAt?: true
+  }
+
+  export type CompanyDirectiveCountAggregateInputType = {
+    id?: true
+    gameId?: true
+    companySymbol?: true
+    kind?: true
+    atMonth?: true
+    payoutMinor?: true
+    playerPayoutMinor?: true
+    idempotencyKey?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CompanyDirectiveAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CompanyDirective to aggregate.
+     */
+    where?: CompanyDirectiveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CompanyDirectives to fetch.
+     */
+    orderBy?: CompanyDirectiveOrderByWithRelationInput | CompanyDirectiveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CompanyDirectiveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CompanyDirectives from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CompanyDirectives.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CompanyDirectives
+    **/
+    _count?: true | CompanyDirectiveCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CompanyDirectiveAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CompanyDirectiveSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CompanyDirectiveMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CompanyDirectiveMaxAggregateInputType
+  }
+
+  export type GetCompanyDirectiveAggregateType<T extends CompanyDirectiveAggregateArgs> = {
+        [P in keyof T & keyof AggregateCompanyDirective]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCompanyDirective[P]>
+      : GetScalarType<T[P], AggregateCompanyDirective[P]>
+  }
+
+
+
+
+  export type CompanyDirectiveGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CompanyDirectiveWhereInput
+    orderBy?: CompanyDirectiveOrderByWithAggregationInput | CompanyDirectiveOrderByWithAggregationInput[]
+    by: CompanyDirectiveScalarFieldEnum[] | CompanyDirectiveScalarFieldEnum
+    having?: CompanyDirectiveScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CompanyDirectiveCountAggregateInputType | true
+    _avg?: CompanyDirectiveAvgAggregateInputType
+    _sum?: CompanyDirectiveSumAggregateInputType
+    _min?: CompanyDirectiveMinAggregateInputType
+    _max?: CompanyDirectiveMaxAggregateInputType
+  }
+
+  export type CompanyDirectiveGroupByOutputType = {
+    id: string
+    gameId: string
+    companySymbol: string
+    kind: $Enums.DirectiveKind
+    atMonth: number
+    payoutMinor: bigint
+    playerPayoutMinor: bigint
+    idempotencyKey: string
+    createdAt: Date
+    _count: CompanyDirectiveCountAggregateOutputType | null
+    _avg: CompanyDirectiveAvgAggregateOutputType | null
+    _sum: CompanyDirectiveSumAggregateOutputType | null
+    _min: CompanyDirectiveMinAggregateOutputType | null
+    _max: CompanyDirectiveMaxAggregateOutputType | null
+  }
+
+  type GetCompanyDirectiveGroupByPayload<T extends CompanyDirectiveGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CompanyDirectiveGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CompanyDirectiveGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CompanyDirectiveGroupByOutputType[P]>
+            : GetScalarType<T[P], CompanyDirectiveGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CompanyDirectiveSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    companySymbol?: boolean
+    kind?: boolean
+    atMonth?: boolean
+    payoutMinor?: boolean
+    playerPayoutMinor?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["companyDirective"]>
+
+  export type CompanyDirectiveSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    companySymbol?: boolean
+    kind?: boolean
+    atMonth?: boolean
+    payoutMinor?: boolean
+    playerPayoutMinor?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["companyDirective"]>
+
+  export type CompanyDirectiveSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    companySymbol?: boolean
+    kind?: boolean
+    atMonth?: boolean
+    payoutMinor?: boolean
+    playerPayoutMinor?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["companyDirective"]>
+
+  export type CompanyDirectiveSelectScalar = {
+    id?: boolean
+    gameId?: boolean
+    companySymbol?: boolean
+    kind?: boolean
+    atMonth?: boolean
+    payoutMinor?: boolean
+    playerPayoutMinor?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+  }
+
+  export type CompanyDirectiveOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameId" | "companySymbol" | "kind" | "atMonth" | "payoutMinor" | "playerPayoutMinor" | "idempotencyKey" | "createdAt", ExtArgs["result"]["companyDirective"]>
+  export type CompanyDirectiveInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type CompanyDirectiveIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type CompanyDirectiveIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+
+  export type $CompanyDirectivePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CompanyDirective"
+    objects: {
+      game: Prisma.$GamePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      gameId: string
+      companySymbol: string
+      kind: $Enums.DirectiveKind
+      atMonth: number
+      payoutMinor: bigint
+      playerPayoutMinor: bigint
+      idempotencyKey: string
+      createdAt: Date
+    }, ExtArgs["result"]["companyDirective"]>
+    composites: {}
+  }
+
+  type CompanyDirectiveGetPayload<S extends boolean | null | undefined | CompanyDirectiveDefaultArgs> = $Result.GetResult<Prisma.$CompanyDirectivePayload, S>
+
+  type CompanyDirectiveCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CompanyDirectiveFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CompanyDirectiveCountAggregateInputType | true
+    }
+
+  export interface CompanyDirectiveDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CompanyDirective'], meta: { name: 'CompanyDirective' } }
+    /**
+     * Find zero or one CompanyDirective that matches the filter.
+     * @param {CompanyDirectiveFindUniqueArgs} args - Arguments to find a CompanyDirective
+     * @example
+     * // Get one CompanyDirective
+     * const companyDirective = await prisma.companyDirective.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CompanyDirectiveFindUniqueArgs>(args: SelectSubset<T, CompanyDirectiveFindUniqueArgs<ExtArgs>>): Prisma__CompanyDirectiveClient<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CompanyDirective that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CompanyDirectiveFindUniqueOrThrowArgs} args - Arguments to find a CompanyDirective
+     * @example
+     * // Get one CompanyDirective
+     * const companyDirective = await prisma.companyDirective.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CompanyDirectiveFindUniqueOrThrowArgs>(args: SelectSubset<T, CompanyDirectiveFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CompanyDirectiveClient<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CompanyDirective that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyDirectiveFindFirstArgs} args - Arguments to find a CompanyDirective
+     * @example
+     * // Get one CompanyDirective
+     * const companyDirective = await prisma.companyDirective.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CompanyDirectiveFindFirstArgs>(args?: SelectSubset<T, CompanyDirectiveFindFirstArgs<ExtArgs>>): Prisma__CompanyDirectiveClient<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CompanyDirective that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyDirectiveFindFirstOrThrowArgs} args - Arguments to find a CompanyDirective
+     * @example
+     * // Get one CompanyDirective
+     * const companyDirective = await prisma.companyDirective.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CompanyDirectiveFindFirstOrThrowArgs>(args?: SelectSubset<T, CompanyDirectiveFindFirstOrThrowArgs<ExtArgs>>): Prisma__CompanyDirectiveClient<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CompanyDirectives that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyDirectiveFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CompanyDirectives
+     * const companyDirectives = await prisma.companyDirective.findMany()
+     * 
+     * // Get first 10 CompanyDirectives
+     * const companyDirectives = await prisma.companyDirective.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const companyDirectiveWithIdOnly = await prisma.companyDirective.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CompanyDirectiveFindManyArgs>(args?: SelectSubset<T, CompanyDirectiveFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CompanyDirective.
+     * @param {CompanyDirectiveCreateArgs} args - Arguments to create a CompanyDirective.
+     * @example
+     * // Create one CompanyDirective
+     * const CompanyDirective = await prisma.companyDirective.create({
+     *   data: {
+     *     // ... data to create a CompanyDirective
+     *   }
+     * })
+     * 
+     */
+    create<T extends CompanyDirectiveCreateArgs>(args: SelectSubset<T, CompanyDirectiveCreateArgs<ExtArgs>>): Prisma__CompanyDirectiveClient<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CompanyDirectives.
+     * @param {CompanyDirectiveCreateManyArgs} args - Arguments to create many CompanyDirectives.
+     * @example
+     * // Create many CompanyDirectives
+     * const companyDirective = await prisma.companyDirective.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CompanyDirectiveCreateManyArgs>(args?: SelectSubset<T, CompanyDirectiveCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CompanyDirectives and returns the data saved in the database.
+     * @param {CompanyDirectiveCreateManyAndReturnArgs} args - Arguments to create many CompanyDirectives.
+     * @example
+     * // Create many CompanyDirectives
+     * const companyDirective = await prisma.companyDirective.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CompanyDirectives and only return the `id`
+     * const companyDirectiveWithIdOnly = await prisma.companyDirective.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CompanyDirectiveCreateManyAndReturnArgs>(args?: SelectSubset<T, CompanyDirectiveCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CompanyDirective.
+     * @param {CompanyDirectiveDeleteArgs} args - Arguments to delete one CompanyDirective.
+     * @example
+     * // Delete one CompanyDirective
+     * const CompanyDirective = await prisma.companyDirective.delete({
+     *   where: {
+     *     // ... filter to delete one CompanyDirective
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CompanyDirectiveDeleteArgs>(args: SelectSubset<T, CompanyDirectiveDeleteArgs<ExtArgs>>): Prisma__CompanyDirectiveClient<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CompanyDirective.
+     * @param {CompanyDirectiveUpdateArgs} args - Arguments to update one CompanyDirective.
+     * @example
+     * // Update one CompanyDirective
+     * const companyDirective = await prisma.companyDirective.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CompanyDirectiveUpdateArgs>(args: SelectSubset<T, CompanyDirectiveUpdateArgs<ExtArgs>>): Prisma__CompanyDirectiveClient<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CompanyDirectives.
+     * @param {CompanyDirectiveDeleteManyArgs} args - Arguments to filter CompanyDirectives to delete.
+     * @example
+     * // Delete a few CompanyDirectives
+     * const { count } = await prisma.companyDirective.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CompanyDirectiveDeleteManyArgs>(args?: SelectSubset<T, CompanyDirectiveDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CompanyDirectives.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyDirectiveUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CompanyDirectives
+     * const companyDirective = await prisma.companyDirective.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CompanyDirectiveUpdateManyArgs>(args: SelectSubset<T, CompanyDirectiveUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CompanyDirectives and returns the data updated in the database.
+     * @param {CompanyDirectiveUpdateManyAndReturnArgs} args - Arguments to update many CompanyDirectives.
+     * @example
+     * // Update many CompanyDirectives
+     * const companyDirective = await prisma.companyDirective.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CompanyDirectives and only return the `id`
+     * const companyDirectiveWithIdOnly = await prisma.companyDirective.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CompanyDirectiveUpdateManyAndReturnArgs>(args: SelectSubset<T, CompanyDirectiveUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CompanyDirective.
+     * @param {CompanyDirectiveUpsertArgs} args - Arguments to update or create a CompanyDirective.
+     * @example
+     * // Update or create a CompanyDirective
+     * const companyDirective = await prisma.companyDirective.upsert({
+     *   create: {
+     *     // ... data to create a CompanyDirective
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CompanyDirective we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CompanyDirectiveUpsertArgs>(args: SelectSubset<T, CompanyDirectiveUpsertArgs<ExtArgs>>): Prisma__CompanyDirectiveClient<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CompanyDirectives.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyDirectiveCountArgs} args - Arguments to filter CompanyDirectives to count.
+     * @example
+     * // Count the number of CompanyDirectives
+     * const count = await prisma.companyDirective.count({
+     *   where: {
+     *     // ... the filter for the CompanyDirectives we want to count
+     *   }
+     * })
+    **/
+    count<T extends CompanyDirectiveCountArgs>(
+      args?: Subset<T, CompanyDirectiveCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CompanyDirectiveCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CompanyDirective.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyDirectiveAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CompanyDirectiveAggregateArgs>(args: Subset<T, CompanyDirectiveAggregateArgs>): Prisma.PrismaPromise<GetCompanyDirectiveAggregateType<T>>
+
+    /**
+     * Group by CompanyDirective.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyDirectiveGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CompanyDirectiveGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CompanyDirectiveGroupByArgs['orderBy'] }
+        : { orderBy?: CompanyDirectiveGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CompanyDirectiveGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCompanyDirectiveGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CompanyDirective model
+   */
+  readonly fields: CompanyDirectiveFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CompanyDirective.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CompanyDirectiveClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    game<T extends GameDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GameDefaultArgs<ExtArgs>>): Prisma__GameClient<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CompanyDirective model
+   */
+  interface CompanyDirectiveFieldRefs {
+    readonly id: FieldRef<"CompanyDirective", 'String'>
+    readonly gameId: FieldRef<"CompanyDirective", 'String'>
+    readonly companySymbol: FieldRef<"CompanyDirective", 'String'>
+    readonly kind: FieldRef<"CompanyDirective", 'DirectiveKind'>
+    readonly atMonth: FieldRef<"CompanyDirective", 'Int'>
+    readonly payoutMinor: FieldRef<"CompanyDirective", 'BigInt'>
+    readonly playerPayoutMinor: FieldRef<"CompanyDirective", 'BigInt'>
+    readonly idempotencyKey: FieldRef<"CompanyDirective", 'String'>
+    readonly createdAt: FieldRef<"CompanyDirective", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CompanyDirective findUnique
+   */
+  export type CompanyDirectiveFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyDirective to fetch.
+     */
+    where: CompanyDirectiveWhereUniqueInput
+  }
+
+  /**
+   * CompanyDirective findUniqueOrThrow
+   */
+  export type CompanyDirectiveFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyDirective to fetch.
+     */
+    where: CompanyDirectiveWhereUniqueInput
+  }
+
+  /**
+   * CompanyDirective findFirst
+   */
+  export type CompanyDirectiveFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyDirective to fetch.
+     */
+    where?: CompanyDirectiveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CompanyDirectives to fetch.
+     */
+    orderBy?: CompanyDirectiveOrderByWithRelationInput | CompanyDirectiveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CompanyDirectives.
+     */
+    cursor?: CompanyDirectiveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CompanyDirectives from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CompanyDirectives.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CompanyDirectives.
+     */
+    distinct?: CompanyDirectiveScalarFieldEnum | CompanyDirectiveScalarFieldEnum[]
+  }
+
+  /**
+   * CompanyDirective findFirstOrThrow
+   */
+  export type CompanyDirectiveFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyDirective to fetch.
+     */
+    where?: CompanyDirectiveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CompanyDirectives to fetch.
+     */
+    orderBy?: CompanyDirectiveOrderByWithRelationInput | CompanyDirectiveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CompanyDirectives.
+     */
+    cursor?: CompanyDirectiveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CompanyDirectives from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CompanyDirectives.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CompanyDirectives.
+     */
+    distinct?: CompanyDirectiveScalarFieldEnum | CompanyDirectiveScalarFieldEnum[]
+  }
+
+  /**
+   * CompanyDirective findMany
+   */
+  export type CompanyDirectiveFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyDirectives to fetch.
+     */
+    where?: CompanyDirectiveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CompanyDirectives to fetch.
+     */
+    orderBy?: CompanyDirectiveOrderByWithRelationInput | CompanyDirectiveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CompanyDirectives.
+     */
+    cursor?: CompanyDirectiveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CompanyDirectives from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CompanyDirectives.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CompanyDirectives.
+     */
+    distinct?: CompanyDirectiveScalarFieldEnum | CompanyDirectiveScalarFieldEnum[]
+  }
+
+  /**
+   * CompanyDirective create
+   */
+  export type CompanyDirectiveCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CompanyDirective.
+     */
+    data: XOR<CompanyDirectiveCreateInput, CompanyDirectiveUncheckedCreateInput>
+  }
+
+  /**
+   * CompanyDirective createMany
+   */
+  export type CompanyDirectiveCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CompanyDirectives.
+     */
+    data: CompanyDirectiveCreateManyInput | CompanyDirectiveCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CompanyDirective createManyAndReturn
+   */
+  export type CompanyDirectiveCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * The data used to create many CompanyDirectives.
+     */
+    data: CompanyDirectiveCreateManyInput | CompanyDirectiveCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CompanyDirective update
+   */
+  export type CompanyDirectiveUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CompanyDirective.
+     */
+    data: XOR<CompanyDirectiveUpdateInput, CompanyDirectiveUncheckedUpdateInput>
+    /**
+     * Choose, which CompanyDirective to update.
+     */
+    where: CompanyDirectiveWhereUniqueInput
+  }
+
+  /**
+   * CompanyDirective updateMany
+   */
+  export type CompanyDirectiveUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CompanyDirectives.
+     */
+    data: XOR<CompanyDirectiveUpdateManyMutationInput, CompanyDirectiveUncheckedUpdateManyInput>
+    /**
+     * Filter which CompanyDirectives to update
+     */
+    where?: CompanyDirectiveWhereInput
+    /**
+     * Limit how many CompanyDirectives to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CompanyDirective updateManyAndReturn
+   */
+  export type CompanyDirectiveUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * The data used to update CompanyDirectives.
+     */
+    data: XOR<CompanyDirectiveUpdateManyMutationInput, CompanyDirectiveUncheckedUpdateManyInput>
+    /**
+     * Filter which CompanyDirectives to update
+     */
+    where?: CompanyDirectiveWhereInput
+    /**
+     * Limit how many CompanyDirectives to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CompanyDirective upsert
+   */
+  export type CompanyDirectiveUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CompanyDirective to update in case it exists.
+     */
+    where: CompanyDirectiveWhereUniqueInput
+    /**
+     * In case the CompanyDirective found by the `where` argument doesn't exist, create a new CompanyDirective with this data.
+     */
+    create: XOR<CompanyDirectiveCreateInput, CompanyDirectiveUncheckedCreateInput>
+    /**
+     * In case the CompanyDirective was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CompanyDirectiveUpdateInput, CompanyDirectiveUncheckedUpdateInput>
+  }
+
+  /**
+   * CompanyDirective delete
+   */
+  export type CompanyDirectiveDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
+    /**
+     * Filter which CompanyDirective to delete.
+     */
+    where: CompanyDirectiveWhereUniqueInput
+  }
+
+  /**
+   * CompanyDirective deleteMany
+   */
+  export type CompanyDirectiveDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CompanyDirectives to delete
+     */
+    where?: CompanyDirectiveWhereInput
+    /**
+     * Limit how many CompanyDirectives to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CompanyDirective without action
+   */
+  export type CompanyDirectiveDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyDirective
+     */
+    select?: CompanyDirectiveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CompanyDirective
+     */
+    omit?: CompanyDirectiveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyDirectiveInclude<ExtArgs> | null
   }
 
 
@@ -23188,6 +27104,52 @@ export namespace Prisma {
   export type FuturesPositionScalarFieldEnum = (typeof FuturesPositionScalarFieldEnum)[keyof typeof FuturesPositionScalarFieldEnum]
 
 
+  export const BondHoldingScalarFieldEnum: {
+    id: 'id',
+    gameId: 'gameId',
+    bondKey: 'bondKey',
+    quantity: 'quantity',
+    costMinor: 'costMinor',
+    purchasedTick: 'purchasedTick',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BondHoldingScalarFieldEnum = (typeof BondHoldingScalarFieldEnum)[keyof typeof BondHoldingScalarFieldEnum]
+
+
+  export const BondTradeScalarFieldEnum: {
+    id: 'id',
+    gameId: 'gameId',
+    bondKey: 'bondKey',
+    side: 'side',
+    quantity: 'quantity',
+    priceMinor: 'priceMinor',
+    grossMinor: 'grossMinor',
+    feeMinor: 'feeMinor',
+    netMinor: 'netMinor',
+    tick: 'tick',
+    idempotencyKey: 'idempotencyKey',
+    createdAt: 'createdAt'
+  };
+
+  export type BondTradeScalarFieldEnum = (typeof BondTradeScalarFieldEnum)[keyof typeof BondTradeScalarFieldEnum]
+
+
+  export const CompanyDirectiveScalarFieldEnum: {
+    id: 'id',
+    gameId: 'gameId',
+    companySymbol: 'companySymbol',
+    kind: 'kind',
+    atMonth: 'atMonth',
+    payoutMinor: 'payoutMinor',
+    playerPayoutMinor: 'playerPayoutMinor',
+    idempotencyKey: 'idempotencyKey',
+    createdAt: 'createdAt'
+  };
+
+  export type CompanyDirectiveScalarFieldEnum = (typeof CompanyDirectiveScalarFieldEnum)[keyof typeof CompanyDirectiveScalarFieldEnum]
+
+
   export const LedgerEntryScalarFieldEnum: {
     id: 'id',
     gameId: 'gameId',
@@ -23538,6 +27500,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'BondTradeSide'
+   */
+  export type EnumBondTradeSideFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BondTradeSide'>
+    
+
+
+  /**
+   * Reference to a field of type 'BondTradeSide[]'
+   */
+  export type ListEnumBondTradeSideFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BondTradeSide[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'DirectiveKind'
+   */
+  export type EnumDirectiveKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DirectiveKind'>
+    
+
+
+  /**
+   * Reference to a field of type 'DirectiveKind[]'
+   */
+  export type ListEnumDirectiveKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DirectiveKind[]'>
+    
+
+
+  /**
    * Reference to a field of type 'LedgerAccount'
    */
   export type EnumLedgerAccountFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LedgerAccount'>
@@ -23770,6 +27760,9 @@ export namespace Prisma {
     marketEvents?: MarketEventListRelationFilter
     playerAchievements?: PlayerAchievementListRelationFilter
     futuresPositions?: FuturesPositionListRelationFilter
+    bondHoldings?: BondHoldingListRelationFilter
+    bondTrades?: BondTradeListRelationFilter
+    directives?: CompanyDirectiveListRelationFilter
   }
 
   export type GameOrderByWithRelationInput = {
@@ -23792,6 +27785,9 @@ export namespace Prisma {
     marketEvents?: MarketEventOrderByRelationAggregateInput
     playerAchievements?: PlayerAchievementOrderByRelationAggregateInput
     futuresPositions?: FuturesPositionOrderByRelationAggregateInput
+    bondHoldings?: BondHoldingOrderByRelationAggregateInput
+    bondTrades?: BondTradeOrderByRelationAggregateInput
+    directives?: CompanyDirectiveOrderByRelationAggregateInput
   }
 
   export type GameWhereUniqueInput = Prisma.AtLeast<{
@@ -23817,6 +27813,9 @@ export namespace Prisma {
     marketEvents?: MarketEventListRelationFilter
     playerAchievements?: PlayerAchievementListRelationFilter
     futuresPositions?: FuturesPositionListRelationFilter
+    bondHoldings?: BondHoldingListRelationFilter
+    bondTrades?: BondTradeListRelationFilter
+    directives?: CompanyDirectiveListRelationFilter
   }, "id">
 
   export type GameOrderByWithAggregationInput = {
@@ -24466,6 +28465,245 @@ export namespace Prisma {
     idempotencyKey?: UuidWithAggregatesFilter<"FuturesPosition"> | string
     createdAt?: DateTimeWithAggregatesFilter<"FuturesPosition"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"FuturesPosition"> | Date | string
+  }
+
+  export type BondHoldingWhereInput = {
+    AND?: BondHoldingWhereInput | BondHoldingWhereInput[]
+    OR?: BondHoldingWhereInput[]
+    NOT?: BondHoldingWhereInput | BondHoldingWhereInput[]
+    id?: UuidFilter<"BondHolding"> | string
+    gameId?: UuidFilter<"BondHolding"> | string
+    bondKey?: StringFilter<"BondHolding"> | string
+    quantity?: IntFilter<"BondHolding"> | number
+    costMinor?: BigIntFilter<"BondHolding"> | bigint | number
+    purchasedTick?: IntFilter<"BondHolding"> | number
+    updatedAt?: DateTimeFilter<"BondHolding"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }
+
+  export type BondHoldingOrderByWithRelationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    quantity?: SortOrder
+    costMinor?: SortOrder
+    purchasedTick?: SortOrder
+    updatedAt?: SortOrder
+    game?: GameOrderByWithRelationInput
+  }
+
+  export type BondHoldingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    gameId_bondKey?: BondHoldingGameIdBondKeyCompoundUniqueInput
+    AND?: BondHoldingWhereInput | BondHoldingWhereInput[]
+    OR?: BondHoldingWhereInput[]
+    NOT?: BondHoldingWhereInput | BondHoldingWhereInput[]
+    gameId?: UuidFilter<"BondHolding"> | string
+    bondKey?: StringFilter<"BondHolding"> | string
+    quantity?: IntFilter<"BondHolding"> | number
+    costMinor?: BigIntFilter<"BondHolding"> | bigint | number
+    purchasedTick?: IntFilter<"BondHolding"> | number
+    updatedAt?: DateTimeFilter<"BondHolding"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }, "id" | "gameId_bondKey">
+
+  export type BondHoldingOrderByWithAggregationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    quantity?: SortOrder
+    costMinor?: SortOrder
+    purchasedTick?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BondHoldingCountOrderByAggregateInput
+    _avg?: BondHoldingAvgOrderByAggregateInput
+    _max?: BondHoldingMaxOrderByAggregateInput
+    _min?: BondHoldingMinOrderByAggregateInput
+    _sum?: BondHoldingSumOrderByAggregateInput
+  }
+
+  export type BondHoldingScalarWhereWithAggregatesInput = {
+    AND?: BondHoldingScalarWhereWithAggregatesInput | BondHoldingScalarWhereWithAggregatesInput[]
+    OR?: BondHoldingScalarWhereWithAggregatesInput[]
+    NOT?: BondHoldingScalarWhereWithAggregatesInput | BondHoldingScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"BondHolding"> | string
+    gameId?: UuidWithAggregatesFilter<"BondHolding"> | string
+    bondKey?: StringWithAggregatesFilter<"BondHolding"> | string
+    quantity?: IntWithAggregatesFilter<"BondHolding"> | number
+    costMinor?: BigIntWithAggregatesFilter<"BondHolding"> | bigint | number
+    purchasedTick?: IntWithAggregatesFilter<"BondHolding"> | number
+    updatedAt?: DateTimeWithAggregatesFilter<"BondHolding"> | Date | string
+  }
+
+  export type BondTradeWhereInput = {
+    AND?: BondTradeWhereInput | BondTradeWhereInput[]
+    OR?: BondTradeWhereInput[]
+    NOT?: BondTradeWhereInput | BondTradeWhereInput[]
+    id?: UuidFilter<"BondTrade"> | string
+    gameId?: UuidFilter<"BondTrade"> | string
+    bondKey?: StringFilter<"BondTrade"> | string
+    side?: EnumBondTradeSideFilter<"BondTrade"> | $Enums.BondTradeSide
+    quantity?: IntFilter<"BondTrade"> | number
+    priceMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    grossMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    feeMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    netMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    tick?: IntFilter<"BondTrade"> | number
+    idempotencyKey?: UuidFilter<"BondTrade"> | string
+    createdAt?: DateTimeFilter<"BondTrade"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }
+
+  export type BondTradeOrderByWithRelationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    side?: SortOrder
+    quantity?: SortOrder
+    priceMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    game?: GameOrderByWithRelationInput
+  }
+
+  export type BondTradeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    gameId_idempotencyKey?: BondTradeGameIdIdempotencyKeyCompoundUniqueInput
+    AND?: BondTradeWhereInput | BondTradeWhereInput[]
+    OR?: BondTradeWhereInput[]
+    NOT?: BondTradeWhereInput | BondTradeWhereInput[]
+    gameId?: UuidFilter<"BondTrade"> | string
+    bondKey?: StringFilter<"BondTrade"> | string
+    side?: EnumBondTradeSideFilter<"BondTrade"> | $Enums.BondTradeSide
+    quantity?: IntFilter<"BondTrade"> | number
+    priceMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    grossMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    feeMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    netMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    tick?: IntFilter<"BondTrade"> | number
+    idempotencyKey?: UuidFilter<"BondTrade"> | string
+    createdAt?: DateTimeFilter<"BondTrade"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }, "id" | "gameId_idempotencyKey">
+
+  export type BondTradeOrderByWithAggregationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    side?: SortOrder
+    quantity?: SortOrder
+    priceMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    _count?: BondTradeCountOrderByAggregateInput
+    _avg?: BondTradeAvgOrderByAggregateInput
+    _max?: BondTradeMaxOrderByAggregateInput
+    _min?: BondTradeMinOrderByAggregateInput
+    _sum?: BondTradeSumOrderByAggregateInput
+  }
+
+  export type BondTradeScalarWhereWithAggregatesInput = {
+    AND?: BondTradeScalarWhereWithAggregatesInput | BondTradeScalarWhereWithAggregatesInput[]
+    OR?: BondTradeScalarWhereWithAggregatesInput[]
+    NOT?: BondTradeScalarWhereWithAggregatesInput | BondTradeScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"BondTrade"> | string
+    gameId?: UuidWithAggregatesFilter<"BondTrade"> | string
+    bondKey?: StringWithAggregatesFilter<"BondTrade"> | string
+    side?: EnumBondTradeSideWithAggregatesFilter<"BondTrade"> | $Enums.BondTradeSide
+    quantity?: IntWithAggregatesFilter<"BondTrade"> | number
+    priceMinor?: BigIntWithAggregatesFilter<"BondTrade"> | bigint | number
+    grossMinor?: BigIntWithAggregatesFilter<"BondTrade"> | bigint | number
+    feeMinor?: BigIntWithAggregatesFilter<"BondTrade"> | bigint | number
+    netMinor?: BigIntWithAggregatesFilter<"BondTrade"> | bigint | number
+    tick?: IntWithAggregatesFilter<"BondTrade"> | number
+    idempotencyKey?: UuidWithAggregatesFilter<"BondTrade"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"BondTrade"> | Date | string
+  }
+
+  export type CompanyDirectiveWhereInput = {
+    AND?: CompanyDirectiveWhereInput | CompanyDirectiveWhereInput[]
+    OR?: CompanyDirectiveWhereInput[]
+    NOT?: CompanyDirectiveWhereInput | CompanyDirectiveWhereInput[]
+    id?: UuidFilter<"CompanyDirective"> | string
+    gameId?: UuidFilter<"CompanyDirective"> | string
+    companySymbol?: StringFilter<"CompanyDirective"> | string
+    kind?: EnumDirectiveKindFilter<"CompanyDirective"> | $Enums.DirectiveKind
+    atMonth?: IntFilter<"CompanyDirective"> | number
+    payoutMinor?: BigIntFilter<"CompanyDirective"> | bigint | number
+    playerPayoutMinor?: BigIntFilter<"CompanyDirective"> | bigint | number
+    idempotencyKey?: UuidFilter<"CompanyDirective"> | string
+    createdAt?: DateTimeFilter<"CompanyDirective"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }
+
+  export type CompanyDirectiveOrderByWithRelationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    companySymbol?: SortOrder
+    kind?: SortOrder
+    atMonth?: SortOrder
+    payoutMinor?: SortOrder
+    playerPayoutMinor?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    game?: GameOrderByWithRelationInput
+  }
+
+  export type CompanyDirectiveWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    gameId_idempotencyKey?: CompanyDirectiveGameIdIdempotencyKeyCompoundUniqueInput
+    AND?: CompanyDirectiveWhereInput | CompanyDirectiveWhereInput[]
+    OR?: CompanyDirectiveWhereInput[]
+    NOT?: CompanyDirectiveWhereInput | CompanyDirectiveWhereInput[]
+    gameId?: UuidFilter<"CompanyDirective"> | string
+    companySymbol?: StringFilter<"CompanyDirective"> | string
+    kind?: EnumDirectiveKindFilter<"CompanyDirective"> | $Enums.DirectiveKind
+    atMonth?: IntFilter<"CompanyDirective"> | number
+    payoutMinor?: BigIntFilter<"CompanyDirective"> | bigint | number
+    playerPayoutMinor?: BigIntFilter<"CompanyDirective"> | bigint | number
+    idempotencyKey?: UuidFilter<"CompanyDirective"> | string
+    createdAt?: DateTimeFilter<"CompanyDirective"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }, "id" | "gameId_idempotencyKey">
+
+  export type CompanyDirectiveOrderByWithAggregationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    companySymbol?: SortOrder
+    kind?: SortOrder
+    atMonth?: SortOrder
+    payoutMinor?: SortOrder
+    playerPayoutMinor?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    _count?: CompanyDirectiveCountOrderByAggregateInput
+    _avg?: CompanyDirectiveAvgOrderByAggregateInput
+    _max?: CompanyDirectiveMaxOrderByAggregateInput
+    _min?: CompanyDirectiveMinOrderByAggregateInput
+    _sum?: CompanyDirectiveSumOrderByAggregateInput
+  }
+
+  export type CompanyDirectiveScalarWhereWithAggregatesInput = {
+    AND?: CompanyDirectiveScalarWhereWithAggregatesInput | CompanyDirectiveScalarWhereWithAggregatesInput[]
+    OR?: CompanyDirectiveScalarWhereWithAggregatesInput[]
+    NOT?: CompanyDirectiveScalarWhereWithAggregatesInput | CompanyDirectiveScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"CompanyDirective"> | string
+    gameId?: UuidWithAggregatesFilter<"CompanyDirective"> | string
+    companySymbol?: StringWithAggregatesFilter<"CompanyDirective"> | string
+    kind?: EnumDirectiveKindWithAggregatesFilter<"CompanyDirective"> | $Enums.DirectiveKind
+    atMonth?: IntWithAggregatesFilter<"CompanyDirective"> | number
+    payoutMinor?: BigIntWithAggregatesFilter<"CompanyDirective"> | bigint | number
+    playerPayoutMinor?: BigIntWithAggregatesFilter<"CompanyDirective"> | bigint | number
+    idempotencyKey?: UuidWithAggregatesFilter<"CompanyDirective"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"CompanyDirective"> | Date | string
   }
 
   export type LedgerEntryWhereInput = {
@@ -25149,6 +29387,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateInput = {
@@ -25170,6 +29411,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameUpdateInput = {
@@ -25191,6 +29435,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateInput = {
@@ -25212,6 +29459,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameCreateManyInput = {
@@ -25914,6 +30164,262 @@ export namespace Prisma {
     idempotencyKey?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondHoldingCreateInput = {
+    id?: string
+    bondKey: string
+    quantity: number
+    costMinor: bigint | number
+    purchasedTick: number
+    updatedAt?: Date | string
+    game: GameCreateNestedOneWithoutBondHoldingsInput
+  }
+
+  export type BondHoldingUncheckedCreateInput = {
+    id?: string
+    gameId: string
+    bondKey: string
+    quantity: number
+    costMinor: bigint | number
+    purchasedTick: number
+    updatedAt?: Date | string
+  }
+
+  export type BondHoldingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    costMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    purchasedTick?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    game?: GameUpdateOneRequiredWithoutBondHoldingsNestedInput
+  }
+
+  export type BondHoldingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    costMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    purchasedTick?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondHoldingCreateManyInput = {
+    id?: string
+    gameId: string
+    bondKey: string
+    quantity: number
+    costMinor: bigint | number
+    purchasedTick: number
+    updatedAt?: Date | string
+  }
+
+  export type BondHoldingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    costMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    purchasedTick?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondHoldingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    costMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    purchasedTick?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondTradeCreateInput = {
+    id?: string
+    bondKey: string
+    side: $Enums.BondTradeSide
+    quantity: number
+    priceMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+    game: GameCreateNestedOneWithoutBondTradesInput
+  }
+
+  export type BondTradeUncheckedCreateInput = {
+    id?: string
+    gameId: string
+    bondKey: string
+    side: $Enums.BondTradeSide
+    quantity: number
+    priceMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type BondTradeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
+    quantity?: IntFieldUpdateOperationsInput | number
+    priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    game?: GameUpdateOneRequiredWithoutBondTradesNestedInput
+  }
+
+  export type BondTradeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
+    quantity?: IntFieldUpdateOperationsInput | number
+    priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondTradeCreateManyInput = {
+    id?: string
+    gameId: string
+    bondKey: string
+    side: $Enums.BondTradeSide
+    quantity: number
+    priceMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type BondTradeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
+    quantity?: IntFieldUpdateOperationsInput | number
+    priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondTradeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
+    quantity?: IntFieldUpdateOperationsInput | number
+    priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyDirectiveCreateInput = {
+    id?: string
+    companySymbol: string
+    kind: $Enums.DirectiveKind
+    atMonth: number
+    payoutMinor?: bigint | number
+    playerPayoutMinor?: bigint | number
+    idempotencyKey: string
+    createdAt?: Date | string
+    game: GameCreateNestedOneWithoutDirectivesInput
+  }
+
+  export type CompanyDirectiveUncheckedCreateInput = {
+    id?: string
+    gameId: string
+    companySymbol: string
+    kind: $Enums.DirectiveKind
+    atMonth: number
+    payoutMinor?: bigint | number
+    playerPayoutMinor?: bigint | number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type CompanyDirectiveUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companySymbol?: StringFieldUpdateOperationsInput | string
+    kind?: EnumDirectiveKindFieldUpdateOperationsInput | $Enums.DirectiveKind
+    atMonth?: IntFieldUpdateOperationsInput | number
+    payoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    playerPayoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    game?: GameUpdateOneRequiredWithoutDirectivesNestedInput
+  }
+
+  export type CompanyDirectiveUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    companySymbol?: StringFieldUpdateOperationsInput | string
+    kind?: EnumDirectiveKindFieldUpdateOperationsInput | $Enums.DirectiveKind
+    atMonth?: IntFieldUpdateOperationsInput | number
+    payoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    playerPayoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyDirectiveCreateManyInput = {
+    id?: string
+    gameId: string
+    companySymbol: string
+    kind: $Enums.DirectiveKind
+    atMonth: number
+    payoutMinor?: bigint | number
+    playerPayoutMinor?: bigint | number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type CompanyDirectiveUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companySymbol?: StringFieldUpdateOperationsInput | string
+    kind?: EnumDirectiveKindFieldUpdateOperationsInput | $Enums.DirectiveKind
+    atMonth?: IntFieldUpdateOperationsInput | number
+    payoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    playerPayoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyDirectiveUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    companySymbol?: StringFieldUpdateOperationsInput | string
+    kind?: EnumDirectiveKindFieldUpdateOperationsInput | $Enums.DirectiveKind
+    atMonth?: IntFieldUpdateOperationsInput | number
+    payoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    playerPayoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type LedgerEntryCreateInput = {
@@ -26754,6 +31260,24 @@ export namespace Prisma {
     none?: FuturesPositionWhereInput
   }
 
+  export type BondHoldingListRelationFilter = {
+    every?: BondHoldingWhereInput
+    some?: BondHoldingWhereInput
+    none?: BondHoldingWhereInput
+  }
+
+  export type BondTradeListRelationFilter = {
+    every?: BondTradeWhereInput
+    some?: BondTradeWhereInput
+    none?: BondTradeWhereInput
+  }
+
+  export type CompanyDirectiveListRelationFilter = {
+    every?: CompanyDirectiveWhereInput
+    some?: CompanyDirectiveWhereInput
+    none?: CompanyDirectiveWhereInput
+  }
+
   export type OrderOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -26783,6 +31307,18 @@ export namespace Prisma {
   }
 
   export type FuturesPositionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BondHoldingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BondTradeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CompanyDirectiveOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -27510,6 +32046,208 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumFuturesStatusFilter<$PrismaModel>
     _max?: NestedEnumFuturesStatusFilter<$PrismaModel>
+  }
+
+  export type BondHoldingGameIdBondKeyCompoundUniqueInput = {
+    gameId: string
+    bondKey: string
+  }
+
+  export type BondHoldingCountOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    quantity?: SortOrder
+    costMinor?: SortOrder
+    purchasedTick?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BondHoldingAvgOrderByAggregateInput = {
+    quantity?: SortOrder
+    costMinor?: SortOrder
+    purchasedTick?: SortOrder
+  }
+
+  export type BondHoldingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    quantity?: SortOrder
+    costMinor?: SortOrder
+    purchasedTick?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BondHoldingMinOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    quantity?: SortOrder
+    costMinor?: SortOrder
+    purchasedTick?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BondHoldingSumOrderByAggregateInput = {
+    quantity?: SortOrder
+    costMinor?: SortOrder
+    purchasedTick?: SortOrder
+  }
+
+  export type EnumBondTradeSideFilter<$PrismaModel = never> = {
+    equals?: $Enums.BondTradeSide | EnumBondTradeSideFieldRefInput<$PrismaModel>
+    in?: $Enums.BondTradeSide[] | ListEnumBondTradeSideFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BondTradeSide[] | ListEnumBondTradeSideFieldRefInput<$PrismaModel>
+    not?: NestedEnumBondTradeSideFilter<$PrismaModel> | $Enums.BondTradeSide
+  }
+
+  export type BondTradeGameIdIdempotencyKeyCompoundUniqueInput = {
+    gameId: string
+    idempotencyKey: string
+  }
+
+  export type BondTradeCountOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    side?: SortOrder
+    quantity?: SortOrder
+    priceMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BondTradeAvgOrderByAggregateInput = {
+    quantity?: SortOrder
+    priceMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+  }
+
+  export type BondTradeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    side?: SortOrder
+    quantity?: SortOrder
+    priceMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BondTradeMinOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    bondKey?: SortOrder
+    side?: SortOrder
+    quantity?: SortOrder
+    priceMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BondTradeSumOrderByAggregateInput = {
+    quantity?: SortOrder
+    priceMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+  }
+
+  export type EnumBondTradeSideWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BondTradeSide | EnumBondTradeSideFieldRefInput<$PrismaModel>
+    in?: $Enums.BondTradeSide[] | ListEnumBondTradeSideFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BondTradeSide[] | ListEnumBondTradeSideFieldRefInput<$PrismaModel>
+    not?: NestedEnumBondTradeSideWithAggregatesFilter<$PrismaModel> | $Enums.BondTradeSide
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBondTradeSideFilter<$PrismaModel>
+    _max?: NestedEnumBondTradeSideFilter<$PrismaModel>
+  }
+
+  export type EnumDirectiveKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.DirectiveKind | EnumDirectiveKindFieldRefInput<$PrismaModel>
+    in?: $Enums.DirectiveKind[] | ListEnumDirectiveKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DirectiveKind[] | ListEnumDirectiveKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumDirectiveKindFilter<$PrismaModel> | $Enums.DirectiveKind
+  }
+
+  export type CompanyDirectiveGameIdIdempotencyKeyCompoundUniqueInput = {
+    gameId: string
+    idempotencyKey: string
+  }
+
+  export type CompanyDirectiveCountOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    companySymbol?: SortOrder
+    kind?: SortOrder
+    atMonth?: SortOrder
+    payoutMinor?: SortOrder
+    playerPayoutMinor?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CompanyDirectiveAvgOrderByAggregateInput = {
+    atMonth?: SortOrder
+    payoutMinor?: SortOrder
+    playerPayoutMinor?: SortOrder
+  }
+
+  export type CompanyDirectiveMaxOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    companySymbol?: SortOrder
+    kind?: SortOrder
+    atMonth?: SortOrder
+    payoutMinor?: SortOrder
+    playerPayoutMinor?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CompanyDirectiveMinOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    companySymbol?: SortOrder
+    kind?: SortOrder
+    atMonth?: SortOrder
+    payoutMinor?: SortOrder
+    playerPayoutMinor?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CompanyDirectiveSumOrderByAggregateInput = {
+    atMonth?: SortOrder
+    payoutMinor?: SortOrder
+    playerPayoutMinor?: SortOrder
+  }
+
+  export type EnumDirectiveKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DirectiveKind | EnumDirectiveKindFieldRefInput<$PrismaModel>
+    in?: $Enums.DirectiveKind[] | ListEnumDirectiveKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DirectiveKind[] | ListEnumDirectiveKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumDirectiveKindWithAggregatesFilter<$PrismaModel> | $Enums.DirectiveKind
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDirectiveKindFilter<$PrismaModel>
+    _max?: NestedEnumDirectiveKindFilter<$PrismaModel>
   }
 
   export type EnumLedgerAccountFilter<$PrismaModel = never> = {
@@ -28338,6 +33076,27 @@ export namespace Prisma {
     connect?: FuturesPositionWhereUniqueInput | FuturesPositionWhereUniqueInput[]
   }
 
+  export type BondHoldingCreateNestedManyWithoutGameInput = {
+    create?: XOR<BondHoldingCreateWithoutGameInput, BondHoldingUncheckedCreateWithoutGameInput> | BondHoldingCreateWithoutGameInput[] | BondHoldingUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: BondHoldingCreateOrConnectWithoutGameInput | BondHoldingCreateOrConnectWithoutGameInput[]
+    createMany?: BondHoldingCreateManyGameInputEnvelope
+    connect?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+  }
+
+  export type BondTradeCreateNestedManyWithoutGameInput = {
+    create?: XOR<BondTradeCreateWithoutGameInput, BondTradeUncheckedCreateWithoutGameInput> | BondTradeCreateWithoutGameInput[] | BondTradeUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: BondTradeCreateOrConnectWithoutGameInput | BondTradeCreateOrConnectWithoutGameInput[]
+    createMany?: BondTradeCreateManyGameInputEnvelope
+    connect?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+  }
+
+  export type CompanyDirectiveCreateNestedManyWithoutGameInput = {
+    create?: XOR<CompanyDirectiveCreateWithoutGameInput, CompanyDirectiveUncheckedCreateWithoutGameInput> | CompanyDirectiveCreateWithoutGameInput[] | CompanyDirectiveUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: CompanyDirectiveCreateOrConnectWithoutGameInput | CompanyDirectiveCreateOrConnectWithoutGameInput[]
+    createMany?: CompanyDirectiveCreateManyGameInputEnvelope
+    connect?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+  }
+
   export type CharacterUncheckedCreateNestedOneWithoutGameInput = {
     create?: XOR<CharacterCreateWithoutGameInput, CharacterUncheckedCreateWithoutGameInput>
     connectOrCreate?: CharacterCreateOrConnectWithoutGameInput
@@ -28404,6 +33163,27 @@ export namespace Prisma {
     connectOrCreate?: FuturesPositionCreateOrConnectWithoutGameInput | FuturesPositionCreateOrConnectWithoutGameInput[]
     createMany?: FuturesPositionCreateManyGameInputEnvelope
     connect?: FuturesPositionWhereUniqueInput | FuturesPositionWhereUniqueInput[]
+  }
+
+  export type BondHoldingUncheckedCreateNestedManyWithoutGameInput = {
+    create?: XOR<BondHoldingCreateWithoutGameInput, BondHoldingUncheckedCreateWithoutGameInput> | BondHoldingCreateWithoutGameInput[] | BondHoldingUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: BondHoldingCreateOrConnectWithoutGameInput | BondHoldingCreateOrConnectWithoutGameInput[]
+    createMany?: BondHoldingCreateManyGameInputEnvelope
+    connect?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+  }
+
+  export type BondTradeUncheckedCreateNestedManyWithoutGameInput = {
+    create?: XOR<BondTradeCreateWithoutGameInput, BondTradeUncheckedCreateWithoutGameInput> | BondTradeCreateWithoutGameInput[] | BondTradeUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: BondTradeCreateOrConnectWithoutGameInput | BondTradeCreateOrConnectWithoutGameInput[]
+    createMany?: BondTradeCreateManyGameInputEnvelope
+    connect?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+  }
+
+  export type CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput = {
+    create?: XOR<CompanyDirectiveCreateWithoutGameInput, CompanyDirectiveUncheckedCreateWithoutGameInput> | CompanyDirectiveCreateWithoutGameInput[] | CompanyDirectiveUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: CompanyDirectiveCreateOrConnectWithoutGameInput | CompanyDirectiveCreateOrConnectWithoutGameInput[]
+    createMany?: CompanyDirectiveCreateManyGameInputEnvelope
+    connect?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
   }
 
   export type BigIntFieldUpdateOperationsInput = {
@@ -28566,6 +33346,48 @@ export namespace Prisma {
     deleteMany?: FuturesPositionScalarWhereInput | FuturesPositionScalarWhereInput[]
   }
 
+  export type BondHoldingUpdateManyWithoutGameNestedInput = {
+    create?: XOR<BondHoldingCreateWithoutGameInput, BondHoldingUncheckedCreateWithoutGameInput> | BondHoldingCreateWithoutGameInput[] | BondHoldingUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: BondHoldingCreateOrConnectWithoutGameInput | BondHoldingCreateOrConnectWithoutGameInput[]
+    upsert?: BondHoldingUpsertWithWhereUniqueWithoutGameInput | BondHoldingUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: BondHoldingCreateManyGameInputEnvelope
+    set?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+    disconnect?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+    delete?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+    connect?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+    update?: BondHoldingUpdateWithWhereUniqueWithoutGameInput | BondHoldingUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: BondHoldingUpdateManyWithWhereWithoutGameInput | BondHoldingUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: BondHoldingScalarWhereInput | BondHoldingScalarWhereInput[]
+  }
+
+  export type BondTradeUpdateManyWithoutGameNestedInput = {
+    create?: XOR<BondTradeCreateWithoutGameInput, BondTradeUncheckedCreateWithoutGameInput> | BondTradeCreateWithoutGameInput[] | BondTradeUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: BondTradeCreateOrConnectWithoutGameInput | BondTradeCreateOrConnectWithoutGameInput[]
+    upsert?: BondTradeUpsertWithWhereUniqueWithoutGameInput | BondTradeUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: BondTradeCreateManyGameInputEnvelope
+    set?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+    disconnect?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+    delete?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+    connect?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+    update?: BondTradeUpdateWithWhereUniqueWithoutGameInput | BondTradeUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: BondTradeUpdateManyWithWhereWithoutGameInput | BondTradeUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: BondTradeScalarWhereInput | BondTradeScalarWhereInput[]
+  }
+
+  export type CompanyDirectiveUpdateManyWithoutGameNestedInput = {
+    create?: XOR<CompanyDirectiveCreateWithoutGameInput, CompanyDirectiveUncheckedCreateWithoutGameInput> | CompanyDirectiveCreateWithoutGameInput[] | CompanyDirectiveUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: CompanyDirectiveCreateOrConnectWithoutGameInput | CompanyDirectiveCreateOrConnectWithoutGameInput[]
+    upsert?: CompanyDirectiveUpsertWithWhereUniqueWithoutGameInput | CompanyDirectiveUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: CompanyDirectiveCreateManyGameInputEnvelope
+    set?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+    disconnect?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+    delete?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+    connect?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+    update?: CompanyDirectiveUpdateWithWhereUniqueWithoutGameInput | CompanyDirectiveUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: CompanyDirectiveUpdateManyWithWhereWithoutGameInput | CompanyDirectiveUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: CompanyDirectiveScalarWhereInput | CompanyDirectiveScalarWhereInput[]
+  }
+
   export type CharacterUncheckedUpdateOneWithoutGameNestedInput = {
     create?: XOR<CharacterCreateWithoutGameInput, CharacterUncheckedCreateWithoutGameInput>
     connectOrCreate?: CharacterCreateOrConnectWithoutGameInput
@@ -28696,6 +33518,48 @@ export namespace Prisma {
     update?: FuturesPositionUpdateWithWhereUniqueWithoutGameInput | FuturesPositionUpdateWithWhereUniqueWithoutGameInput[]
     updateMany?: FuturesPositionUpdateManyWithWhereWithoutGameInput | FuturesPositionUpdateManyWithWhereWithoutGameInput[]
     deleteMany?: FuturesPositionScalarWhereInput | FuturesPositionScalarWhereInput[]
+  }
+
+  export type BondHoldingUncheckedUpdateManyWithoutGameNestedInput = {
+    create?: XOR<BondHoldingCreateWithoutGameInput, BondHoldingUncheckedCreateWithoutGameInput> | BondHoldingCreateWithoutGameInput[] | BondHoldingUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: BondHoldingCreateOrConnectWithoutGameInput | BondHoldingCreateOrConnectWithoutGameInput[]
+    upsert?: BondHoldingUpsertWithWhereUniqueWithoutGameInput | BondHoldingUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: BondHoldingCreateManyGameInputEnvelope
+    set?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+    disconnect?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+    delete?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+    connect?: BondHoldingWhereUniqueInput | BondHoldingWhereUniqueInput[]
+    update?: BondHoldingUpdateWithWhereUniqueWithoutGameInput | BondHoldingUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: BondHoldingUpdateManyWithWhereWithoutGameInput | BondHoldingUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: BondHoldingScalarWhereInput | BondHoldingScalarWhereInput[]
+  }
+
+  export type BondTradeUncheckedUpdateManyWithoutGameNestedInput = {
+    create?: XOR<BondTradeCreateWithoutGameInput, BondTradeUncheckedCreateWithoutGameInput> | BondTradeCreateWithoutGameInput[] | BondTradeUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: BondTradeCreateOrConnectWithoutGameInput | BondTradeCreateOrConnectWithoutGameInput[]
+    upsert?: BondTradeUpsertWithWhereUniqueWithoutGameInput | BondTradeUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: BondTradeCreateManyGameInputEnvelope
+    set?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+    disconnect?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+    delete?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+    connect?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+    update?: BondTradeUpdateWithWhereUniqueWithoutGameInput | BondTradeUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: BondTradeUpdateManyWithWhereWithoutGameInput | BondTradeUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: BondTradeScalarWhereInput | BondTradeScalarWhereInput[]
+  }
+
+  export type CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput = {
+    create?: XOR<CompanyDirectiveCreateWithoutGameInput, CompanyDirectiveUncheckedCreateWithoutGameInput> | CompanyDirectiveCreateWithoutGameInput[] | CompanyDirectiveUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: CompanyDirectiveCreateOrConnectWithoutGameInput | CompanyDirectiveCreateOrConnectWithoutGameInput[]
+    upsert?: CompanyDirectiveUpsertWithWhereUniqueWithoutGameInput | CompanyDirectiveUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: CompanyDirectiveCreateManyGameInputEnvelope
+    set?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+    disconnect?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+    delete?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+    connect?: CompanyDirectiveWhereUniqueInput | CompanyDirectiveWhereUniqueInput[]
+    update?: CompanyDirectiveUpdateWithWhereUniqueWithoutGameInput | CompanyDirectiveUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: CompanyDirectiveUpdateManyWithWhereWithoutGameInput | CompanyDirectiveUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: CompanyDirectiveScalarWhereInput | CompanyDirectiveScalarWhereInput[]
   }
 
   export type GameCreateNestedOneWithoutCharacterInput = {
@@ -29262,6 +34126,56 @@ export namespace Prisma {
     upsert?: AssetUpsertWithoutFuturesInput
     connect?: AssetWhereUniqueInput
     update?: XOR<XOR<AssetUpdateToOneWithWhereWithoutFuturesInput, AssetUpdateWithoutFuturesInput>, AssetUncheckedUpdateWithoutFuturesInput>
+  }
+
+  export type GameCreateNestedOneWithoutBondHoldingsInput = {
+    create?: XOR<GameCreateWithoutBondHoldingsInput, GameUncheckedCreateWithoutBondHoldingsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutBondHoldingsInput
+    connect?: GameWhereUniqueInput
+  }
+
+  export type GameUpdateOneRequiredWithoutBondHoldingsNestedInput = {
+    create?: XOR<GameCreateWithoutBondHoldingsInput, GameUncheckedCreateWithoutBondHoldingsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutBondHoldingsInput
+    upsert?: GameUpsertWithoutBondHoldingsInput
+    connect?: GameWhereUniqueInput
+    update?: XOR<XOR<GameUpdateToOneWithWhereWithoutBondHoldingsInput, GameUpdateWithoutBondHoldingsInput>, GameUncheckedUpdateWithoutBondHoldingsInput>
+  }
+
+  export type GameCreateNestedOneWithoutBondTradesInput = {
+    create?: XOR<GameCreateWithoutBondTradesInput, GameUncheckedCreateWithoutBondTradesInput>
+    connectOrCreate?: GameCreateOrConnectWithoutBondTradesInput
+    connect?: GameWhereUniqueInput
+  }
+
+  export type EnumBondTradeSideFieldUpdateOperationsInput = {
+    set?: $Enums.BondTradeSide
+  }
+
+  export type GameUpdateOneRequiredWithoutBondTradesNestedInput = {
+    create?: XOR<GameCreateWithoutBondTradesInput, GameUncheckedCreateWithoutBondTradesInput>
+    connectOrCreate?: GameCreateOrConnectWithoutBondTradesInput
+    upsert?: GameUpsertWithoutBondTradesInput
+    connect?: GameWhereUniqueInput
+    update?: XOR<XOR<GameUpdateToOneWithWhereWithoutBondTradesInput, GameUpdateWithoutBondTradesInput>, GameUncheckedUpdateWithoutBondTradesInput>
+  }
+
+  export type GameCreateNestedOneWithoutDirectivesInput = {
+    create?: XOR<GameCreateWithoutDirectivesInput, GameUncheckedCreateWithoutDirectivesInput>
+    connectOrCreate?: GameCreateOrConnectWithoutDirectivesInput
+    connect?: GameWhereUniqueInput
+  }
+
+  export type EnumDirectiveKindFieldUpdateOperationsInput = {
+    set?: $Enums.DirectiveKind
+  }
+
+  export type GameUpdateOneRequiredWithoutDirectivesNestedInput = {
+    create?: XOR<GameCreateWithoutDirectivesInput, GameUncheckedCreateWithoutDirectivesInput>
+    connectOrCreate?: GameCreateOrConnectWithoutDirectivesInput
+    upsert?: GameUpsertWithoutDirectivesInput
+    connect?: GameWhereUniqueInput
+    update?: XOR<XOR<GameUpdateToOneWithWhereWithoutDirectivesInput, GameUpdateWithoutDirectivesInput>, GameUncheckedUpdateWithoutDirectivesInput>
   }
 
   export type GameCreateNestedOneWithoutLedgerEntriesInput = {
@@ -29856,6 +34770,40 @@ export namespace Prisma {
     _max?: NestedEnumFuturesStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumBondTradeSideFilter<$PrismaModel = never> = {
+    equals?: $Enums.BondTradeSide | EnumBondTradeSideFieldRefInput<$PrismaModel>
+    in?: $Enums.BondTradeSide[] | ListEnumBondTradeSideFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BondTradeSide[] | ListEnumBondTradeSideFieldRefInput<$PrismaModel>
+    not?: NestedEnumBondTradeSideFilter<$PrismaModel> | $Enums.BondTradeSide
+  }
+
+  export type NestedEnumBondTradeSideWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BondTradeSide | EnumBondTradeSideFieldRefInput<$PrismaModel>
+    in?: $Enums.BondTradeSide[] | ListEnumBondTradeSideFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BondTradeSide[] | ListEnumBondTradeSideFieldRefInput<$PrismaModel>
+    not?: NestedEnumBondTradeSideWithAggregatesFilter<$PrismaModel> | $Enums.BondTradeSide
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBondTradeSideFilter<$PrismaModel>
+    _max?: NestedEnumBondTradeSideFilter<$PrismaModel>
+  }
+
+  export type NestedEnumDirectiveKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.DirectiveKind | EnumDirectiveKindFieldRefInput<$PrismaModel>
+    in?: $Enums.DirectiveKind[] | ListEnumDirectiveKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DirectiveKind[] | ListEnumDirectiveKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumDirectiveKindFilter<$PrismaModel> | $Enums.DirectiveKind
+  }
+
+  export type NestedEnumDirectiveKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DirectiveKind | EnumDirectiveKindFieldRefInput<$PrismaModel>
+    in?: $Enums.DirectiveKind[] | ListEnumDirectiveKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DirectiveKind[] | ListEnumDirectiveKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumDirectiveKindWithAggregatesFilter<$PrismaModel> | $Enums.DirectiveKind
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDirectiveKindFilter<$PrismaModel>
+    _max?: NestedEnumDirectiveKindFilter<$PrismaModel>
+  }
+
   export type NestedEnumLedgerAccountFilter<$PrismaModel = never> = {
     equals?: $Enums.LedgerAccount | EnumLedgerAccountFieldRefInput<$PrismaModel>
     in?: $Enums.LedgerAccount[] | ListEnumLedgerAccountFieldRefInput<$PrismaModel>
@@ -30150,6 +35098,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutUserInput = {
@@ -30170,6 +35121,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutUserInput = {
@@ -30571,6 +35525,104 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type BondHoldingCreateWithoutGameInput = {
+    id?: string
+    bondKey: string
+    quantity: number
+    costMinor: bigint | number
+    purchasedTick: number
+    updatedAt?: Date | string
+  }
+
+  export type BondHoldingUncheckedCreateWithoutGameInput = {
+    id?: string
+    bondKey: string
+    quantity: number
+    costMinor: bigint | number
+    purchasedTick: number
+    updatedAt?: Date | string
+  }
+
+  export type BondHoldingCreateOrConnectWithoutGameInput = {
+    where: BondHoldingWhereUniqueInput
+    create: XOR<BondHoldingCreateWithoutGameInput, BondHoldingUncheckedCreateWithoutGameInput>
+  }
+
+  export type BondHoldingCreateManyGameInputEnvelope = {
+    data: BondHoldingCreateManyGameInput | BondHoldingCreateManyGameInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BondTradeCreateWithoutGameInput = {
+    id?: string
+    bondKey: string
+    side: $Enums.BondTradeSide
+    quantity: number
+    priceMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type BondTradeUncheckedCreateWithoutGameInput = {
+    id?: string
+    bondKey: string
+    side: $Enums.BondTradeSide
+    quantity: number
+    priceMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type BondTradeCreateOrConnectWithoutGameInput = {
+    where: BondTradeWhereUniqueInput
+    create: XOR<BondTradeCreateWithoutGameInput, BondTradeUncheckedCreateWithoutGameInput>
+  }
+
+  export type BondTradeCreateManyGameInputEnvelope = {
+    data: BondTradeCreateManyGameInput | BondTradeCreateManyGameInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CompanyDirectiveCreateWithoutGameInput = {
+    id?: string
+    companySymbol: string
+    kind: $Enums.DirectiveKind
+    atMonth: number
+    payoutMinor?: bigint | number
+    playerPayoutMinor?: bigint | number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type CompanyDirectiveUncheckedCreateWithoutGameInput = {
+    id?: string
+    companySymbol: string
+    kind: $Enums.DirectiveKind
+    atMonth: number
+    payoutMinor?: bigint | number
+    playerPayoutMinor?: bigint | number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type CompanyDirectiveCreateOrConnectWithoutGameInput = {
+    where: CompanyDirectiveWhereUniqueInput
+    create: XOR<CompanyDirectiveCreateWithoutGameInput, CompanyDirectiveUncheckedCreateWithoutGameInput>
+  }
+
+  export type CompanyDirectiveCreateManyGameInputEnvelope = {
+    data: CompanyDirectiveCreateManyGameInput | CompanyDirectiveCreateManyGameInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutGamesInput = {
     update: XOR<UserUpdateWithoutGamesInput, UserUncheckedUpdateWithoutGamesInput>
     create: XOR<UserCreateWithoutGamesInput, UserUncheckedCreateWithoutGamesInput>
@@ -30927,6 +35979,100 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"FuturesPosition"> | Date | string
   }
 
+  export type BondHoldingUpsertWithWhereUniqueWithoutGameInput = {
+    where: BondHoldingWhereUniqueInput
+    update: XOR<BondHoldingUpdateWithoutGameInput, BondHoldingUncheckedUpdateWithoutGameInput>
+    create: XOR<BondHoldingCreateWithoutGameInput, BondHoldingUncheckedCreateWithoutGameInput>
+  }
+
+  export type BondHoldingUpdateWithWhereUniqueWithoutGameInput = {
+    where: BondHoldingWhereUniqueInput
+    data: XOR<BondHoldingUpdateWithoutGameInput, BondHoldingUncheckedUpdateWithoutGameInput>
+  }
+
+  export type BondHoldingUpdateManyWithWhereWithoutGameInput = {
+    where: BondHoldingScalarWhereInput
+    data: XOR<BondHoldingUpdateManyMutationInput, BondHoldingUncheckedUpdateManyWithoutGameInput>
+  }
+
+  export type BondHoldingScalarWhereInput = {
+    AND?: BondHoldingScalarWhereInput | BondHoldingScalarWhereInput[]
+    OR?: BondHoldingScalarWhereInput[]
+    NOT?: BondHoldingScalarWhereInput | BondHoldingScalarWhereInput[]
+    id?: UuidFilter<"BondHolding"> | string
+    gameId?: UuidFilter<"BondHolding"> | string
+    bondKey?: StringFilter<"BondHolding"> | string
+    quantity?: IntFilter<"BondHolding"> | number
+    costMinor?: BigIntFilter<"BondHolding"> | bigint | number
+    purchasedTick?: IntFilter<"BondHolding"> | number
+    updatedAt?: DateTimeFilter<"BondHolding"> | Date | string
+  }
+
+  export type BondTradeUpsertWithWhereUniqueWithoutGameInput = {
+    where: BondTradeWhereUniqueInput
+    update: XOR<BondTradeUpdateWithoutGameInput, BondTradeUncheckedUpdateWithoutGameInput>
+    create: XOR<BondTradeCreateWithoutGameInput, BondTradeUncheckedCreateWithoutGameInput>
+  }
+
+  export type BondTradeUpdateWithWhereUniqueWithoutGameInput = {
+    where: BondTradeWhereUniqueInput
+    data: XOR<BondTradeUpdateWithoutGameInput, BondTradeUncheckedUpdateWithoutGameInput>
+  }
+
+  export type BondTradeUpdateManyWithWhereWithoutGameInput = {
+    where: BondTradeScalarWhereInput
+    data: XOR<BondTradeUpdateManyMutationInput, BondTradeUncheckedUpdateManyWithoutGameInput>
+  }
+
+  export type BondTradeScalarWhereInput = {
+    AND?: BondTradeScalarWhereInput | BondTradeScalarWhereInput[]
+    OR?: BondTradeScalarWhereInput[]
+    NOT?: BondTradeScalarWhereInput | BondTradeScalarWhereInput[]
+    id?: UuidFilter<"BondTrade"> | string
+    gameId?: UuidFilter<"BondTrade"> | string
+    bondKey?: StringFilter<"BondTrade"> | string
+    side?: EnumBondTradeSideFilter<"BondTrade"> | $Enums.BondTradeSide
+    quantity?: IntFilter<"BondTrade"> | number
+    priceMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    grossMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    feeMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    netMinor?: BigIntFilter<"BondTrade"> | bigint | number
+    tick?: IntFilter<"BondTrade"> | number
+    idempotencyKey?: UuidFilter<"BondTrade"> | string
+    createdAt?: DateTimeFilter<"BondTrade"> | Date | string
+  }
+
+  export type CompanyDirectiveUpsertWithWhereUniqueWithoutGameInput = {
+    where: CompanyDirectiveWhereUniqueInput
+    update: XOR<CompanyDirectiveUpdateWithoutGameInput, CompanyDirectiveUncheckedUpdateWithoutGameInput>
+    create: XOR<CompanyDirectiveCreateWithoutGameInput, CompanyDirectiveUncheckedCreateWithoutGameInput>
+  }
+
+  export type CompanyDirectiveUpdateWithWhereUniqueWithoutGameInput = {
+    where: CompanyDirectiveWhereUniqueInput
+    data: XOR<CompanyDirectiveUpdateWithoutGameInput, CompanyDirectiveUncheckedUpdateWithoutGameInput>
+  }
+
+  export type CompanyDirectiveUpdateManyWithWhereWithoutGameInput = {
+    where: CompanyDirectiveScalarWhereInput
+    data: XOR<CompanyDirectiveUpdateManyMutationInput, CompanyDirectiveUncheckedUpdateManyWithoutGameInput>
+  }
+
+  export type CompanyDirectiveScalarWhereInput = {
+    AND?: CompanyDirectiveScalarWhereInput | CompanyDirectiveScalarWhereInput[]
+    OR?: CompanyDirectiveScalarWhereInput[]
+    NOT?: CompanyDirectiveScalarWhereInput | CompanyDirectiveScalarWhereInput[]
+    id?: UuidFilter<"CompanyDirective"> | string
+    gameId?: UuidFilter<"CompanyDirective"> | string
+    companySymbol?: StringFilter<"CompanyDirective"> | string
+    kind?: EnumDirectiveKindFilter<"CompanyDirective"> | $Enums.DirectiveKind
+    atMonth?: IntFilter<"CompanyDirective"> | number
+    payoutMinor?: BigIntFilter<"CompanyDirective"> | bigint | number
+    playerPayoutMinor?: BigIntFilter<"CompanyDirective"> | bigint | number
+    idempotencyKey?: UuidFilter<"CompanyDirective"> | string
+    createdAt?: DateTimeFilter<"CompanyDirective"> | Date | string
+  }
+
   export type GameCreateWithoutCharacterInput = {
     id?: string
     seed: bigint | number
@@ -30945,6 +36091,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutCharacterInput = {
@@ -30965,6 +36114,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutCharacterInput = {
@@ -31067,6 +36219,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutCharacterInput = {
@@ -31087,6 +36242,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type CareerUpsertWithWhereUniqueWithoutCharacterInput = {
@@ -31170,6 +36328,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutPortfolioInput = {
@@ -31190,6 +36351,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutPortfolioInput = {
@@ -31294,6 +36458,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutPortfolioInput = {
@@ -31314,6 +36481,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type HoldingUpsertWithWhereUniqueWithoutPortfolioInput = {
@@ -31652,6 +36822,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutPricePointsInput = {
@@ -31672,6 +36845,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutPricePointsInput = {
@@ -31745,6 +36921,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutPricePointsInput = {
@@ -31765,6 +36944,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type AssetUpsertWithoutPricePointsInput = {
@@ -31956,6 +37138,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutOrdersInput = {
@@ -31976,6 +37161,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutOrdersInput = {
@@ -32049,6 +37237,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutOrdersInput = {
@@ -32069,6 +37260,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type AssetUpsertWithoutOrdersInput = {
@@ -32132,6 +37326,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventCreateNestedManyWithoutGameInput
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutFuturesPositionsInput = {
@@ -32152,6 +37349,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUncheckedCreateNestedManyWithoutGameInput
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutFuturesPositionsInput = {
@@ -32225,6 +37425,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUpdateManyWithoutGameNestedInput
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutFuturesPositionsInput = {
@@ -32245,6 +37448,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUncheckedUpdateManyWithoutGameNestedInput
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type AssetUpsertWithoutFuturesInput = {
@@ -32290,6 +37496,330 @@ export namespace Prisma {
     ledger?: LedgerEntryUncheckedUpdateManyWithoutAssetNestedInput
   }
 
+  export type GameCreateWithoutBondHoldingsInput = {
+    id?: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutGamesInput
+    character?: CharacterCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioCreateNestedOneWithoutGameInput
+    orders?: OrderCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutBondHoldingsInput = {
+    id?: string
+    userId: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    character?: CharacterUncheckedCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioUncheckedCreateNestedOneWithoutGameInput
+    orders?: OrderUncheckedCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryUncheckedCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleUncheckedCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointUncheckedCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventUncheckedCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutBondHoldingsInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutBondHoldingsInput, GameUncheckedCreateWithoutBondHoldingsInput>
+  }
+
+  export type GameUpsertWithoutBondHoldingsInput = {
+    update: XOR<GameUpdateWithoutBondHoldingsInput, GameUncheckedUpdateWithoutBondHoldingsInput>
+    create: XOR<GameCreateWithoutBondHoldingsInput, GameUncheckedCreateWithoutBondHoldingsInput>
+    where?: GameWhereInput
+  }
+
+  export type GameUpdateToOneWithWhereWithoutBondHoldingsInput = {
+    where?: GameWhereInput
+    data: XOR<GameUpdateWithoutBondHoldingsInput, GameUncheckedUpdateWithoutBondHoldingsInput>
+  }
+
+  export type GameUpdateWithoutBondHoldingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutGamesNestedInput
+    character?: CharacterUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUpdateOneWithoutGameNestedInput
+    orders?: OrderUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutBondHoldingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    character?: CharacterUncheckedUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUncheckedUpdateOneWithoutGameNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUncheckedUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUncheckedUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUncheckedUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUncheckedUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameCreateWithoutBondTradesInput = {
+    id?: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutGamesInput
+    character?: CharacterCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioCreateNestedOneWithoutGameInput
+    orders?: OrderCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutBondTradesInput = {
+    id?: string
+    userId: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    character?: CharacterUncheckedCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioUncheckedCreateNestedOneWithoutGameInput
+    orders?: OrderUncheckedCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryUncheckedCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleUncheckedCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointUncheckedCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventUncheckedCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutBondTradesInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutBondTradesInput, GameUncheckedCreateWithoutBondTradesInput>
+  }
+
+  export type GameUpsertWithoutBondTradesInput = {
+    update: XOR<GameUpdateWithoutBondTradesInput, GameUncheckedUpdateWithoutBondTradesInput>
+    create: XOR<GameCreateWithoutBondTradesInput, GameUncheckedCreateWithoutBondTradesInput>
+    where?: GameWhereInput
+  }
+
+  export type GameUpdateToOneWithWhereWithoutBondTradesInput = {
+    where?: GameWhereInput
+    data: XOR<GameUpdateWithoutBondTradesInput, GameUncheckedUpdateWithoutBondTradesInput>
+  }
+
+  export type GameUpdateWithoutBondTradesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutGamesNestedInput
+    character?: CharacterUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUpdateOneWithoutGameNestedInput
+    orders?: OrderUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutBondTradesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    character?: CharacterUncheckedUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUncheckedUpdateOneWithoutGameNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUncheckedUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUncheckedUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUncheckedUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUncheckedUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameCreateWithoutDirectivesInput = {
+    id?: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutGamesInput
+    character?: CharacterCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioCreateNestedOneWithoutGameInput
+    orders?: OrderCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutDirectivesInput = {
+    id?: string
+    userId: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    character?: CharacterUncheckedCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioUncheckedCreateNestedOneWithoutGameInput
+    orders?: OrderUncheckedCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryUncheckedCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleUncheckedCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointUncheckedCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventUncheckedCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutDirectivesInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutDirectivesInput, GameUncheckedCreateWithoutDirectivesInput>
+  }
+
+  export type GameUpsertWithoutDirectivesInput = {
+    update: XOR<GameUpdateWithoutDirectivesInput, GameUncheckedUpdateWithoutDirectivesInput>
+    create: XOR<GameCreateWithoutDirectivesInput, GameUncheckedCreateWithoutDirectivesInput>
+    where?: GameWhereInput
+  }
+
+  export type GameUpdateToOneWithWhereWithoutDirectivesInput = {
+    where?: GameWhereInput
+    data: XOR<GameUpdateWithoutDirectivesInput, GameUncheckedUpdateWithoutDirectivesInput>
+  }
+
+  export type GameUpdateWithoutDirectivesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutGamesNestedInput
+    character?: CharacterUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUpdateOneWithoutGameNestedInput
+    orders?: OrderUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutDirectivesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    character?: CharacterUncheckedUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUncheckedUpdateOneWithoutGameNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUncheckedUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUncheckedUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUncheckedUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUncheckedUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+  }
+
   export type GameCreateWithoutLedgerEntriesInput = {
     id?: string
     seed: bigint | number
@@ -32308,6 +37838,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutLedgerEntriesInput = {
@@ -32328,6 +37861,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutLedgerEntriesInput = {
@@ -32422,6 +37958,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutLedgerEntriesInput = {
@@ -32442,6 +37981,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type PortfolioUpsertWithoutLedgerInput = {
@@ -32676,6 +38218,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutExpenseRulesInput = {
@@ -32696,6 +38241,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutExpenseRulesInput = {
@@ -32732,6 +38280,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutExpenseRulesInput = {
@@ -32752,6 +38303,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameCreateWithoutLifeEventsInput = {
@@ -32772,6 +38326,9 @@ export namespace Prisma {
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutLifeEventsInput = {
@@ -32792,6 +38349,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutLifeEventsInput = {
@@ -32828,6 +38388,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutLifeEventsInput = {
@@ -32848,6 +38411,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameCreateWithoutMarketEventsInput = {
@@ -32868,6 +38434,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutMarketEventsInput = {
@@ -32888,6 +38457,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUncheckedCreateNestedManyWithoutGameInput
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutMarketEventsInput = {
@@ -32924,6 +38496,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutMarketEventsInput = {
@@ -32944,6 +38519,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type PlayerAchievementCreateWithoutAchievementInput = {
@@ -33000,6 +38578,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventCreateNestedManyWithoutGameInput
     marketEvents?: MarketEventCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutPlayerAchievementsInput = {
@@ -33020,6 +38601,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUncheckedCreateNestedManyWithoutGameInput
     marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutPlayerAchievementsInput = {
@@ -33075,6 +38659,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUpdateManyWithoutGameNestedInput
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutPlayerAchievementsInput = {
@@ -33095,6 +38682,9 @@ export namespace Prisma {
     lifeEvents?: LifeEventUncheckedUpdateManyWithoutGameNestedInput
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type AchievementUpsertWithoutUnlockedByInput = {
@@ -33150,6 +38740,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutUserInput = {
@@ -33170,6 +38763,9 @@ export namespace Prisma {
     marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateManyWithoutUserInput = {
@@ -33281,6 +38877,40 @@ export namespace Prisma {
     idempotencyKey: string
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type BondHoldingCreateManyGameInput = {
+    id?: string
+    bondKey: string
+    quantity: number
+    costMinor: bigint | number
+    purchasedTick: number
+    updatedAt?: Date | string
+  }
+
+  export type BondTradeCreateManyGameInput = {
+    id?: string
+    bondKey: string
+    side: $Enums.BondTradeSide
+    quantity: number
+    priceMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type CompanyDirectiveCreateManyGameInput = {
+    id?: string
+    companySymbol: string
+    kind: $Enums.DirectiveKind
+    atMonth: number
+    payoutMinor?: bigint | number
+    playerPayoutMinor?: bigint | number
+    idempotencyKey: string
+    createdAt?: Date | string
   }
 
   export type OrderUpdateWithoutGameInput = {
@@ -33584,6 +39214,108 @@ export namespace Prisma {
     idempotencyKey?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondHoldingUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    costMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    purchasedTick?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondHoldingUncheckedUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    costMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    purchasedTick?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondHoldingUncheckedUpdateManyWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    quantity?: IntFieldUpdateOperationsInput | number
+    costMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    purchasedTick?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondTradeUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
+    quantity?: IntFieldUpdateOperationsInput | number
+    priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondTradeUncheckedUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
+    quantity?: IntFieldUpdateOperationsInput | number
+    priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BondTradeUncheckedUpdateManyWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    bondKey?: StringFieldUpdateOperationsInput | string
+    side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
+    quantity?: IntFieldUpdateOperationsInput | number
+    priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyDirectiveUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companySymbol?: StringFieldUpdateOperationsInput | string
+    kind?: EnumDirectiveKindFieldUpdateOperationsInput | $Enums.DirectiveKind
+    atMonth?: IntFieldUpdateOperationsInput | number
+    payoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    playerPayoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyDirectiveUncheckedUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companySymbol?: StringFieldUpdateOperationsInput | string
+    kind?: EnumDirectiveKindFieldUpdateOperationsInput | $Enums.DirectiveKind
+    atMonth?: IntFieldUpdateOperationsInput | number
+    payoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    playerPayoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyDirectiveUncheckedUpdateManyWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companySymbol?: StringFieldUpdateOperationsInput | string
+    kind?: EnumDirectiveKindFieldUpdateOperationsInput | $Enums.DirectiveKind
+    atMonth?: IntFieldUpdateOperationsInput | number
+    payoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    playerPayoutMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CareerCreateManyCharacterInput = {

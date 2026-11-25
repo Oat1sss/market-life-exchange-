@@ -18,6 +18,16 @@ import { TokocryptoConsole } from "@/components/game/tokocrypto-console";
 
 export const instant = false;
 
+const VOLATILITY_LABEL: Record<
+  "LOW" | "MODERATE" | "HIGH" | "EXTREME",
+  string
+> = {
+  LOW: "Rendah",
+  MODERATE: "Sedang",
+  HIGH: "Tinggi",
+  EXTREME: "Ekstrem",
+};
+
 export default async function TokocryptoDetailPage({
   params,
 }: {
@@ -40,11 +50,14 @@ export default async function TokocryptoDetailPage({
   const asset = allCryptoAssets.find((a) => a.symbol === symbol);
   if (!asset) redirect("/play/crypto");
 
-  const fromTick = Math.max(0, game.tick - 35);
+  // Ambil riwayat dalam supaya chart punya kepadatan candle seperti aplikasi
+  // exchange; urutkan naik setelah mengambil tick terbaru.
   const rows = await prisma.pricePoint.findMany({
-    where: { gameId: game.gameId, assetId: asset.id, tick: { gte: fromTick } },
-    orderBy: { tick: "asc" },
+    where: { gameId: game.gameId, assetId: asset.id },
+    orderBy: { tick: "desc" },
+    take: 400,
   });
+  rows.reverse();
 
   const points: PriceSample[] = rows.map((r) => ({
     tick: r.tick,
@@ -95,7 +108,9 @@ export default async function TokocryptoDetailPage({
       feeMinor: t.feeMinor,
     }));
 
-  const cryptoPositions = (futures?.positions ?? []).filter((p) => p.symbol === symbol);
+  // Show every open futures position, not only the selected coin: a position
+  // opened on BTC must stay visible while browsing ETH.
+  const cryptoPositions = futures?.positions ?? [];
 
   const holdingViews = holding
     ? [
@@ -113,29 +128,30 @@ export default async function TokocryptoDetailPage({
     <div className="space-y-4">
       {/* Tokocrypto Top Navigation & Pair Selector Bar */}
       <div className="flex flex-col gap-3 rounded-xl border border-[#2b313a] bg-[#181a20] p-3 text-[#eaecef] shadow-xl md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
           <Link
             href="/play/crypto"
-            className="flex items-center gap-1.5 rounded-lg bg-[#2b313a] px-3 py-1.5 text-xs font-semibold text-[#848e9c] transition hover:text-white"
+            className="flex w-fit shrink-0 items-center gap-1.5 rounded-lg bg-[#2b313a] px-3 py-1.5 text-xs font-semibold text-[#848e9c] transition hover:text-white"
           >
-            <span>← Tokocrypto Pasar</span>
+            <span>← Pasar Kripto</span>
           </Link>
 
           {/* Quick Coin Tabs */}
-          <div className="flex items-center gap-1.5">
+          <div className="no-scrollbar -mx-1 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto px-1 py-0.5">
             {allCryptoAssets.map((crypto) => {
               const active = crypto.symbol === symbol;
               return (
                 <Link
                   key={crypto.symbol}
                   href={`/play/crypto/${crypto.symbol}`}
-                  className={`rounded-lg px-3 py-1 text-xs font-bold transition ${
+                  title={`${crypto.symbol}/IDR`}
+                  className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold transition ${
                     active
-                      ? "bg-[#00c087] text-white shadow-md"
+                      ? "bg-[#00c087] text-[#04120e] shadow-md"
                       : "bg-[#12161a] text-[#848e9c] hover:bg-[#2b313a] hover:text-white"
                   }`}
                 >
-                  {crypto.symbol}/CR
+                  {crypto.symbol}
                 </Link>
               );
             })}
@@ -143,19 +159,22 @@ export default async function TokocryptoDetailPage({
         </div>
 
         {/* Global Wallet Summary */}
-        <div className="flex items-center gap-4 text-xs font-medium">
+        <div className="grid shrink-0 grid-cols-2 gap-4 text-xs font-medium md:flex md:items-center">
           <div>
-            <span className="text-[#848e9c]">Saldo Tunai: </span>
-            <span className="font-bold tabular-nums text-white">
+            <div className="text-[10px] uppercase tracking-wider text-[#848e9c]">
+              Saldo Tunai
+            </div>
+            <div className="font-bold tabular-nums text-white">
               {currency(game.cashMinor)}
-            </span>
+            </div>
           </div>
-          <span className="text-[#2b313a]">|</span>
           <div>
-            <span className="text-[#848e9c]">Ekuitas Futures: </span>
-            <span className="font-bold tabular-nums text-[#00c087]">
+            <div className="text-[10px] uppercase tracking-wider text-[#848e9c]">
+              Ekuitas Futures
+            </div>
+            <div className="font-bold tabular-nums text-[#00c087]">
               {currency(futures?.equityMinor ?? 0n)}
-            </span>
+            </div>
           </div>
         </div>
       </div>
@@ -165,7 +184,7 @@ export default async function TokocryptoDetailPage({
         <div className="flex items-center gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-black text-white">{asset.symbol}/CR</span>
+              <span className="text-xl font-black text-white">{asset.symbol}/IDR</span>
               <span className="rounded bg-[#2b313a] px-2 py-0.5 text-[10px] font-bold text-[#848e9c]">
                 {asset.name}
               </span>
@@ -195,13 +214,13 @@ export default async function TokocryptoDetailPage({
         {/* 24h High, Low, Volatility, Fundamental */}
         <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs md:grid-cols-4">
           <div>
-            <div className="text-[10px] uppercase text-[#848e9c]">Tertinggi (High)</div>
+            <div className="text-[10px] uppercase text-[#848e9c]">Tertinggi</div>
             <div className="font-semibold tabular-nums text-white">
               {currency(analysis.highMinor)}
             </div>
           </div>
           <div>
-            <div className="text-[10px] uppercase text-[#848e9c]">Terendah (Low)</div>
+            <div className="text-[10px] uppercase text-[#848e9c]">Terendah</div>
             <div className="font-semibold tabular-nums text-white">
               {currency(analysis.lowMinor)}
             </div>
@@ -209,11 +228,11 @@ export default async function TokocryptoDetailPage({
           <div>
             <div className="text-[10px] uppercase text-[#848e9c]">Volatilitas</div>
             <div className="font-semibold tabular-nums text-[#f0b90b]">
-              {(analysis.volatilityBp / 100).toFixed(1)}% ({insight.volatilityRisk})
+              {(analysis.volatilityBp / 100).toFixed(1)}% ({VOLATILITY_LABEL[insight.volatilityRisk]})
             </div>
           </div>
           <div>
-            <div className="text-[10px] uppercase text-[#848e9c]">Valuasi Fair Value</div>
+            <div className="text-[10px] uppercase text-[#848e9c]">Nilai Wajar</div>
             <div className="font-semibold tabular-nums text-[#00c087]">
               {currency(asset.fundamentalMinor)}{" "}
               <span className="text-[10px] text-[#848e9c]">
@@ -238,10 +257,10 @@ export default async function TokocryptoDetailPage({
 
           {/* Tokocrypto Sinyal & Analisis Teknikal */}
           <div className="rounded-xl border border-[#2b313a] bg-[#181a20] p-4 text-[#eaecef] shadow-xl">
-            <div className="mb-3 flex items-center justify-between border-b border-[#2b313a] pb-2 font-bold text-xs uppercase tracking-wider text-[#848e9c]">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[#2b313a] pb-2 font-bold text-xs uppercase tracking-wider text-[#848e9c]">
               <span>Analisis Teknikal &amp; Algoritma Pasar</span>
               <span
-                className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                className={`whitespace-nowrap rounded px-2 py-0.5 text-[10px] font-bold ${
                   insight.signal === "BULLISH"
                     ? "bg-[#0ecb81]/20 text-[#0ecb81]"
                     : insight.signal === "BEARISH"

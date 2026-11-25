@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { profileFor, liveStep } from "@/domain/market/chart-profile";
+import {
+  profileFor,
+  liveStep,
+  seededRandom,
+  smoothNoise,
+  type ChartProfile,
+} from "@/domain/market/chart-profile";
 import {
   accentHue,
   applyLiveSample,
@@ -21,6 +27,10 @@ const FRAMES = [
 type FrameKey = (typeof FRAMES)[number]["key"];
 type ChartMode = "CANDLE" | "AREA";
 
+/** Jumlah candle yang tampil; makin sedikit, makin besar (zoom in). */
+const ZOOM_LEVELS: readonly number[] = [60, 90, 120, 160, 220, 300, 400];
+const DEFAULT_ZOOM = 3;
+
 const W = 900;
 const H = 430;
 const PAD = { top: 16, right: 82, bottom: 26, left: 12 };
@@ -29,7 +39,7 @@ const VOL_TOP = 312;
 const VOL_H = 78;
 
 /** Cap on client-side live candles kept in memory. */
-const MAX_LIVE_CANDLES = 240;
+const MAX_LIVE_CANDLES = 48;
 /** Max drift of the live tape away from the last stored tick (6%). */
 const MAX_DRIFT = 0.06;
 const LIVE_INTERVAL_MS = 1100;
@@ -45,6 +55,99 @@ function formatVolume(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
   return Math.round(value).toString();
+}
+
+/**
+ * Candle riwayat sebelum tick pertama yang tersimpan. Chart exchange selalu
+ * punya riwayat panjang; bila data game masih pendek, candle awal disintesis
+ * deterministik dari profil aset supaya kepadatan chart tetap konsisten.
+ *
+ * Riwayat dibuat seperti pasar sungguhan: tren beberapa candle, volatilitas
+ * yang mengelompok, sesekali candle ekstrem, lalu ditarik perlahan kembali ke
+ * harga acuan agar tidak melenceng terlalu jauh.
+ */
+function seedHistory(first: Candle, count: number, profile: ChartProfile): Candle[] {
+  if (count <= 0) return [];
+
+  // Always generate the full window, then keep the newest `count` candles.
+  // The tail stays stable as live candles accumulate, so the history does not
+  // visibly shift every time a new live candle is appended.
+  const total = Math.max(count, 400);
+  const baseVol = profile.historyVolatility;
+  const rand = seededRandom(profile.seed ^ 0x27d4eb2d);
+  const levels: number[] = [1];
+  let level = 1;
+  let vol = baseVol;
+  let momentum = 0;
+
+  for (let i = 0; i < total; i += 1) {
+    // GARCH-style volatility: shocks raise it, then it decays toward base.
+    const shock = rand() * 2 - 1;
+    vol = Math.min(
+      baseVol * 2.6,
+      Math.max(
+        baseVol * 0.45,
+        vol * 0.88 + baseVol * 0.12 + Math.abs(shock) * baseVol * 0.22,
+      ),
+    );
+
+    // Slow trend regimes, a shared market pulse (alts follow the same rhythm),
+    // occasional fat-tail candle, and a gentle pull back to the anchor so a
+    // long history stays readable instead of drifting into a 50× range.
+    const regime =
+      smoothNoise(profile.seed ^ 0x51ed270b, i / 24) * baseVol * 0.45;
+    const market =
+      smoothNoise(0x51ed270b, i / 32) * profile.marketBeta * baseVol * 0.35;
+    const jump =
+      rand() < profile.jumpChance
+        ? (rand() * 2 - 1) * profile.jumpScale * vol
+        : 0;
+    momentum = Math.min(
+      baseVol * 2.5,
+      Math.max(
+        -baseVol * 2.5,
+        momentum * 0.7 + regime + market + shock * vol * 0.7 + jump,
+      ),
+    );
+    const pull = (1 - level) * 0.06;
+    const move = Math.min(0.2, Math.max(-0.2, momentum + pull));
+    level = Math.min(2, Math.max(0.5, level * (1 + move)));
+    levels.push(level);
+  }
+
+  const scale = first.open / levels[levels.length - 1]!;
+  const out: Candle[] = [];
+
+  for (let i = 0; i < total; i += 1) {
+    const open = levels[i]! * scale;
+    const close = levels[i + 1]! * scale;
+    const candleRand = seededRandom(
+      profile.seed ^ Math.imul(i + 1, 0x27d4eb2d),
+    );
+    const body = Math.abs(close - open);
+    const span = Math.max(body, close * baseVol * 0.35);
+    const high =
+      Math.max(open, close) + span * profile.wick * (0.15 + candleRand() * 0.6);
+    const low = Math.max(
+      0.01,
+      Math.min(open, close) - span * profile.wick * (0.15 + candleRand() * 0.6),
+    );
+    const moveRatio = body / Math.max(close * baseVol, 1e-9);
+    const volume =
+      profile.volume *
+      (450 + Math.min(moveRatio, 4) * 300 + candleRand() * 800);
+
+    out.push({
+      tick: first.tick - total + i,
+      open,
+      high,
+      low,
+      close,
+      volume,
+    });
+  }
+
+  return out.slice(-count);
 }
 
 function pathFrom(
@@ -116,6 +219,7 @@ function RealtimeChartBody({
   readonly onFrameChange: (frame: FrameKey) => void;
 }) {
   const [mode, setMode] = useState<ChartMode>("CANDLE");
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [showMa, setShowMa] = useState(true);
   const [paused, setPaused] = useState(false);
   const [hover, setHover] = useState<number | null>(null);
@@ -128,7 +232,7 @@ function RealtimeChartBody({
   const momentumRef = useRef(0);
   const stepRef = useRef(0);
 
-  const profile = useMemo(() => profileFor(symbol), [symbol]);
+  const profile = useMemo(() => profileFor(symbol, kind), [symbol, kind]);
   const hue = useMemo(() => accentHue(symbol), [symbol]);
 
   const sortedPoints = useMemo(
@@ -174,7 +278,13 @@ function RealtimeChartBody({
     );
   }
 
-  const visible = baseCandles.concat(liveCandles).slice(-72);
+  const visibleCount = ZOOM_LEVELS[zoom] ?? 160;
+  const combined = baseCandles.concat(liveCandles);
+  const history =
+    combined.length < visibleCount
+      ? seedHistory(combined[0]!, visibleCount - combined.length, profile)
+      : [];
+  const visible = history.concat(combined).slice(-visibleCount);
   const ma5 = movingAverage(visible, 5);
   const ma20 = movingAverage(visible, 20);
 
@@ -185,7 +295,10 @@ function RealtimeChartBody({
 
   const innerW = W - PAD.left - PAD.right;
   const slot = innerW / visible.length;
-  const bodyW = Math.max(2, Math.min(11, slot * 0.64));
+  // Candle dibuat rapat: body mengisi hampir seluruh slot, hanya sisa tipis
+  // sebagai pemisah agar tetap terbaca saat di-zoom out. Batas atas menjaga
+  // candle tidak menjadi balok raksasa saat data masih sedikit.
+  const bodyW = Math.max(1.5, Math.min(24, slot * 0.88));
 
   const y = (price: number) =>
     PAD.top + ((max + range * 0.06 - price) / (range * 1.12)) * CHART_H;
@@ -267,6 +380,46 @@ function RealtimeChartBody({
           </button>
         </div>
 
+        <div className="flex items-center overflow-hidden rounded-md border border-[#2b313a]">
+          <button
+            type="button"
+            onClick={() => {
+              setZoom((value) => Math.min(ZOOM_LEVELS.length - 1, value + 1));
+              setHover(null);
+            }}
+            disabled={zoom >= ZOOM_LEVELS.length - 1}
+            aria-label="Perkecil chart (tampilkan lebih banyak candle)"
+            title="Perkecil — tampilkan lebih banyak candle"
+            className="px-2.5 py-1 text-xs font-bold text-[#848e9c] transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setZoom(DEFAULT_ZOOM);
+              setHover(null);
+            }}
+            title={`Reset zoom — ${visibleCount} candle tampil (gaya exchange)`}
+            className="border-x border-[#2b313a] px-2 py-1 text-[10px] font-bold tabular-nums text-[#eaecef] transition hover:text-[#f0b90b]"
+          >
+            {visibleCount}c
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setZoom((value) => Math.max(0, value - 1));
+              setHover(null);
+            }}
+            disabled={zoom <= 0}
+            aria-label="Perbesar chart (perbesar candle)"
+            title="Perbesar — candle lebih besar"
+            className="px-2.5 py-1 text-xs font-bold text-[#848e9c] transition hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            +
+          </button>
+        </div>
+
         <button
           type="button"
           onClick={() => setShowMa((value) => !value)}
@@ -318,7 +471,7 @@ function RealtimeChartBody({
       <div className="flex flex-wrap items-end justify-between gap-3 px-4 pt-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-base font-black text-white">{symbol}/CR</span>
+            <span className="text-base font-black text-white">{symbol}/IDR</span>
             {name ? <span className="text-xs text-[#848e9c]">{name}</span> : null}
             <span
               className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
@@ -576,7 +729,11 @@ function RealtimeChartBody({
 
           <g className="fill-[#5e6673]" fontSize="9">
             <text x={PAD.left} y={H - 6} textAnchor="start">
-              {visible[0]!.live ? "Live" : `Tick ${visible[0]!.tick}`}
+              {visible[0]!.live
+                ? "Live"
+                : visible[0]!.tick < 0
+                  ? "Histori"
+                  : `Tick ${visible[0]!.tick}`}
             </text>
             <text x={PAD.left + innerW / 2} y={H - 6} textAnchor="middle">
               {showMa ? "MA5 kuning · MA20 biru" : `${visible.length} candle terakhir`}
@@ -591,9 +748,11 @@ function RealtimeChartBody({
       </div>
 
       <p className="border-t border-[#2b313a] px-4 py-2 text-[10px] leading-relaxed text-[#5e6673]">
-        Candle historis dibentuk dari tick pasar demo; tape LIVE diperbarui tiap{" "}
-        {LIVE_INTERVAL_MS / 1000}s dengan karakter volatilitas khusus {symbol} (
-        {profile.archetype.toLowerCase()}). Data visual — bukan umpan bursa nyata.
+        Candle historis dibentuk dari tick pasar demo; bila riwayat tick belum
+        cukup, candle awal disintesis agar kepadatan chart konsisten. Tape LIVE
+        diperbarui tiap {LIVE_INTERVAL_MS / 1000}s dengan karakter volatilitas
+        khusus {symbol} ({profile.archetype.toLowerCase()}). Data visual — bukan
+        umpan bursa nyata.
       </p>
     </div>
   );

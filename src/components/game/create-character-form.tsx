@@ -106,7 +106,7 @@ export function CreateCharacterForm() {
           {pending ? "Membuka akun…" : "Buka akun demo"}
         </button>
         <p className="text-[10px] text-[#5e6673]">
-          Saldo awal CR 100.000,00 · tanpa uang sungguhan
+          Saldo awal Rp 100.000,00 · tanpa uang sungguhan
         </p>
       </div>
     </form>

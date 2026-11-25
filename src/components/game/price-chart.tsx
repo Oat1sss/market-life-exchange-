@@ -156,7 +156,7 @@ export function PriceChart({
               tick {first.tick}
             </text>
             <text x={WIDTH / 2} y={height - 6} textAnchor="middle">
-              CR {formatMinor(BigInt(Math.round(min)))} – CR {formatMinor(BigInt(Math.round(max)))}
+              Rp {formatMinor(BigInt(Math.round(min)))} – Rp {formatMinor(BigInt(Math.round(max)))}
             </text>
             <text x={WIDTH - 4} y={height - 6} textAnchor="end">
               tick {last.tick}

@@ -17,6 +17,8 @@ import { choiceStats } from "@/domain/life-events";
 import { ageAt, gameDateFor } from "@/domain/calendar";
 import { monthlyPay } from "@/domain/payroll";
 import { nextPrice } from "@/domain/market/prices";
+import { economySnapshot, sectorPressure } from "@/domain/economy";
+import { buildBondMarket } from "@/domain/bonds";
 import { rollMarketEvent, shockForSector, shockForAsset } from "@/domain/market/events";
 import {
   delayedRepairFollowupCost,
@@ -28,6 +30,8 @@ import { prisma } from "@/server/db";
 import { appendLedgerRun, type LedgerDraft } from "./ledger";
 import { fillBuy, fillSell, FillError } from "./trade-fill";
 import { settleFutures } from "./futures-service";
+import { settleBonds } from "./bond-service";
+import { loadDirectives } from "./control-service";
 import { futuresPnlMinor } from "@/domain/futures";
 
 // Demo exchange accounts start with a simulated balance so every market is
@@ -76,7 +80,7 @@ export async function createGame(
     });
 
     const stats = BACKGROUNDS[input.background].stats;
-    const character = await tx.character.create({
+    await tx.character.create({
       data: {
         gameId: game.id,
         firstName: input.firstName,
@@ -159,7 +163,7 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
       throw new GameError("NO_GAME", "Game state incomplete in database.");
     }
     const drafts: Array<Omit<LedgerDraft, "gameId" | "tick">> = [];
-    let cash = portfolio.cashMinor;
+    const cash = portfolio.cashMinor;
 
     // ---- Education completions -----------------------------------------
     const due = await tx.education.findMany({
@@ -189,6 +193,24 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
     }
 
     const sectorByAssetId = new Map(assets.map((asset) => [asset.id, asset.sector]));
+
+    // Macro overlay: replay the deterministic economy up to this tick so stock
+    // prices react to earnings, resource costs, policy and media pressure
+    // instead of only to the standalone headline event.
+    // Board decisions are replayed as inputs (see control-service), so the
+    // price model sees the same world the economy page shows.
+    const { inputs: directives } = await loadDirectives(game.id);
+    const world = economySnapshot({
+      seed: game.seed,
+      assets,
+      pace: "MONTH",
+      monthsElapsed: target,
+      startYear: game.startDate.getUTCFullYear(),
+      startMonth: game.startDate.getUTCMonth() + 1,
+      directives,
+    });
+    const macroPressure = sectorPressure(world);
+
     const event = rollMarketEvent(game.seed, target, [...sectorByAssetId.values()]);
     if (event) {
       await tx.marketEvent.upsert({
@@ -241,7 +263,8 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
         previousSentimentBp: previous.sentimentBp,
         volatilityBp: asset.volatilityBp,
         betaBp: asset.betaBp,
-        eventShockMicro: shock * 100, // bp → micro
+        // bp → micro; macro pressure is damped so it nudges rather than drives.
+        eventShockMicro: shock * 100 + (macroPressure[asset.sector] ?? 0) * 40,
       });
       freshPrices.set(asset.id, next.priceMinor);
       pricePointsToInsert.push({
@@ -301,6 +324,10 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
       }
     }
 
+    // ---- Bonds: monthly coupons and principal at maturity --------------
+    // Runs after the stale cash snapshot write above so the credits survive.
+    await settleBonds(tx, game, target);
+
     if (knowledgeGain > 0) {
       await tx.character.update({
         where: { id: character.id },
@@ -312,7 +339,9 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
     await unlockAchievements(tx, game.id, {
       filledOrderCount: await tx.order.count({ where: { gameId: game.id, status: "FILLED" } }),
       bestRealizedMinor: await bestRealized(tx, game.id),
-      netWorthMinor: await netWorthOf(tx, portfolio.id, cash, freshPrices),
+      netWorthMinor:
+        (await netWorthOf(tx, portfolio.id, cash, freshPrices)) +
+        (await bondValueOf(tx, game.id, world.bonds, target)),
       completedEducationCount: await tx.education.count({
         where: { characterId: character.id, status: "COMPLETED", knowledgeGain: { gte: 40 } },
       }),
@@ -352,6 +381,21 @@ async function findGameForUpdate(tx: Tx, userId: string) {
   if (!game) throw new GameError("NO_GAME", "Create a character first.");
   await tx.$queryRaw`SELECT id FROM "games" WHERE id = ${game.id} FOR UPDATE`;
   return game;
+}
+
+async function bondValueOf(
+  db: Tx | typeof prisma,
+  gameId: string,
+  quotes: ReturnType<typeof economySnapshot>["bonds"],
+  tick: number,
+): Promise<bigint> {
+  const holdings = await db.bondHolding.findMany({ where: { gameId } });
+  if (holdings.length === 0) return 0n;
+  const instruments = buildBondMarket(quotes, tick);
+  return holdings.reduce((total, holding) => {
+    const instrument = instruments.find((candidate) => candidate.key === holding.bondKey);
+    return total + (instrument?.priceMinor ?? 0n) * BigInt(holding.quantity);
+  }, 0n);
 }
 
 async function netWorthOf(
@@ -791,6 +835,23 @@ export async function gameSnapshot(userId: string): Promise<GameSnapshot | null>
     }
   }
 
+  // Bonds are marked at the same macro price used by the bond page and the
+  // advance settlement, so buying a bond does not make net worth drop.
+  const bondRows = await prisma.bondHolding.findMany({ where: { gameId: game.id } });
+  let bondValue = 0n;
+  if (bondRows.length > 0) {
+    const assets = await prisma.asset.findMany({ orderBy: { symbol: "asc" } });
+    const world = economySnapshot({
+      seed: game.seed,
+      assets,
+      pace: "MONTH",
+      monthsElapsed: game.tick,
+      startYear: game.startDate.getUTCFullYear(),
+      startMonth: game.startDate.getUTCMonth() + 1,
+    });
+    bondValue = await bondValueOf(prisma, game.id, world.bonds, game.tick);
+  }
+
   const activeCareer = game.character.careers[0];
   const salaryNet = activeCareer ? monthlyPay(activeCareer.annualSalaryMinor, game.tick).minor : 0n;
 
@@ -829,6 +890,10 @@ export async function gameSnapshot(userId: string): Promise<GameSnapshot | null>
     else if (row.reason === "TRADE_SELL") label = "Stock sale";
     else if (row.reason === "EDUCATION") label = "Tuition payment";
     else if (row.reason === "LIFE_EVENT") label = "Life event";
+    else if (row.reason === "BOND_BUY") label = "Bond purchase";
+    else if (row.reason === "BOND_SELL") label = "Bond sale";
+    else if (row.reason === "BOND_COUPON") label = "Bond coupon";
+    else if (row.reason === "BOND_MATURITY") label = "Bond redemption";
     else if (row.reason === "DEPOSIT") label = "Initial cash";
     return {
       tick: row.tick,
@@ -857,7 +922,7 @@ export async function gameSnapshot(userId: string): Promise<GameSnapshot | null>
     date: date.label,
     age: currentAge,
     portfolioValue,
-    netWorth: game.portfolio.cashMinor + portfolioValue + futuresEquity,
+    netWorth: game.portfolio.cashMinor + portfolioValue + futuresEquity + bondValue,
     salaryNet,
     pendingLifeEvent: pendingLifeEventView,
     recentLedger,

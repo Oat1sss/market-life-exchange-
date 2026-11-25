@@ -106,7 +106,7 @@ export function DepositForm() {
 
           <div className="mt-3">
             <div className="mb-1 flex items-center justify-between text-xs text-[#848e9c]">
-              <span>Jumlah (CR)</span>
+              <span>Jumlah (Rp)</span>
               <span className="tabular-nums">
                 Min {currency(method.minMinor)} · Maks {currency(method.maxMinor)}
               </span>
@@ -116,7 +116,7 @@ export function DepositForm() {
                 belowMin || aboveMax ? "border-[#f6465d]" : "border-[#2b313a]"
               }`}
             >
-              <span className="mr-2 text-sm font-bold text-[#848e9c]">CR</span>
+              <span className="mr-2 text-sm font-bold text-[#848e9c]">Rp</span>
               <input
                 name="amount"
                 type="number"

@@ -35,7 +35,7 @@ export default async function NewCharacterPage() {
       <PageHeader
         eyebrow="MarketLife Exchange"
         title="Buka akun demo"
-        description="Buat akun trading simulasi dan mulai dengan saldo demo CR 100.000,00. Tidak ada uang sungguhan yang digunakan — semua transaksi berjalan di pasar fiktif."
+        description="Buat akun trading simulasi dan mulai dengan saldo demo Rp 100.000,00. Tidak ada uang sungguhan yang digunakan — semua transaksi berjalan di pasar fiktif."
         actions={
           <Link
             href="/login"
@@ -55,7 +55,7 @@ export default async function NewCharacterPage() {
             </span>
           </div>
           <p className="mt-1.5 text-xl font-black tabular-nums text-white">
-            CR 100.000,00
+            Rp 100.000,00
           </p>
           <p className="mt-1 text-[10px] text-muted">
             Bisa ditambah kapan saja lewat dompet demo.

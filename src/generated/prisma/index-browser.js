@@ -232,6 +232,43 @@ exports.Prisma.FuturesPositionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.BondHoldingScalarFieldEnum = {
+  id: 'id',
+  gameId: 'gameId',
+  bondKey: 'bondKey',
+  quantity: 'quantity',
+  costMinor: 'costMinor',
+  purchasedTick: 'purchasedTick',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BondTradeScalarFieldEnum = {
+  id: 'id',
+  gameId: 'gameId',
+  bondKey: 'bondKey',
+  side: 'side',
+  quantity: 'quantity',
+  priceMinor: 'priceMinor',
+  grossMinor: 'grossMinor',
+  feeMinor: 'feeMinor',
+  netMinor: 'netMinor',
+  tick: 'tick',
+  idempotencyKey: 'idempotencyKey',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CompanyDirectiveScalarFieldEnum = {
+  id: 'id',
+  gameId: 'gameId',
+  companySymbol: 'companySymbol',
+  kind: 'kind',
+  atMonth: 'atMonth',
+  payoutMinor: 'payoutMinor',
+  playerPayoutMinor: 'playerPayoutMinor',
+  idempotencyKey: 'idempotencyKey',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.LedgerEntryScalarFieldEnum = {
   id: 'id',
   gameId: 'gameId',
@@ -404,6 +441,18 @@ exports.FuturesStatus = exports.$Enums.FuturesStatus = {
   LIQUIDATED: 'LIQUIDATED'
 };
 
+exports.BondTradeSide = exports.$Enums.BondTradeSide = {
+  BUY: 'BUY',
+  SELL: 'SELL'
+};
+
+exports.DirectiveKind = exports.$Enums.DirectiveKind = {
+  DIVIDEND: 'DIVIDEND',
+  BUYBACK: 'BUYBACK',
+  EXPANSION: 'EXPANSION',
+  CUT_COSTS: 'CUT_COSTS'
+};
+
 exports.LedgerAccount = exports.$Enums.LedgerAccount = {
   CASH: 'CASH',
   ASSET: 'ASSET'
@@ -425,7 +474,12 @@ exports.LedgerReason = exports.$Enums.LedgerReason = {
   LIFE_EVENT: 'LIFE_EVENT',
   ADJUSTMENT: 'ADJUSTMENT',
   FUTURES_MARGIN: 'FUTURES_MARGIN',
-  FUTURES_PNL: 'FUTURES_PNL'
+  FUTURES_PNL: 'FUTURES_PNL',
+  BOND_BUY: 'BOND_BUY',
+  BOND_SELL: 'BOND_SELL',
+  BOND_COUPON: 'BOND_COUPON',
+  BOND_MATURITY: 'BOND_MATURITY',
+  DIVIDEND: 'DIVIDEND'
 };
 
 exports.CareerEndReason = exports.$Enums.CareerEndReason = {
@@ -473,6 +527,9 @@ exports.Prisma.ModelName = {
   Holding: 'Holding',
   Order: 'Order',
   FuturesPosition: 'FuturesPosition',
+  BondHolding: 'BondHolding',
+  BondTrade: 'BondTrade',
+  CompanyDirective: 'CompanyDirective',
   LedgerEntry: 'LedgerEntry',
   Career: 'Career',
   Education: 'Education',

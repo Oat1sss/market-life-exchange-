@@ -154,9 +154,11 @@ export function generateCryptoInsight(
   else volatilityRisk = "EXTREME";
 
   let signal: "BULLISH" | "BEARISH" | "NEUTRAL" = "NEUTRAL";
-  let signalLabel = "Consolidation / Range-bound";
-  let spotAdvice = "Accumulate gradually or wait for a confirmed breakout above resistance.";
-  let futuresAdvice = "Caution on high leverage; market is currently ranging.";
+  let signalLabel = "Konsolidasi / Sideways";
+  let spotAdvice =
+    "Akumulasi bertahap atau tunggu konfirmasi breakout di atas resistance.";
+  let futuresAdvice =
+    "Hati-hati dengan leverage tinggi; pasar sedang bergerak sideways.";
 
   const isAboveShort = currentPriceMinor >= analysis.smaShortMinor;
   const isAboveLong = currentPriceMinor >= analysis.smaLongMinor;
@@ -164,23 +166,25 @@ export function generateCryptoInsight(
 
   if (analysis.trend === "UP" && goldenCross && isAboveShort) {
     signal = "BULLISH";
-    signalLabel = "Strong Bullish Momentum";
+    signalLabel = "Momentum Bullish Kuat";
     spotAdvice =
-      "Momentum favours holding or taking incremental profits near key resistance levels.";
+      "Momentum mendukung hold atau ambil profit bertahap di area resistance kunci.";
     futuresAdvice =
-      "Long setups favorable with 2x–5x leverage. Avoid excessive 10x+ leverage.";
+      "Setup long cocok dengan leverage 2x–5x. Hindari leverage berlebihan 10x+.";
   } else if (analysis.trend === "DOWN" && !goldenCross) {
     signal = "BEARISH";
-    signalLabel = "Bearish Trend Pressure";
+    signalLabel = "Tekanan Tren Bearish";
     spotAdvice =
-      "Downtrend active. Limit buy orders at key discounts or wait for stabilization.";
+      "Tren turun aktif. Pasang limit buy di area diskon kunci atau tunggu stabilisasi.";
     futuresAdvice =
-      "Short hedges favorable. Keep tight margin buffer to prevent liquidation.";
+      "Hedge short cocok. Jaga buffer margin ketat agar tidak terlikuidasi.";
   } else if (isAboveLong && !isAboveShort) {
     signal = "NEUTRAL";
-    signalLabel = "Healthy Pullback in Uptrend";
-    spotAdvice = "Good candidate for spot dip accumulation near the 20-month average.";
-    futuresAdvice = "Wait for price to reclaim the 5-month SMA before opening new longs.";
+    signalLabel = "Pullback Sehat dalam Uptrend";
+    spotAdvice =
+      "Kandidat bagus untuk akumulasi spot saat dip di sekitar rata-rata 20 bulan.";
+    futuresAdvice =
+      "Tunggu harga kembali di atas SMA 5 bulan sebelum membuka long baru.";
   }
 
   return {

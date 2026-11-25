@@ -22,7 +22,6 @@ import {
   IconCandles,
   IconChartUp,
   IconCoin,
-  IconGraduation,
   IconPie,
   IconWallet,
 } from "@/components/icons";
@@ -61,10 +60,10 @@ const QUICK_ACTIONS = [
     icon: IconPie,
   },
   {
-    href: "/play/academy",
-    label: "Akademi",
-    hint: "Tingkatkan skill",
-    icon: IconGraduation,
+    href: "/play/forex",
+    label: "Forex",
+    hint: "Kurs & konversi valas",
+    icon: IconChartUp,
   },
 ] as const;
 
@@ -242,7 +241,7 @@ export default async function ExchangeHome() {
               subtitle={`${character.firstName} ${character.lastName} · usia ${snapshot.age}`}
               action={
                 <Link
-                  href="/play/academy"
+                  href="/play/arcade"
                   className="text-[10px] font-bold text-brand transition hover:text-brand-strong"
                 >
                   Latih →

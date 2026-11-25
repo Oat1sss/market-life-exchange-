@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { maybeUserId } from "@/server/session";
 
@@ -10,7 +9,8 @@ import { futuresSnapshot } from "@/server/services/futures-service";
 import { prisma } from "@/server/db";
 import { currency } from "@/domain/money";
 import { analyzePrices, type MarketAnalysis } from "@/domain/market/analysis";
-import { Sparkline, type ChartPoint } from "@/components/game/price-chart";
+import type { ChartPoint } from "@/components/game/price-chart";
+import { CryptoMarketGrid } from "@/components/game/crypto-market-grid";
 import { TokocryptoTerminal } from "@/components/game/tokocrypto-terminal";
 import { TokocryptoConsole } from "@/components/game/tokocrypto-console";
 
@@ -157,81 +157,35 @@ export default async function TokocryptoHubPage() {
 
       {/* Tokocrypto Market Tickers Grid */}
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#eaecef]">
-            Daftar Pasar Kripto (Market Pairs)
-          </h2>
-          <span className="text-xs text-[#848e9c]">Pilih koin untuk membuka terminal grafik &amp; analisis</span>
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#eaecef]">
+              Daftar Pasar Kripto
+            </h2>
+            <p className="mt-0.5 text-[11px] text-[#848e9c]">
+              Cari dan filter pasar, lalu buka terminal grafik untuk mulai trading.
+            </p>
+          </div>
+          <span className="text-xs text-[#848e9c]">{crypto.length} pasar tersedia</span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {crypto.map((asset) => {
-            const change = asset.analysis.changeBp;
-            const up = change >= 0;
-
-            return (
-              <div
-                key={asset.symbol}
-                className="group relative flex flex-col justify-between rounded-xl border border-[#2b313a] bg-[#181a20] p-4 text-[#eaecef] shadow-lg transition hover:border-[#00c087] hover:shadow-2xl"
-              >
-                <div>
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <span className="text-base font-bold text-white group-hover:text-[#00c087]">
-                        {asset.symbol}/CR
-                      </span>
-                      <span className="ml-1.5 text-xs text-[#848e9c]">{asset.name}</span>
-                    </div>
-                    <span
-                      className={`rounded px-1.5 py-0.5 text-xs font-bold tabular-nums ${
-                        up
-                          ? "bg-[#0ecb81]/15 text-[#0ecb81]"
-                          : "bg-[#f6465d]/15 text-[#f6465d]"
-                      }`}
-                    >
-                      {up ? "+" : ""}
-                      {(change / 100).toFixed(2)}%
-                    </span>
-                  </div>
-
-                  <div className="mt-3 flex items-baseline justify-between">
-                    <div>
-                      <div className="text-xl font-black tabular-nums text-white">
-                        {currency(asset.priceMinor)}
-                      </div>
-                      <div className="text-[11px] text-[#848e9c]">
-                        Volatilitas: {asset.analysis.volatilityBp} bp
-                      </div>
-                    </div>
-                    <div className="w-24">
-                      <Sparkline
-                        points={asset.points}
-                        id={`spark-${asset.symbol}`}
-                        positive={up}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 border-t border-[#2b313a] pt-3">
-                  <Link
-                    href={`/play/crypto/${asset.symbol}`}
-                    className="flex w-full items-center justify-center rounded-lg bg-[#2b313a] py-2 text-xs font-bold text-white transition hover:bg-[#00c087] hover:text-black"
-                  >
-                    Analisis &amp; Trading {asset.symbol} →
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <CryptoMarketGrid
+          assets={crypto.map((asset) => ({
+            symbol: asset.symbol,
+            name: asset.name,
+            priceMinor: asset.priceMinor,
+            points: asset.points,
+            changeBp: asset.analysis.changeBp,
+            volatilityBp: asset.analysis.volatilityBp,
+          }))}
+        />
       </section>
 
       {/* Fast Quick Trading Station for Top Crypto */}
       <section className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-6">
           <div className="mb-2 font-bold text-xs uppercase tracking-wider text-[#848e9c]">
-            Terminal Transaksi Cepat ({defaultAsset.symbol}/CR)
+            Terminal Transaksi Cepat ({defaultAsset.symbol}/IDR)
           </div>
           <TokocryptoTerminal
             symbol={defaultAsset.symbol}

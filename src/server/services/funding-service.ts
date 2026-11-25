@@ -55,7 +55,7 @@ export async function depositFunds(
   ) {
     throw new FundingError(
       "LIMIT",
-      `Nominal untuk ${method.label} harus antara ${(Number(method.minMinor) / 100).toLocaleString("id-ID")} dan ${(Number(method.maxMinor) / 100).toLocaleString("id-ID")} CR.`,
+      `Nominal untuk ${method.label} harus antara Rp ${(Number(method.minMinor) / 100).toLocaleString("id-ID")} dan Rp ${(Number(method.maxMinor) / 100).toLocaleString("id-ID")}.`,
     );
   }
   if (!UUID_PATTERN.test(input.idempotencyKey)) {

@@ -52,7 +52,7 @@ describe("Money arithmetic", () => {
   it("adds decimals without floating-point drift", () => {
     const total = Money.parse("0.10").add(Money.parse("0.20"));
     expect(total.minor).toBe(30n);
-    expect(total.format()).toBe("0.30");
+    expect(total.format()).toBe("0,30");
   });
 
   it("multiplies by whole quantities exactly", () => {
@@ -118,17 +118,17 @@ describe("Money arithmetic", () => {
 
 describe("formatting", () => {
   it("formats minor units for display", () => {
-    expect(formatMinor(123456n)).toBe("1,234.56");
-    expect(formatMinor(-50n)).toBe("-0.50");
-    expect(formatMinor(0n)).toBe("0.00");
-    expect(formatMinor(1234567890n)).toBe("12,345,678.90");
+    expect(formatMinor(123456n)).toBe("1.234,56");
+    expect(formatMinor(-50n)).toBe("-0,50");
+    expect(formatMinor(0n)).toBe("0,00");
+    expect(formatMinor(1234567890n)).toBe("12.345.678,90");
   });
 
   it("supports a currency symbol and explicit plus", () => {
-    expect(formatMinor(123456n, { symbol: "$" })).toBe("$1,234.56");
-    expect(formatMinor(-50n, { symbol: "$" })).toBe("-$0.50");
-    expect(formatMinor(100n, { symbol: "$", showPlus: true })).toBe("+$1.00");
-    expect(formatMinor(0n, { showPlus: true })).toBe("0.00");
+    expect(formatMinor(123456n, { symbol: "$" })).toBe("$1.234,56");
+    expect(formatMinor(-50n, { symbol: "$" })).toBe("-$0,50");
+    expect(formatMinor(100n, { symbol: "$", showPlus: true })).toBe("+$1,00");
+    expect(formatMinor(0n, { showPlus: true })).toBe("0,00");
   });
 
   it("serializes minor units as a string for JSON transport", () => {

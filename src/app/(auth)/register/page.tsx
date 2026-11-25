@@ -14,7 +14,7 @@ export default async function RegisterPage() {
     <AuthShell
       eyebrow="Buka akun"
       title="Mulai simulasi trading"
-      subtitle="Satu akun untuk pasar spot, futures, dompet demo, dan akademi."
+      subtitle="Satu akun untuk pasar spot, futures, forex, dan dompet demo."
       footer={
         <>
           Sudah punya akun?{" "}

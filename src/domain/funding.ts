@@ -28,8 +28,8 @@ export const DEPOSIT_METHODS: readonly DepositMethod[] = [
     label: "Transfer Bank",
     description: "BCA, Mandiri, BNI, BRI — simulasi transfer masuk.",
     feeBp: 0,
-    minMinor: 1_000_000n, // 10,000.00 CR
-    maxMinor: 100_000_000n, // 1,000,000.00 CR
+    minMinor: 1_000_000n, // 10.000,00 rupiah
+    maxMinor: 100_000_000n, // 1.000.000,00 rupiah
     eta: "Instan",
     badge: "Gratis",
   },

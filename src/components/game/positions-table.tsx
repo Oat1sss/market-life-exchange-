@@ -1,7 +1,7 @@
 /**
  * Open futures positions table with mark, margin, P&L and a close action.
  */
-import { currency, formatMinor } from "@/domain/money";
+import { currency } from "@/domain/money";
 import { ClosePositionButton } from "./close-position-button";
 import { EmptyState, SideBadge } from "./ui";
 
@@ -55,7 +55,7 @@ export function PositionsTable({ positions }: { readonly positions: PositionRow[
                 {currency(position.markPriceMinor)}
               </td>
               <td className="px-3 py-2.5 text-right tabular-nums text-[#c7ccd4]">
-                {formatMinor(position.marginMinor)}
+                {currency(position.marginMinor)}
               </td>
               <td
                 className={`px-3 py-2.5 text-right font-bold tabular-nums ${

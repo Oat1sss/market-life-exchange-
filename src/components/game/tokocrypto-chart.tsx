@@ -283,7 +283,7 @@ export function TokocryptoChart({
       <div className="relative">
         {/* Background Watermark */}
         <div className="pointer-events-none absolute left-6 top-6 select-none font-bold tracking-wider text-[#2b313a]/30 text-5xl">
-          {symbol} / CR
+          {symbol} / IDR
         </div>
 
         <svg
@@ -489,7 +489,7 @@ export function TokocryptoChart({
               Bulan {first.tick}
             </text>
             <text x={WIDTH / 2} y={height - 8} textAnchor="middle">
-              Rentang: CR {formatMinor(BigInt(Math.round(minPrice)))} – CR {formatMinor(BigInt(Math.round(maxPrice)))}
+              Rentang: Rp {formatMinor(BigInt(Math.round(minPrice)))} – Rp {formatMinor(BigInt(Math.round(maxPrice)))}
             </text>
             <text x={WIDTH - 4} y={height - 8} textAnchor="end">
               Bulan {last.tick} (Terkini)

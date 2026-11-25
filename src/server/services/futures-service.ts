@@ -55,7 +55,7 @@ async function findGameForUpdate(tx: Tx, userId: string) {
     where: { userId, status: "ACTIVE" },
     orderBy: { createdAt: "asc" },
   });
-  if (!game) throw new FuturesError("NO_GAME", "Create a character first.");
+  if (!game) throw new FuturesError("NO_GAME", "Buat karakter terlebih dahulu.");
   await tx.$queryRaw`SELECT id FROM "games" WHERE id = ${game.id} FOR UPDATE`;
   return game;
 }
@@ -80,23 +80,23 @@ export async function openFutures(
   input: OpenFuturesInput,
 ): Promise<{ positionId: string; replayed: boolean }> {
   if (!Number.isInteger(input.quantity) || input.quantity <= 0 || input.quantity > 100_000) {
-    throw new FuturesError("BAD_QUANTITY", "Quantity must be a positive whole number.");
+    throw new FuturesError("BAD_QUANTITY", "Jumlah kontrak harus bilangan bulat positif.");
   }
   if (
     !Number.isInteger(input.leverage) ||
     input.leverage < MIN_LEVERAGE ||
     input.leverage > MAX_LEVERAGE
   ) {
-    throw new FuturesError("BAD_LEVERAGE", `Leverage must be ${MIN_LEVERAGE}–${MAX_LEVERAGE}.`);
+    throw new FuturesError("BAD_LEVERAGE", `Leverage harus ${MIN_LEVERAGE}–${MAX_LEVERAGE}x.`);
   }
   if (input.side !== "LONG" && input.side !== "SHORT") {
-    throw new FuturesError("BAD_QUANTITY", "Pick LONG or SHORT.");
+    throw new FuturesError("BAD_QUANTITY", "Pilih arah LONG atau SHORT.");
   }
 
   return prisma.$transaction(async (tx) => {
     const game = await findGameForUpdate(tx, userId);
     if (game.status !== "ACTIVE") {
-      throw new FuturesError("GAME_OVER", "This life has already ended.");
+      throw new FuturesError("GAME_OVER", "Permainan ini sudah berakhir.");
     }
 
     const existing = await tx.futuresPosition.findUnique({
@@ -110,7 +110,7 @@ export async function openFutures(
     if (existing) return { positionId: existing.id, replayed: true };
 
     const asset = await tx.asset.findUnique({ where: { symbol: input.symbol } });
-    if (!asset) throw new FuturesError("UNKNOWN_ASSET", "Unknown asset symbol.");
+    if (!asset) throw new FuturesError("UNKNOWN_ASSET", "Simbol aset tidak dikenal.");
 
     const price = await markPrice(tx, game.id, asset.id);
     const notional = notionalMinor(price, input.quantity);
@@ -122,7 +122,7 @@ export async function openFutures(
     if (portfolio.cashMinor < required) {
       throw new FuturesError(
         "INSUFFICIENT_MARGIN",
-        "Not enough cash for this position's margin and fee.",
+        "Saldo tidak cukup untuk margin dan biaya posisi ini.",
       );
     }
 
@@ -190,7 +190,7 @@ export async function closeFutures(
       where: { id: positionId, gameId: game.id, status: "OPEN" },
       include: { asset: true },
     });
-    if (!position) throw new FuturesError("NOT_OPEN", "This position is not open.");
+    if (!position) throw new FuturesError("NOT_OPEN", "Posisi ini tidak sedang terbuka.");
 
     const mark = await markPrice(tx, game.id, position.assetId);
     const pnl = futuresPnlMinor(

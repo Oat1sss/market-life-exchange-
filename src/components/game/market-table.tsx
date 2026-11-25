@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { formatMinor } from "@/domain/money";
+import { currency } from "@/domain/money";
 
 export interface MarketRow {
   symbol: string;
@@ -24,7 +24,7 @@ const SECTOR_LABELS: Record<string, string> = {
   CRYPTO: "Kripto",
 };
 
-const brl = (minor: bigint) => formatMinor(minor);
+const brl = (minor: bigint) => currency(minor);
 
 function changePct(row: MarketRow): number {
   if (row.prevPriceMinor === 0n) return 0;

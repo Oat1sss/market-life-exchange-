@@ -7,7 +7,7 @@ import { prisma } from "@/server/db";
 import { currency } from "@/domain/money";
 import { analyzePrices } from "@/domain/market/analysis";
 import { SpotOrderForm } from "@/components/game/spot-order-form";
-import { ExchangeCandles } from "@/components/game/exchange-candles";
+import { RealtimeCandleChart } from "@/components/game/realtime-candle-chart";
 import { TokocryptoOrderBook } from "@/components/game/tokocrypto-orderbook";
 import { TokocryptoConsole } from "@/components/game/tokocrypto-console";
 import {
@@ -130,7 +130,7 @@ export default async function MarketDetailPage({
         eyebrow={`${asset.kind === "CRYPTO" ? "Kripto" : "Saham"} · ${
           SECTOR_LABELS[asset.sector] ?? asset.sector
         }`}
-        title={`${asset.symbol}/CR`}
+        title={`${asset.symbol}/IDR`}
         description={asset.name}
         back={
           <Link
@@ -242,7 +242,12 @@ export default async function MarketDetailPage({
 
       <div className="grid gap-4 xl:grid-cols-12">
         <div className="space-y-4 xl:col-span-8">
-          <ExchangeCandles points={points} symbol={asset.symbol} />
+          <RealtimeCandleChart
+            points={points}
+            symbol={asset.symbol}
+            name={asset.name}
+            kind="STOCK"
+          />
 
           <Panel>
             <PanelHeader

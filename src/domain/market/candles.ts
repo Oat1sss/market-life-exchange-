@@ -73,7 +73,10 @@ export function buildCandles(
     const rand = seededRandom(
       profile.seed ^ Math.imul(last.tick + 1, 0x9e3779b1),
     );
-    const span = Math.max(Math.abs(close - open), close * profile.volatility);
+    const body = Math.abs(close - open);
+    // Wicks scale with the candle's historical range, not the live tick size,
+    // so monthly crypto candles get realistic shadows instead of pin hairs.
+    const span = Math.max(body, close * profile.historyVolatility * 0.45);
     const high =
       Math.max(sampledHigh, open, close) +
       span * profile.wick * (0.1 + rand() * 0.45);
@@ -81,7 +84,9 @@ export function buildCandles(
       0.01,
       Math.min(sampledLow, open, close) - span * profile.wick * (0.1 + rand() * 0.45),
     );
-    const volume = profile.volume * (700 + rand() * 1600);
+    const moveRatio = body / Math.max(close * profile.historyVolatility, 1e-9);
+    const volume =
+      profile.volume * (500 + Math.min(moveRatio, 4) * 320 + rand() * 900);
 
     candles.push({
       tick: last.tick > first.tick ? last.tick : first.tick,
@@ -122,12 +127,16 @@ export function applyLiveSample(
     return next;
   }
 
+  const moveRatio =
+    last.close > 0 ? Math.abs(price - last.close) / last.close : 0;
+  const surge = 1 + Math.min(5, moveRatio / Math.max(profile.volatility, 1e-6));
+
   next[next.length - 1] = {
     ...last,
     close: price,
     high: Math.max(last.high, price),
     low: Math.min(last.low, price),
-    volume: last.volume + profile.volume * (90 + rand() * 130),
+    volume: last.volume + profile.volume * (90 + rand() * 130) * surge,
     samples: (last.samples ?? 0) + 1,
   };
   return next;

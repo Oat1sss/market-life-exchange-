@@ -47,7 +47,7 @@ export default function FuturesForm({
           >
             {symbols.map((option) => (
               <option key={option} value={option}>
-                {option}/CR
+                {option}/IDR
               </option>
             ))}
           </select>
