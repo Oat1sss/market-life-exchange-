@@ -40,9 +40,9 @@ export default async function GameLayout({
   });
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-50 border-b border-line bg-[#0b0e11]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0b0e11]/85">
-        <div className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center gap-x-2.5 gap-y-1 px-4 py-2.5 sm:gap-x-3">
+    <div className="flex min-h-dvh flex-col bg-[#0b0e11] text-[#eaecef]">
+      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#0b0e11]/90 backdrop-blur-md supports-[backdrop-filter]:bg-[#0b0e11]/80">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5 sm:px-6">
           <Link href="/play" className="sm:hidden" aria-label="MarketLife Exchange">
             <BrandMark className="h-8 w-8" />
           </Link>
@@ -61,8 +61,8 @@ export default async function GameLayout({
                 >
                   {traderRank(game.portfolio.cashMinor, game.tick).label}
                 </span>
-                <div className="rounded-lg border border-line bg-surface px-2.5 py-1 text-right sm:px-3 sm:py-1.5">
-                  <div className="hidden text-[9px] font-bold uppercase tracking-wider text-muted sm:block">
+                <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-right sm:px-3.5 sm:py-1.5">
+                  <div className="hidden text-[9px] font-bold uppercase tracking-widest text-[#848e9c] sm:block">
                     Saldo
                   </div>
                   <div className="text-[11px] font-black tabular-nums text-white sm:text-xs">
@@ -95,7 +95,7 @@ export default async function GameLayout({
         {game ? <MarketTicker gameId={game.id} tick={game.tick} /> : null}
       </header>
 
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-5 sm:py-6">
+      <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 sm:py-7">
         {children}
       </main>
 
