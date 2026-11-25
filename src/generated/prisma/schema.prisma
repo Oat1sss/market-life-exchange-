@@ -182,6 +182,8 @@ model Game {
   futuresPositions   FuturesPosition[]
   bondHoldings       BondHolding[]
   bondTrades         BondTrade[]
+  forexHoldings      ForexHolding[]
+  forexTrades        ForexTrade[]
   directives         CompanyDirective[]
 
   @@index([userId, status])
@@ -370,6 +372,46 @@ model BondTrade {
   @@unique([gameId, idempotencyKey])
   @@index([gameId, createdAt(sort: Desc)])
   @@map("bond_trades")
+}
+
+/// Foreign-currency balance bought with the same cash account as stocks and
+/// crypto. `units` is the whole amount of the foreign currency and
+/// `averageRateMinor` is the rupiah cost per unit in minor units.
+model ForexHolding {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId           String   @map("game_id") @db.Uuid
+  currency         String   @db.VarChar(3)
+  units            BigInt   @db.BigInt
+  averageRateMinor BigInt   @map("average_rate_minor") @db.BigInt
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, currency])
+  @@map("forex_holdings")
+}
+
+/// Every forex fill, used for history and idempotent form retries.
+model ForexTrade {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId         String    @map("game_id") @db.Uuid
+  pair           String    @db.VarChar(9)
+  currency       String    @db.VarChar(3)
+  side           OrderSide
+  units          BigInt    @db.BigInt
+  rateMinor      BigInt    @map("rate_minor") @db.BigInt
+  grossMinor     BigInt    @map("gross_minor") @db.BigInt
+  feeMinor       BigInt    @map("fee_minor") @db.BigInt
+  netMinor       BigInt    @map("net_minor") @db.BigInt
+  tick           Int
+  idempotencyKey String    @map("idempotency_key") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, idempotencyKey])
+  @@index([gameId, createdAt(sort: Desc)])
+  @@map("forex_trades")
 }
 
 /// One resolved board decision. `payout_minor` is the company cash distribution

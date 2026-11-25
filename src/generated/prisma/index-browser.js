@@ -257,6 +257,31 @@ exports.Prisma.BondTradeScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ForexHoldingScalarFieldEnum = {
+  id: 'id',
+  gameId: 'gameId',
+  currency: 'currency',
+  units: 'units',
+  averageRateMinor: 'averageRateMinor',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ForexTradeScalarFieldEnum = {
+  id: 'id',
+  gameId: 'gameId',
+  pair: 'pair',
+  currency: 'currency',
+  side: 'side',
+  units: 'units',
+  rateMinor: 'rateMinor',
+  grossMinor: 'grossMinor',
+  feeMinor: 'feeMinor',
+  netMinor: 'netMinor',
+  tick: 'tick',
+  idempotencyKey: 'idempotencyKey',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.CompanyDirectiveScalarFieldEnum = {
   id: 'id',
   gameId: 'gameId',
@@ -530,6 +555,8 @@ exports.Prisma.ModelName = {
   FuturesPosition: 'FuturesPosition',
   BondHolding: 'BondHolding',
   BondTrade: 'BondTrade',
+  ForexHolding: 'ForexHolding',
+  ForexTrade: 'ForexTrade',
   CompanyDirective: 'CompanyDirective',
   LedgerEntry: 'LedgerEntry',
   Career: 'Career',

@@ -3,12 +3,16 @@ import { redirect } from "next/navigation";
 import { maybeUserId } from "@/server/session";
 import { prisma } from "@/server/db";
 import {
+  FOREX_PAIRS,
   forexCrossRates,
   forexQuotes,
   formatForexRate,
   type ForexQuote,
 } from "@/domain/forex";
+import { forexSnapshot } from "@/server/services/forex-service";
+import { currency } from "@/domain/money";
 import { ForexConverter } from "@/components/game/forex-converter";
+import { ForexTradeForm } from "@/components/game/forex-trade-form";
 import { Sparkline } from "@/components/game/price-chart";
 import {
   PageHeader,
@@ -34,8 +38,26 @@ export default async function ForexPage() {
   });
   if (!game) redirect("/play/new");
 
-  const quotes = forexQuotes(game.seed, game.tick);
+  const [quotes, forex] = await Promise.all([
+    Promise.resolve(forexQuotes(game.seed, game.tick)),
+    forexSnapshot(userId),
+  ]);
   const rates = forexCrossRates(quotes);
+  const tradeMarkets = quotes.map((quote) => ({
+    symbol: quote.symbol,
+    base: quote.base,
+    note: quote.note,
+    baseRateIdr: rates[quote.base as keyof typeof rates] ?? quote.rate,
+    spreadBp:
+      FOREX_PAIRS.find((candidate) => candidate.symbol === quote.symbol)?.spreadBp ?? 8,
+  }));
+  const heldByCurrency = Object.fromEntries(
+    (forex?.holdings ?? []).map((holding) => [
+      holding.currency,
+      { units: holding.units, averageRateMinor: holding.averageRateMinor },
+    ]),
+  );
+  const cashMinor = forex?.cashMinor ?? 0n;
   const bySymbol = (symbol: string) =>
     quotes.find((quote) => quote.symbol === symbol) ?? quotes[0]!;
 
@@ -51,7 +73,7 @@ export default async function ForexPage() {
       <PageHeader
         eyebrow="Valuta asing · kurs referensi"
         title="Pasar forex"
-        description="Pantau nilai tukar rupiah terhadap mata uang utama, hitung konversi, dan bandingkan spread. Kuotasi bergerak setiap kali pasar dimajukan."
+        description="Pantau nilai tukar rupiah, beli atau jual valas dengan kas yang sama seperti saham dan kripto, lalu hitung konversi. Kuotasi bergerak setiap kali pasar dimajukan."
         actions={
           <Link
             href="/play/arcade"
@@ -153,6 +175,68 @@ export default async function ForexPage() {
 
           <Panel className="mt-4">
             <PanelHeader
+              title="Posisi valas"
+              subtitle={
+                forex && forex.holdings.length > 0
+                  ? `${forex.holdings.length} mata uang · nilai ${currency(forex.holdingsValueMinor)}`
+                  : "Belum ada saldo valas"
+              }
+            />
+            {forex && forex.holdings.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-line text-[10px] uppercase tracking-wider text-muted">
+                      <th className="px-4 py-2.5">Mata uang</th>
+                      <th className="px-3 py-2.5 text-right">Unit</th>
+                      <th className="px-3 py-2.5 text-right">Kurs rata-rata</th>
+                      <th className="px-3 py-2.5 text-right">Kurs kini</th>
+                      <th className="px-3 py-2.5 text-right">Nilai</th>
+                      <th className="px-3 py-2.5 text-right">P&L</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line/70">
+                    {forex.holdings.map((holding) => (
+                      <tr key={holding.currency}>
+                        <td className="px-4 py-3">
+                          <div className="font-bold text-white">{holding.currency}</div>
+                          <div className="text-[10px] text-muted">{holding.pair}</div>
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums text-[#c7ccd4]">
+                          {holding.units.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums text-[#c7ccd4]">
+                          Rp {formatForexRate(Number(holding.averageRateMinor) / 100, 2)}
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums text-white">
+                          Rp {formatForexRate(Number(holding.currentRateMinor) / 100, 2)}
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums text-white">
+                          {currency(holding.valueMinor)}
+                        </td>
+                        <td
+                          className={`px-3 py-3 text-right font-bold tabular-nums ${
+                            holding.unrealizedMinor >= 0n ? "text-up" : "text-down"
+                          }`}
+                        >
+                          {holding.unrealizedMinor >= 0n ? "+" : ""}
+                          {currency(holding.unrealizedMinor)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="px-4 py-4 text-[11px] text-muted">
+                Beli valas lewat panel di samping; saldo akan muncul di sini dan
+                di portofolio.
+              </p>
+            )}
+          </Panel>
+
+          <Panel className="mt-4">
+            <PanelHeader
               title="Cara membaca kuotasi"
               subtitle="Dasar sebelum menukar valas"
             />
@@ -186,6 +270,18 @@ export default async function ForexPage() {
         <div className="space-y-4 xl:col-span-4">
           <Panel>
             <PanelHeader
+              title="Beli / jual valas"
+              subtitle="Eksekusi kurs algoritmik"
+            />
+            <ForexTradeForm
+              markets={tradeMarkets}
+              cashMinor={cashMinor}
+              holdings={heldByCurrency}
+            />
+          </Panel>
+
+          <Panel>
+            <PanelHeader
               title="Konversi mata uang"
               subtitle="Memakai kurs tengah terbaru"
             />
@@ -211,8 +307,9 @@ export default async function ForexPage() {
           </Panel>
 
           <p className="px-1 text-[10px] leading-5 text-muted">
-            Kurs adalah simulasi deterministik dari seed permainan. Tidak ada
-            transfer valas nyata dan konversi tidak memotong saldo demo.
+            Kurs adalah simulasi deterministik dari seed permainan. Pembelian
+            valas memotong kas demo dan menambah saldo mata uang di portofolio;
+            spread serta dampak ukuran order mengikuti market maker algoritmik.
           </p>
         </div>
       </div>

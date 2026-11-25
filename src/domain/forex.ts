@@ -322,6 +322,29 @@ export function forexQuotes(seed: string | number | bigint, tick: number): Forex
   });
 }
 
+/**
+ * Rupiah rate a forex order receives, including the pair's half-spread and an
+ * impact penalty for size. Shared by the execution service and the trade form
+ * so the preview matches the fill.
+ */
+export function forexExecutionRate(
+  pairSymbol: string,
+  cross: Record<ForexCurrency, number>,
+  side: "BUY" | "SELL",
+  units: number,
+): number {
+  const pair = FOREX_PAIRS.find((candidate) => candidate.symbol === pairSymbol);
+  if (!pair) return 0;
+  const mid = cross[pair.base as ForexCurrency] ?? 0;
+  const halfSpread = pair.spreadBp / 10_000;
+  const impactBp =
+    units >= 100_000 ? 50 : units >= 10_000 ? 25 : units >= 1_000 ? 10 : 0;
+  const impact = impactBp / 10_000;
+  return side === "BUY"
+    ? mid * (1 + halfSpread) * (1 + impact)
+    : mid * (1 - halfSpread) * (1 - impact);
+}
+
 export function formatForexRate(value: number, decimals: number): string {
   return value.toLocaleString("id-ID", {
     minimumFractionDigits: decimals,

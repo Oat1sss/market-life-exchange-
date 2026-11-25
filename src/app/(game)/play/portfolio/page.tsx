@@ -8,6 +8,7 @@ import {
 } from "@/server/services/trade-service";
 import { gameSnapshot } from "@/server/services/game-service";
 import { futuresSnapshot } from "@/server/services/futures-service";
+import { forexSnapshot } from "@/server/services/forex-service";
 import { PositionsTable } from "@/components/game/positions-table";
 import { currency } from "@/domain/money";
 import { SpotOrderForm } from "@/components/game/spot-order-form";
@@ -40,10 +41,17 @@ export default async function PortfolioPage() {
   const game = await gameSnapshot(userId);
   if (!game) redirect("/play/new");
 
-  const [portfolio, futures] = await Promise.all([
+  const [portfolio, futures, forex] = await Promise.all([
     portfolioSnapshot(userId),
     futuresSnapshot(userId),
+    forexSnapshot(userId),
   ]);
+  const forexHoldings = forex?.holdings ?? [];
+  const forexValue = forex?.holdingsValueMinor ?? 0n;
+  const forexUnrealized = forexHoldings.reduce(
+    (sum, holding) => sum + holding.unrealizedMinor,
+    0n,
+  );
   const futuresPositions = futures?.positions ?? [];
   const futuresEquity = futures?.equityMinor ?? 0n;
   const futuresUnrealized = futures?.unrealizedMinor ?? 0n;
@@ -75,12 +83,14 @@ export default async function PortfolioPage() {
 
   const cashMinor = portfolio?.cashMinor ?? game.cashMinor;
   const holdingsValue = portfolio?.holdingsValueMinor ?? 0n;
-  const netWorth = cashMinor + holdingsValue + futuresEquity;
+  const assetValue = holdingsValue + forexValue;
+  const netWorth = cashMinor + assetValue + futuresEquity;
   const unrealized =
     holdings.reduce((sum, holding) => sum + holding.unrealizedMinor, 0n) +
-    futuresUnrealized;
+    futuresUnrealized +
+    forexUnrealized;
   const allocation =
-    netWorth > 0n ? Number((holdingsValue * 10_000n) / netWorth) / 100 : 0;
+    netWorth > 0n ? Number((assetValue * 10_000n) / netWorth) / 100 : 0;
 
   return (
     <div className="space-y-5">
@@ -113,7 +123,7 @@ export default async function PortfolioPage() {
           label="Total ekuitas"
           value={currency(netWorth)}
           tone="brand"
-          hint={`${holdings.length} aset · ${futuresPositions.length} posisi futures · ${pendingOrders.length} order aktif`}
+          hint={`${holdings.length} aset · ${forexHoldings.length} valas · ${futuresPositions.length} futures · ${pendingOrders.length} order aktif`}
           icon={<IconPie className="h-4 w-4" />}
         />
         <StatCard
@@ -124,7 +134,7 @@ export default async function PortfolioPage() {
         />
         <StatCard
           label="Nilai aset"
-          value={currency(holdingsValue)}
+          value={currency(assetValue)}
           hint={`${allocation.toFixed(2)}% dari ekuitas`}
           icon={<IconCandles className="h-4 w-4" />}
         />
@@ -161,7 +171,7 @@ export default async function PortfolioPage() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-muted">
             <span className="inline-flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-brand" />
-              Aset {currency(holdingsValue)}
+              Aset {currency(assetValue)}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-gold/80" />
@@ -206,6 +216,81 @@ export default async function PortfolioPage() {
             />
             <div className="p-4">
               <PositionsTable positions={futuresPositions} />
+            </div>
+          </Panel>
+
+          <Panel>
+            <PanelHeader
+              title="Posisi valas"
+              subtitle={`${forexHoldings.length} mata uang · nilai ${currency(forexValue)} · unrealized ${forexUnrealized > 0n ? "+" : ""}${currency(forexUnrealized)}`}
+              action={
+                <Link
+                  href="/play/forex"
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-gold transition hover:text-gold/80"
+                >
+                  Tukar valas
+                  <IconArrowRight className="h-3 w-3" />
+                </Link>
+              }
+            />
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] text-left text-xs">
+                <thead>
+                  <tr className="border-b border-line text-[10px] uppercase tracking-wider text-muted">
+                    <th className="px-4 py-2.5 font-semibold">Mata uang</th>
+                    <th className="px-3 py-2.5 text-right font-semibold">Unit</th>
+                    <th className="px-3 py-2.5 text-right font-semibold">Kurs rata-rata</th>
+                    <th className="px-3 py-2.5 text-right font-semibold">Kurs kini</th>
+                    <th className="px-3 py-2.5 text-right font-semibold">Nilai</th>
+                    <th className="px-4 py-2.5 text-right font-semibold">P&amp;L</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line/60">
+                  {forexHoldings.map((holding) => {
+                    const up = holding.unrealizedMinor >= 0n;
+                    return (
+                      <tr key={holding.currency} className="transition hover:bg-surface-2/40">
+                        <td className="px-4 py-3">
+                          <span className="font-bold text-white">{holding.currency}</span>
+                          <span className="ml-1.5 text-[10px] text-[#5e6673]">
+                            {holding.pair}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums text-[#c7ccd4]">
+                          {holding.units.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums text-muted">
+                          {currency(holding.averageRateMinor)}
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums text-white">
+                          {currency(holding.currentRateMinor)}
+                        </td>
+                        <td className="px-3 py-3 text-right font-semibold tabular-nums text-white">
+                          {currency(holding.valueMinor)}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-right font-bold tabular-nums ${
+                            up ? "text-up" : "text-down"
+                          }`}
+                        >
+                          {up ? "+" : ""}
+                          {currency(holding.unrealizedMinor)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {forexHoldings.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-6">
+                        <EmptyState>
+                          Belum ada saldo valas. Beli dolar atau mata uang lain
+                          di halaman forex.
+                        </EmptyState>
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
             </div>
           </Panel>
 

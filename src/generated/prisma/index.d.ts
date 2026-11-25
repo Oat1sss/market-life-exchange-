@@ -73,6 +73,18 @@ export type BondHolding = $Result.DefaultSelection<Prisma.$BondHoldingPayload>
  */
 export type BondTrade = $Result.DefaultSelection<Prisma.$BondTradePayload>
 /**
+ * Model ForexHolding
+ * Foreign-currency balance bought with the same cash account as stocks and
+ * crypto. `units` is the whole amount of the foreign currency and
+ * `averageRateMinor` is the rupiah cost per unit in minor units.
+ */
+export type ForexHolding = $Result.DefaultSelection<Prisma.$ForexHoldingPayload>
+/**
+ * Model ForexTrade
+ * Every forex fill, used for history and idempotent form retries.
+ */
+export type ForexTrade = $Result.DefaultSelection<Prisma.$ForexTradePayload>
+/**
  * Model CompanyDirective
  * One resolved board decision. `payout_minor` is the company cash distribution
  * recorded when the directive was issued so replay subtracts a stable amount;
@@ -622,6 +634,26 @@ export class PrismaClient<
   get bondTrade(): Prisma.BondTradeDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.forexHolding`: Exposes CRUD operations for the **ForexHolding** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ForexHoldings
+    * const forexHoldings = await prisma.forexHolding.findMany()
+    * ```
+    */
+  get forexHolding(): Prisma.ForexHoldingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.forexTrade`: Exposes CRUD operations for the **ForexTrade** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ForexTrades
+    * const forexTrades = await prisma.forexTrade.findMany()
+    * ```
+    */
+  get forexTrade(): Prisma.ForexTradeDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.companyDirective`: Exposes CRUD operations for the **CompanyDirective** model.
     * Example usage:
     * ```ts
@@ -1168,6 +1200,8 @@ export namespace Prisma {
     FuturesPosition: 'FuturesPosition',
     BondHolding: 'BondHolding',
     BondTrade: 'BondTrade',
+    ForexHolding: 'ForexHolding',
+    ForexTrade: 'ForexTrade',
     CompanyDirective: 'CompanyDirective',
     LedgerEntry: 'LedgerEntry',
     Career: 'Career',
@@ -1192,7 +1226,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "game" | "character" | "portfolio" | "asset" | "pricePoint" | "holding" | "order" | "futuresPosition" | "bondHolding" | "bondTrade" | "companyDirective" | "ledgerEntry" | "career" | "education" | "expenseRule" | "lifeEvent" | "marketEvent" | "achievement" | "playerAchievement"
+      modelProps: "user" | "game" | "character" | "portfolio" | "asset" | "pricePoint" | "holding" | "order" | "futuresPosition" | "bondHolding" | "bondTrade" | "forexHolding" | "forexTrade" | "companyDirective" | "ledgerEntry" | "career" | "education" | "expenseRule" | "lifeEvent" | "marketEvent" | "achievement" | "playerAchievement"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2010,6 +2044,154 @@ export namespace Prisma {
           }
         }
       }
+      ForexHolding: {
+        payload: Prisma.$ForexHoldingPayload<ExtArgs>
+        fields: Prisma.ForexHoldingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ForexHoldingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ForexHoldingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>
+          }
+          findFirst: {
+            args: Prisma.ForexHoldingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ForexHoldingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>
+          }
+          findMany: {
+            args: Prisma.ForexHoldingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>[]
+          }
+          create: {
+            args: Prisma.ForexHoldingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>
+          }
+          createMany: {
+            args: Prisma.ForexHoldingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ForexHoldingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>[]
+          }
+          delete: {
+            args: Prisma.ForexHoldingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>
+          }
+          update: {
+            args: Prisma.ForexHoldingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>
+          }
+          deleteMany: {
+            args: Prisma.ForexHoldingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ForexHoldingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ForexHoldingUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>[]
+          }
+          upsert: {
+            args: Prisma.ForexHoldingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexHoldingPayload>
+          }
+          aggregate: {
+            args: Prisma.ForexHoldingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateForexHolding>
+          }
+          groupBy: {
+            args: Prisma.ForexHoldingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ForexHoldingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ForexHoldingCountArgs<ExtArgs>
+            result: $Utils.Optional<ForexHoldingCountAggregateOutputType> | number
+          }
+        }
+      }
+      ForexTrade: {
+        payload: Prisma.$ForexTradePayload<ExtArgs>
+        fields: Prisma.ForexTradeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ForexTradeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ForexTradeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>
+          }
+          findFirst: {
+            args: Prisma.ForexTradeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ForexTradeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>
+          }
+          findMany: {
+            args: Prisma.ForexTradeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>[]
+          }
+          create: {
+            args: Prisma.ForexTradeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>
+          }
+          createMany: {
+            args: Prisma.ForexTradeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ForexTradeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>[]
+          }
+          delete: {
+            args: Prisma.ForexTradeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>
+          }
+          update: {
+            args: Prisma.ForexTradeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>
+          }
+          deleteMany: {
+            args: Prisma.ForexTradeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ForexTradeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ForexTradeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>[]
+          }
+          upsert: {
+            args: Prisma.ForexTradeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForexTradePayload>
+          }
+          aggregate: {
+            args: Prisma.ForexTradeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateForexTrade>
+          }
+          groupBy: {
+            args: Prisma.ForexTradeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ForexTradeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ForexTradeCountArgs<ExtArgs>
+            result: $Utils.Optional<ForexTradeCountAggregateOutputType> | number
+          }
+        }
+      }
       CompanyDirective: {
         payload: Prisma.$CompanyDirectivePayload<ExtArgs>
         fields: Prisma.CompanyDirectiveFieldRefs
@@ -2810,6 +2992,8 @@ export namespace Prisma {
     futuresPosition?: FuturesPositionOmit
     bondHolding?: BondHoldingOmit
     bondTrade?: BondTradeOmit
+    forexHolding?: ForexHoldingOmit
+    forexTrade?: ForexTradeOmit
     companyDirective?: CompanyDirectiveOmit
     ledgerEntry?: LedgerEntryOmit
     career?: CareerOmit
@@ -2940,6 +3124,8 @@ export namespace Prisma {
     futuresPositions: number
     bondHoldings: number
     bondTrades: number
+    forexHoldings: number
+    forexTrades: number
     directives: number
   }
 
@@ -2954,6 +3140,8 @@ export namespace Prisma {
     futuresPositions?: boolean | GameCountOutputTypeCountFuturesPositionsArgs
     bondHoldings?: boolean | GameCountOutputTypeCountBondHoldingsArgs
     bondTrades?: boolean | GameCountOutputTypeCountBondTradesArgs
+    forexHoldings?: boolean | GameCountOutputTypeCountForexHoldingsArgs
+    forexTrades?: boolean | GameCountOutputTypeCountForexTradesArgs
     directives?: boolean | GameCountOutputTypeCountDirectivesArgs
   }
 
@@ -3036,6 +3224,20 @@ export namespace Prisma {
    */
   export type GameCountOutputTypeCountBondTradesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BondTradeWhereInput
+  }
+
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeCountForexHoldingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ForexHoldingWhereInput
+  }
+
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeCountForexTradesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ForexTradeWhereInput
   }
 
   /**
@@ -4555,6 +4757,8 @@ export namespace Prisma {
     futuresPositions?: boolean | Game$futuresPositionsArgs<ExtArgs>
     bondHoldings?: boolean | Game$bondHoldingsArgs<ExtArgs>
     bondTrades?: boolean | Game$bondTradesArgs<ExtArgs>
+    forexHoldings?: boolean | Game$forexHoldingsArgs<ExtArgs>
+    forexTrades?: boolean | Game$forexTradesArgs<ExtArgs>
     directives?: boolean | Game$directivesArgs<ExtArgs>
     _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["game"]>
@@ -4609,6 +4813,8 @@ export namespace Prisma {
     futuresPositions?: boolean | Game$futuresPositionsArgs<ExtArgs>
     bondHoldings?: boolean | Game$bondHoldingsArgs<ExtArgs>
     bondTrades?: boolean | Game$bondTradesArgs<ExtArgs>
+    forexHoldings?: boolean | Game$forexHoldingsArgs<ExtArgs>
+    forexTrades?: boolean | Game$forexTradesArgs<ExtArgs>
     directives?: boolean | Game$directivesArgs<ExtArgs>
     _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -4635,6 +4841,8 @@ export namespace Prisma {
       futuresPositions: Prisma.$FuturesPositionPayload<ExtArgs>[]
       bondHoldings: Prisma.$BondHoldingPayload<ExtArgs>[]
       bondTrades: Prisma.$BondTradePayload<ExtArgs>[]
+      forexHoldings: Prisma.$ForexHoldingPayload<ExtArgs>[]
+      forexTrades: Prisma.$ForexTradePayload<ExtArgs>[]
       directives: Prisma.$CompanyDirectivePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -5053,6 +5261,8 @@ export namespace Prisma {
     futuresPositions<T extends Game$futuresPositionsArgs<ExtArgs> = {}>(args?: Subset<T, Game$futuresPositionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FuturesPositionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     bondHoldings<T extends Game$bondHoldingsArgs<ExtArgs> = {}>(args?: Subset<T, Game$bondHoldingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondHoldingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     bondTrades<T extends Game$bondTradesArgs<ExtArgs> = {}>(args?: Subset<T, Game$bondTradesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BondTradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    forexHoldings<T extends Game$forexHoldingsArgs<ExtArgs> = {}>(args?: Subset<T, Game$forexHoldingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    forexTrades<T extends Game$forexTradesArgs<ExtArgs> = {}>(args?: Subset<T, Game$forexTradesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     directives<T extends Game$directivesArgs<ExtArgs> = {}>(args?: Subset<T, Game$directivesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyDirectivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -5767,6 +5977,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BondTradeScalarFieldEnum | BondTradeScalarFieldEnum[]
+  }
+
+  /**
+   * Game.forexHoldings
+   */
+  export type Game$forexHoldingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    where?: ForexHoldingWhereInput
+    orderBy?: ForexHoldingOrderByWithRelationInput | ForexHoldingOrderByWithRelationInput[]
+    cursor?: ForexHoldingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ForexHoldingScalarFieldEnum | ForexHoldingScalarFieldEnum[]
+  }
+
+  /**
+   * Game.forexTrades
+   */
+  export type Game$forexTradesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    where?: ForexTradeWhereInput
+    orderBy?: ForexTradeOrderByWithRelationInput | ForexTradeOrderByWithRelationInput[]
+    cursor?: ForexTradeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ForexTradeScalarFieldEnum | ForexTradeScalarFieldEnum[]
   }
 
   /**
@@ -16667,6 +16925,2341 @@ export namespace Prisma {
 
 
   /**
+   * Model ForexHolding
+   */
+
+  export type AggregateForexHolding = {
+    _count: ForexHoldingCountAggregateOutputType | null
+    _avg: ForexHoldingAvgAggregateOutputType | null
+    _sum: ForexHoldingSumAggregateOutputType | null
+    _min: ForexHoldingMinAggregateOutputType | null
+    _max: ForexHoldingMaxAggregateOutputType | null
+  }
+
+  export type ForexHoldingAvgAggregateOutputType = {
+    units: number | null
+    averageRateMinor: number | null
+  }
+
+  export type ForexHoldingSumAggregateOutputType = {
+    units: bigint | null
+    averageRateMinor: bigint | null
+  }
+
+  export type ForexHoldingMinAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    currency: string | null
+    units: bigint | null
+    averageRateMinor: bigint | null
+    updatedAt: Date | null
+  }
+
+  export type ForexHoldingMaxAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    currency: string | null
+    units: bigint | null
+    averageRateMinor: bigint | null
+    updatedAt: Date | null
+  }
+
+  export type ForexHoldingCountAggregateOutputType = {
+    id: number
+    gameId: number
+    currency: number
+    units: number
+    averageRateMinor: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ForexHoldingAvgAggregateInputType = {
+    units?: true
+    averageRateMinor?: true
+  }
+
+  export type ForexHoldingSumAggregateInputType = {
+    units?: true
+    averageRateMinor?: true
+  }
+
+  export type ForexHoldingMinAggregateInputType = {
+    id?: true
+    gameId?: true
+    currency?: true
+    units?: true
+    averageRateMinor?: true
+    updatedAt?: true
+  }
+
+  export type ForexHoldingMaxAggregateInputType = {
+    id?: true
+    gameId?: true
+    currency?: true
+    units?: true
+    averageRateMinor?: true
+    updatedAt?: true
+  }
+
+  export type ForexHoldingCountAggregateInputType = {
+    id?: true
+    gameId?: true
+    currency?: true
+    units?: true
+    averageRateMinor?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ForexHoldingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ForexHolding to aggregate.
+     */
+    where?: ForexHoldingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForexHoldings to fetch.
+     */
+    orderBy?: ForexHoldingOrderByWithRelationInput | ForexHoldingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ForexHoldingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForexHoldings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForexHoldings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ForexHoldings
+    **/
+    _count?: true | ForexHoldingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ForexHoldingAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ForexHoldingSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ForexHoldingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ForexHoldingMaxAggregateInputType
+  }
+
+  export type GetForexHoldingAggregateType<T extends ForexHoldingAggregateArgs> = {
+        [P in keyof T & keyof AggregateForexHolding]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateForexHolding[P]>
+      : GetScalarType<T[P], AggregateForexHolding[P]>
+  }
+
+
+
+
+  export type ForexHoldingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ForexHoldingWhereInput
+    orderBy?: ForexHoldingOrderByWithAggregationInput | ForexHoldingOrderByWithAggregationInput[]
+    by: ForexHoldingScalarFieldEnum[] | ForexHoldingScalarFieldEnum
+    having?: ForexHoldingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ForexHoldingCountAggregateInputType | true
+    _avg?: ForexHoldingAvgAggregateInputType
+    _sum?: ForexHoldingSumAggregateInputType
+    _min?: ForexHoldingMinAggregateInputType
+    _max?: ForexHoldingMaxAggregateInputType
+  }
+
+  export type ForexHoldingGroupByOutputType = {
+    id: string
+    gameId: string
+    currency: string
+    units: bigint
+    averageRateMinor: bigint
+    updatedAt: Date
+    _count: ForexHoldingCountAggregateOutputType | null
+    _avg: ForexHoldingAvgAggregateOutputType | null
+    _sum: ForexHoldingSumAggregateOutputType | null
+    _min: ForexHoldingMinAggregateOutputType | null
+    _max: ForexHoldingMaxAggregateOutputType | null
+  }
+
+  type GetForexHoldingGroupByPayload<T extends ForexHoldingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ForexHoldingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ForexHoldingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ForexHoldingGroupByOutputType[P]>
+            : GetScalarType<T[P], ForexHoldingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ForexHoldingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    currency?: boolean
+    units?: boolean
+    averageRateMinor?: boolean
+    updatedAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["forexHolding"]>
+
+  export type ForexHoldingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    currency?: boolean
+    units?: boolean
+    averageRateMinor?: boolean
+    updatedAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["forexHolding"]>
+
+  export type ForexHoldingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    currency?: boolean
+    units?: boolean
+    averageRateMinor?: boolean
+    updatedAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["forexHolding"]>
+
+  export type ForexHoldingSelectScalar = {
+    id?: boolean
+    gameId?: boolean
+    currency?: boolean
+    units?: boolean
+    averageRateMinor?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ForexHoldingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameId" | "currency" | "units" | "averageRateMinor" | "updatedAt", ExtArgs["result"]["forexHolding"]>
+  export type ForexHoldingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type ForexHoldingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type ForexHoldingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+
+  export type $ForexHoldingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ForexHolding"
+    objects: {
+      game: Prisma.$GamePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      gameId: string
+      currency: string
+      units: bigint
+      averageRateMinor: bigint
+      updatedAt: Date
+    }, ExtArgs["result"]["forexHolding"]>
+    composites: {}
+  }
+
+  type ForexHoldingGetPayload<S extends boolean | null | undefined | ForexHoldingDefaultArgs> = $Result.GetResult<Prisma.$ForexHoldingPayload, S>
+
+  type ForexHoldingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ForexHoldingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ForexHoldingCountAggregateInputType | true
+    }
+
+  export interface ForexHoldingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ForexHolding'], meta: { name: 'ForexHolding' } }
+    /**
+     * Find zero or one ForexHolding that matches the filter.
+     * @param {ForexHoldingFindUniqueArgs} args - Arguments to find a ForexHolding
+     * @example
+     * // Get one ForexHolding
+     * const forexHolding = await prisma.forexHolding.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ForexHoldingFindUniqueArgs>(args: SelectSubset<T, ForexHoldingFindUniqueArgs<ExtArgs>>): Prisma__ForexHoldingClient<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ForexHolding that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ForexHoldingFindUniqueOrThrowArgs} args - Arguments to find a ForexHolding
+     * @example
+     * // Get one ForexHolding
+     * const forexHolding = await prisma.forexHolding.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ForexHoldingFindUniqueOrThrowArgs>(args: SelectSubset<T, ForexHoldingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ForexHoldingClient<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ForexHolding that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexHoldingFindFirstArgs} args - Arguments to find a ForexHolding
+     * @example
+     * // Get one ForexHolding
+     * const forexHolding = await prisma.forexHolding.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ForexHoldingFindFirstArgs>(args?: SelectSubset<T, ForexHoldingFindFirstArgs<ExtArgs>>): Prisma__ForexHoldingClient<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ForexHolding that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexHoldingFindFirstOrThrowArgs} args - Arguments to find a ForexHolding
+     * @example
+     * // Get one ForexHolding
+     * const forexHolding = await prisma.forexHolding.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ForexHoldingFindFirstOrThrowArgs>(args?: SelectSubset<T, ForexHoldingFindFirstOrThrowArgs<ExtArgs>>): Prisma__ForexHoldingClient<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ForexHoldings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexHoldingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ForexHoldings
+     * const forexHoldings = await prisma.forexHolding.findMany()
+     * 
+     * // Get first 10 ForexHoldings
+     * const forexHoldings = await prisma.forexHolding.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const forexHoldingWithIdOnly = await prisma.forexHolding.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ForexHoldingFindManyArgs>(args?: SelectSubset<T, ForexHoldingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ForexHolding.
+     * @param {ForexHoldingCreateArgs} args - Arguments to create a ForexHolding.
+     * @example
+     * // Create one ForexHolding
+     * const ForexHolding = await prisma.forexHolding.create({
+     *   data: {
+     *     // ... data to create a ForexHolding
+     *   }
+     * })
+     * 
+     */
+    create<T extends ForexHoldingCreateArgs>(args: SelectSubset<T, ForexHoldingCreateArgs<ExtArgs>>): Prisma__ForexHoldingClient<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ForexHoldings.
+     * @param {ForexHoldingCreateManyArgs} args - Arguments to create many ForexHoldings.
+     * @example
+     * // Create many ForexHoldings
+     * const forexHolding = await prisma.forexHolding.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ForexHoldingCreateManyArgs>(args?: SelectSubset<T, ForexHoldingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ForexHoldings and returns the data saved in the database.
+     * @param {ForexHoldingCreateManyAndReturnArgs} args - Arguments to create many ForexHoldings.
+     * @example
+     * // Create many ForexHoldings
+     * const forexHolding = await prisma.forexHolding.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ForexHoldings and only return the `id`
+     * const forexHoldingWithIdOnly = await prisma.forexHolding.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ForexHoldingCreateManyAndReturnArgs>(args?: SelectSubset<T, ForexHoldingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ForexHolding.
+     * @param {ForexHoldingDeleteArgs} args - Arguments to delete one ForexHolding.
+     * @example
+     * // Delete one ForexHolding
+     * const ForexHolding = await prisma.forexHolding.delete({
+     *   where: {
+     *     // ... filter to delete one ForexHolding
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ForexHoldingDeleteArgs>(args: SelectSubset<T, ForexHoldingDeleteArgs<ExtArgs>>): Prisma__ForexHoldingClient<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ForexHolding.
+     * @param {ForexHoldingUpdateArgs} args - Arguments to update one ForexHolding.
+     * @example
+     * // Update one ForexHolding
+     * const forexHolding = await prisma.forexHolding.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ForexHoldingUpdateArgs>(args: SelectSubset<T, ForexHoldingUpdateArgs<ExtArgs>>): Prisma__ForexHoldingClient<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ForexHoldings.
+     * @param {ForexHoldingDeleteManyArgs} args - Arguments to filter ForexHoldings to delete.
+     * @example
+     * // Delete a few ForexHoldings
+     * const { count } = await prisma.forexHolding.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ForexHoldingDeleteManyArgs>(args?: SelectSubset<T, ForexHoldingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ForexHoldings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexHoldingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ForexHoldings
+     * const forexHolding = await prisma.forexHolding.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ForexHoldingUpdateManyArgs>(args: SelectSubset<T, ForexHoldingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ForexHoldings and returns the data updated in the database.
+     * @param {ForexHoldingUpdateManyAndReturnArgs} args - Arguments to update many ForexHoldings.
+     * @example
+     * // Update many ForexHoldings
+     * const forexHolding = await prisma.forexHolding.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ForexHoldings and only return the `id`
+     * const forexHoldingWithIdOnly = await prisma.forexHolding.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ForexHoldingUpdateManyAndReturnArgs>(args: SelectSubset<T, ForexHoldingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ForexHolding.
+     * @param {ForexHoldingUpsertArgs} args - Arguments to update or create a ForexHolding.
+     * @example
+     * // Update or create a ForexHolding
+     * const forexHolding = await prisma.forexHolding.upsert({
+     *   create: {
+     *     // ... data to create a ForexHolding
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ForexHolding we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ForexHoldingUpsertArgs>(args: SelectSubset<T, ForexHoldingUpsertArgs<ExtArgs>>): Prisma__ForexHoldingClient<$Result.GetResult<Prisma.$ForexHoldingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ForexHoldings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexHoldingCountArgs} args - Arguments to filter ForexHoldings to count.
+     * @example
+     * // Count the number of ForexHoldings
+     * const count = await prisma.forexHolding.count({
+     *   where: {
+     *     // ... the filter for the ForexHoldings we want to count
+     *   }
+     * })
+    **/
+    count<T extends ForexHoldingCountArgs>(
+      args?: Subset<T, ForexHoldingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ForexHoldingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ForexHolding.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexHoldingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ForexHoldingAggregateArgs>(args: Subset<T, ForexHoldingAggregateArgs>): Prisma.PrismaPromise<GetForexHoldingAggregateType<T>>
+
+    /**
+     * Group by ForexHolding.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexHoldingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ForexHoldingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ForexHoldingGroupByArgs['orderBy'] }
+        : { orderBy?: ForexHoldingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ForexHoldingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetForexHoldingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ForexHolding model
+   */
+  readonly fields: ForexHoldingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ForexHolding.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ForexHoldingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    game<T extends GameDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GameDefaultArgs<ExtArgs>>): Prisma__GameClient<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ForexHolding model
+   */
+  interface ForexHoldingFieldRefs {
+    readonly id: FieldRef<"ForexHolding", 'String'>
+    readonly gameId: FieldRef<"ForexHolding", 'String'>
+    readonly currency: FieldRef<"ForexHolding", 'String'>
+    readonly units: FieldRef<"ForexHolding", 'BigInt'>
+    readonly averageRateMinor: FieldRef<"ForexHolding", 'BigInt'>
+    readonly updatedAt: FieldRef<"ForexHolding", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ForexHolding findUnique
+   */
+  export type ForexHoldingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexHolding to fetch.
+     */
+    where: ForexHoldingWhereUniqueInput
+  }
+
+  /**
+   * ForexHolding findUniqueOrThrow
+   */
+  export type ForexHoldingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexHolding to fetch.
+     */
+    where: ForexHoldingWhereUniqueInput
+  }
+
+  /**
+   * ForexHolding findFirst
+   */
+  export type ForexHoldingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexHolding to fetch.
+     */
+    where?: ForexHoldingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForexHoldings to fetch.
+     */
+    orderBy?: ForexHoldingOrderByWithRelationInput | ForexHoldingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ForexHoldings.
+     */
+    cursor?: ForexHoldingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForexHoldings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForexHoldings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ForexHoldings.
+     */
+    distinct?: ForexHoldingScalarFieldEnum | ForexHoldingScalarFieldEnum[]
+  }
+
+  /**
+   * ForexHolding findFirstOrThrow
+   */
+  export type ForexHoldingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexHolding to fetch.
+     */
+    where?: ForexHoldingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForexHoldings to fetch.
+     */
+    orderBy?: ForexHoldingOrderByWithRelationInput | ForexHoldingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ForexHoldings.
+     */
+    cursor?: ForexHoldingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForexHoldings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForexHoldings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ForexHoldings.
+     */
+    distinct?: ForexHoldingScalarFieldEnum | ForexHoldingScalarFieldEnum[]
+  }
+
+  /**
+   * ForexHolding findMany
+   */
+  export type ForexHoldingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexHoldings to fetch.
+     */
+    where?: ForexHoldingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForexHoldings to fetch.
+     */
+    orderBy?: ForexHoldingOrderByWithRelationInput | ForexHoldingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ForexHoldings.
+     */
+    cursor?: ForexHoldingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForexHoldings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForexHoldings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ForexHoldings.
+     */
+    distinct?: ForexHoldingScalarFieldEnum | ForexHoldingScalarFieldEnum[]
+  }
+
+  /**
+   * ForexHolding create
+   */
+  export type ForexHoldingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ForexHolding.
+     */
+    data: XOR<ForexHoldingCreateInput, ForexHoldingUncheckedCreateInput>
+  }
+
+  /**
+   * ForexHolding createMany
+   */
+  export type ForexHoldingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ForexHoldings.
+     */
+    data: ForexHoldingCreateManyInput | ForexHoldingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ForexHolding createManyAndReturn
+   */
+  export type ForexHoldingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * The data used to create many ForexHoldings.
+     */
+    data: ForexHoldingCreateManyInput | ForexHoldingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ForexHolding update
+   */
+  export type ForexHoldingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ForexHolding.
+     */
+    data: XOR<ForexHoldingUpdateInput, ForexHoldingUncheckedUpdateInput>
+    /**
+     * Choose, which ForexHolding to update.
+     */
+    where: ForexHoldingWhereUniqueInput
+  }
+
+  /**
+   * ForexHolding updateMany
+   */
+  export type ForexHoldingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ForexHoldings.
+     */
+    data: XOR<ForexHoldingUpdateManyMutationInput, ForexHoldingUncheckedUpdateManyInput>
+    /**
+     * Filter which ForexHoldings to update
+     */
+    where?: ForexHoldingWhereInput
+    /**
+     * Limit how many ForexHoldings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ForexHolding updateManyAndReturn
+   */
+  export type ForexHoldingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * The data used to update ForexHoldings.
+     */
+    data: XOR<ForexHoldingUpdateManyMutationInput, ForexHoldingUncheckedUpdateManyInput>
+    /**
+     * Filter which ForexHoldings to update
+     */
+    where?: ForexHoldingWhereInput
+    /**
+     * Limit how many ForexHoldings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ForexHolding upsert
+   */
+  export type ForexHoldingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ForexHolding to update in case it exists.
+     */
+    where: ForexHoldingWhereUniqueInput
+    /**
+     * In case the ForexHolding found by the `where` argument doesn't exist, create a new ForexHolding with this data.
+     */
+    create: XOR<ForexHoldingCreateInput, ForexHoldingUncheckedCreateInput>
+    /**
+     * In case the ForexHolding was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ForexHoldingUpdateInput, ForexHoldingUncheckedUpdateInput>
+  }
+
+  /**
+   * ForexHolding delete
+   */
+  export type ForexHoldingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+    /**
+     * Filter which ForexHolding to delete.
+     */
+    where: ForexHoldingWhereUniqueInput
+  }
+
+  /**
+   * ForexHolding deleteMany
+   */
+  export type ForexHoldingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ForexHoldings to delete
+     */
+    where?: ForexHoldingWhereInput
+    /**
+     * Limit how many ForexHoldings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ForexHolding without action
+   */
+  export type ForexHoldingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexHolding
+     */
+    select?: ForexHoldingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexHolding
+     */
+    omit?: ForexHoldingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexHoldingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ForexTrade
+   */
+
+  export type AggregateForexTrade = {
+    _count: ForexTradeCountAggregateOutputType | null
+    _avg: ForexTradeAvgAggregateOutputType | null
+    _sum: ForexTradeSumAggregateOutputType | null
+    _min: ForexTradeMinAggregateOutputType | null
+    _max: ForexTradeMaxAggregateOutputType | null
+  }
+
+  export type ForexTradeAvgAggregateOutputType = {
+    units: number | null
+    rateMinor: number | null
+    grossMinor: number | null
+    feeMinor: number | null
+    netMinor: number | null
+    tick: number | null
+  }
+
+  export type ForexTradeSumAggregateOutputType = {
+    units: bigint | null
+    rateMinor: bigint | null
+    grossMinor: bigint | null
+    feeMinor: bigint | null
+    netMinor: bigint | null
+    tick: number | null
+  }
+
+  export type ForexTradeMinAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    pair: string | null
+    currency: string | null
+    side: $Enums.OrderSide | null
+    units: bigint | null
+    rateMinor: bigint | null
+    grossMinor: bigint | null
+    feeMinor: bigint | null
+    netMinor: bigint | null
+    tick: number | null
+    idempotencyKey: string | null
+    createdAt: Date | null
+  }
+
+  export type ForexTradeMaxAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    pair: string | null
+    currency: string | null
+    side: $Enums.OrderSide | null
+    units: bigint | null
+    rateMinor: bigint | null
+    grossMinor: bigint | null
+    feeMinor: bigint | null
+    netMinor: bigint | null
+    tick: number | null
+    idempotencyKey: string | null
+    createdAt: Date | null
+  }
+
+  export type ForexTradeCountAggregateOutputType = {
+    id: number
+    gameId: number
+    pair: number
+    currency: number
+    side: number
+    units: number
+    rateMinor: number
+    grossMinor: number
+    feeMinor: number
+    netMinor: number
+    tick: number
+    idempotencyKey: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ForexTradeAvgAggregateInputType = {
+    units?: true
+    rateMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+  }
+
+  export type ForexTradeSumAggregateInputType = {
+    units?: true
+    rateMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+  }
+
+  export type ForexTradeMinAggregateInputType = {
+    id?: true
+    gameId?: true
+    pair?: true
+    currency?: true
+    side?: true
+    units?: true
+    rateMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+    idempotencyKey?: true
+    createdAt?: true
+  }
+
+  export type ForexTradeMaxAggregateInputType = {
+    id?: true
+    gameId?: true
+    pair?: true
+    currency?: true
+    side?: true
+    units?: true
+    rateMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+    idempotencyKey?: true
+    createdAt?: true
+  }
+
+  export type ForexTradeCountAggregateInputType = {
+    id?: true
+    gameId?: true
+    pair?: true
+    currency?: true
+    side?: true
+    units?: true
+    rateMinor?: true
+    grossMinor?: true
+    feeMinor?: true
+    netMinor?: true
+    tick?: true
+    idempotencyKey?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ForexTradeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ForexTrade to aggregate.
+     */
+    where?: ForexTradeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForexTrades to fetch.
+     */
+    orderBy?: ForexTradeOrderByWithRelationInput | ForexTradeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ForexTradeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForexTrades from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForexTrades.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ForexTrades
+    **/
+    _count?: true | ForexTradeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ForexTradeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ForexTradeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ForexTradeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ForexTradeMaxAggregateInputType
+  }
+
+  export type GetForexTradeAggregateType<T extends ForexTradeAggregateArgs> = {
+        [P in keyof T & keyof AggregateForexTrade]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateForexTrade[P]>
+      : GetScalarType<T[P], AggregateForexTrade[P]>
+  }
+
+
+
+
+  export type ForexTradeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ForexTradeWhereInput
+    orderBy?: ForexTradeOrderByWithAggregationInput | ForexTradeOrderByWithAggregationInput[]
+    by: ForexTradeScalarFieldEnum[] | ForexTradeScalarFieldEnum
+    having?: ForexTradeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ForexTradeCountAggregateInputType | true
+    _avg?: ForexTradeAvgAggregateInputType
+    _sum?: ForexTradeSumAggregateInputType
+    _min?: ForexTradeMinAggregateInputType
+    _max?: ForexTradeMaxAggregateInputType
+  }
+
+  export type ForexTradeGroupByOutputType = {
+    id: string
+    gameId: string
+    pair: string
+    currency: string
+    side: $Enums.OrderSide
+    units: bigint
+    rateMinor: bigint
+    grossMinor: bigint
+    feeMinor: bigint
+    netMinor: bigint
+    tick: number
+    idempotencyKey: string
+    createdAt: Date
+    _count: ForexTradeCountAggregateOutputType | null
+    _avg: ForexTradeAvgAggregateOutputType | null
+    _sum: ForexTradeSumAggregateOutputType | null
+    _min: ForexTradeMinAggregateOutputType | null
+    _max: ForexTradeMaxAggregateOutputType | null
+  }
+
+  type GetForexTradeGroupByPayload<T extends ForexTradeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ForexTradeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ForexTradeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ForexTradeGroupByOutputType[P]>
+            : GetScalarType<T[P], ForexTradeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ForexTradeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    pair?: boolean
+    currency?: boolean
+    side?: boolean
+    units?: boolean
+    rateMinor?: boolean
+    grossMinor?: boolean
+    feeMinor?: boolean
+    netMinor?: boolean
+    tick?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["forexTrade"]>
+
+  export type ForexTradeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    pair?: boolean
+    currency?: boolean
+    side?: boolean
+    units?: boolean
+    rateMinor?: boolean
+    grossMinor?: boolean
+    feeMinor?: boolean
+    netMinor?: boolean
+    tick?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["forexTrade"]>
+
+  export type ForexTradeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    pair?: boolean
+    currency?: boolean
+    side?: boolean
+    units?: boolean
+    rateMinor?: boolean
+    grossMinor?: boolean
+    feeMinor?: boolean
+    netMinor?: boolean
+    tick?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["forexTrade"]>
+
+  export type ForexTradeSelectScalar = {
+    id?: boolean
+    gameId?: boolean
+    pair?: boolean
+    currency?: boolean
+    side?: boolean
+    units?: boolean
+    rateMinor?: boolean
+    grossMinor?: boolean
+    feeMinor?: boolean
+    netMinor?: boolean
+    tick?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+  }
+
+  export type ForexTradeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameId" | "pair" | "currency" | "side" | "units" | "rateMinor" | "grossMinor" | "feeMinor" | "netMinor" | "tick" | "idempotencyKey" | "createdAt", ExtArgs["result"]["forexTrade"]>
+  export type ForexTradeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type ForexTradeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type ForexTradeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+
+  export type $ForexTradePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ForexTrade"
+    objects: {
+      game: Prisma.$GamePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      gameId: string
+      pair: string
+      currency: string
+      side: $Enums.OrderSide
+      units: bigint
+      rateMinor: bigint
+      grossMinor: bigint
+      feeMinor: bigint
+      netMinor: bigint
+      tick: number
+      idempotencyKey: string
+      createdAt: Date
+    }, ExtArgs["result"]["forexTrade"]>
+    composites: {}
+  }
+
+  type ForexTradeGetPayload<S extends boolean | null | undefined | ForexTradeDefaultArgs> = $Result.GetResult<Prisma.$ForexTradePayload, S>
+
+  type ForexTradeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ForexTradeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ForexTradeCountAggregateInputType | true
+    }
+
+  export interface ForexTradeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ForexTrade'], meta: { name: 'ForexTrade' } }
+    /**
+     * Find zero or one ForexTrade that matches the filter.
+     * @param {ForexTradeFindUniqueArgs} args - Arguments to find a ForexTrade
+     * @example
+     * // Get one ForexTrade
+     * const forexTrade = await prisma.forexTrade.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ForexTradeFindUniqueArgs>(args: SelectSubset<T, ForexTradeFindUniqueArgs<ExtArgs>>): Prisma__ForexTradeClient<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ForexTrade that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ForexTradeFindUniqueOrThrowArgs} args - Arguments to find a ForexTrade
+     * @example
+     * // Get one ForexTrade
+     * const forexTrade = await prisma.forexTrade.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ForexTradeFindUniqueOrThrowArgs>(args: SelectSubset<T, ForexTradeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ForexTradeClient<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ForexTrade that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexTradeFindFirstArgs} args - Arguments to find a ForexTrade
+     * @example
+     * // Get one ForexTrade
+     * const forexTrade = await prisma.forexTrade.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ForexTradeFindFirstArgs>(args?: SelectSubset<T, ForexTradeFindFirstArgs<ExtArgs>>): Prisma__ForexTradeClient<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ForexTrade that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexTradeFindFirstOrThrowArgs} args - Arguments to find a ForexTrade
+     * @example
+     * // Get one ForexTrade
+     * const forexTrade = await prisma.forexTrade.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ForexTradeFindFirstOrThrowArgs>(args?: SelectSubset<T, ForexTradeFindFirstOrThrowArgs<ExtArgs>>): Prisma__ForexTradeClient<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ForexTrades that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexTradeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ForexTrades
+     * const forexTrades = await prisma.forexTrade.findMany()
+     * 
+     * // Get first 10 ForexTrades
+     * const forexTrades = await prisma.forexTrade.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const forexTradeWithIdOnly = await prisma.forexTrade.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ForexTradeFindManyArgs>(args?: SelectSubset<T, ForexTradeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ForexTrade.
+     * @param {ForexTradeCreateArgs} args - Arguments to create a ForexTrade.
+     * @example
+     * // Create one ForexTrade
+     * const ForexTrade = await prisma.forexTrade.create({
+     *   data: {
+     *     // ... data to create a ForexTrade
+     *   }
+     * })
+     * 
+     */
+    create<T extends ForexTradeCreateArgs>(args: SelectSubset<T, ForexTradeCreateArgs<ExtArgs>>): Prisma__ForexTradeClient<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ForexTrades.
+     * @param {ForexTradeCreateManyArgs} args - Arguments to create many ForexTrades.
+     * @example
+     * // Create many ForexTrades
+     * const forexTrade = await prisma.forexTrade.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ForexTradeCreateManyArgs>(args?: SelectSubset<T, ForexTradeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ForexTrades and returns the data saved in the database.
+     * @param {ForexTradeCreateManyAndReturnArgs} args - Arguments to create many ForexTrades.
+     * @example
+     * // Create many ForexTrades
+     * const forexTrade = await prisma.forexTrade.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ForexTrades and only return the `id`
+     * const forexTradeWithIdOnly = await prisma.forexTrade.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ForexTradeCreateManyAndReturnArgs>(args?: SelectSubset<T, ForexTradeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ForexTrade.
+     * @param {ForexTradeDeleteArgs} args - Arguments to delete one ForexTrade.
+     * @example
+     * // Delete one ForexTrade
+     * const ForexTrade = await prisma.forexTrade.delete({
+     *   where: {
+     *     // ... filter to delete one ForexTrade
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ForexTradeDeleteArgs>(args: SelectSubset<T, ForexTradeDeleteArgs<ExtArgs>>): Prisma__ForexTradeClient<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ForexTrade.
+     * @param {ForexTradeUpdateArgs} args - Arguments to update one ForexTrade.
+     * @example
+     * // Update one ForexTrade
+     * const forexTrade = await prisma.forexTrade.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ForexTradeUpdateArgs>(args: SelectSubset<T, ForexTradeUpdateArgs<ExtArgs>>): Prisma__ForexTradeClient<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ForexTrades.
+     * @param {ForexTradeDeleteManyArgs} args - Arguments to filter ForexTrades to delete.
+     * @example
+     * // Delete a few ForexTrades
+     * const { count } = await prisma.forexTrade.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ForexTradeDeleteManyArgs>(args?: SelectSubset<T, ForexTradeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ForexTrades.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexTradeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ForexTrades
+     * const forexTrade = await prisma.forexTrade.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ForexTradeUpdateManyArgs>(args: SelectSubset<T, ForexTradeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ForexTrades and returns the data updated in the database.
+     * @param {ForexTradeUpdateManyAndReturnArgs} args - Arguments to update many ForexTrades.
+     * @example
+     * // Update many ForexTrades
+     * const forexTrade = await prisma.forexTrade.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ForexTrades and only return the `id`
+     * const forexTradeWithIdOnly = await prisma.forexTrade.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ForexTradeUpdateManyAndReturnArgs>(args: SelectSubset<T, ForexTradeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ForexTrade.
+     * @param {ForexTradeUpsertArgs} args - Arguments to update or create a ForexTrade.
+     * @example
+     * // Update or create a ForexTrade
+     * const forexTrade = await prisma.forexTrade.upsert({
+     *   create: {
+     *     // ... data to create a ForexTrade
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ForexTrade we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ForexTradeUpsertArgs>(args: SelectSubset<T, ForexTradeUpsertArgs<ExtArgs>>): Prisma__ForexTradeClient<$Result.GetResult<Prisma.$ForexTradePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ForexTrades.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexTradeCountArgs} args - Arguments to filter ForexTrades to count.
+     * @example
+     * // Count the number of ForexTrades
+     * const count = await prisma.forexTrade.count({
+     *   where: {
+     *     // ... the filter for the ForexTrades we want to count
+     *   }
+     * })
+    **/
+    count<T extends ForexTradeCountArgs>(
+      args?: Subset<T, ForexTradeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ForexTradeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ForexTrade.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexTradeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ForexTradeAggregateArgs>(args: Subset<T, ForexTradeAggregateArgs>): Prisma.PrismaPromise<GetForexTradeAggregateType<T>>
+
+    /**
+     * Group by ForexTrade.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForexTradeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ForexTradeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ForexTradeGroupByArgs['orderBy'] }
+        : { orderBy?: ForexTradeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ForexTradeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetForexTradeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ForexTrade model
+   */
+  readonly fields: ForexTradeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ForexTrade.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ForexTradeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    game<T extends GameDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GameDefaultArgs<ExtArgs>>): Prisma__GameClient<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ForexTrade model
+   */
+  interface ForexTradeFieldRefs {
+    readonly id: FieldRef<"ForexTrade", 'String'>
+    readonly gameId: FieldRef<"ForexTrade", 'String'>
+    readonly pair: FieldRef<"ForexTrade", 'String'>
+    readonly currency: FieldRef<"ForexTrade", 'String'>
+    readonly side: FieldRef<"ForexTrade", 'OrderSide'>
+    readonly units: FieldRef<"ForexTrade", 'BigInt'>
+    readonly rateMinor: FieldRef<"ForexTrade", 'BigInt'>
+    readonly grossMinor: FieldRef<"ForexTrade", 'BigInt'>
+    readonly feeMinor: FieldRef<"ForexTrade", 'BigInt'>
+    readonly netMinor: FieldRef<"ForexTrade", 'BigInt'>
+    readonly tick: FieldRef<"ForexTrade", 'Int'>
+    readonly idempotencyKey: FieldRef<"ForexTrade", 'String'>
+    readonly createdAt: FieldRef<"ForexTrade", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ForexTrade findUnique
+   */
+  export type ForexTradeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexTrade to fetch.
+     */
+    where: ForexTradeWhereUniqueInput
+  }
+
+  /**
+   * ForexTrade findUniqueOrThrow
+   */
+  export type ForexTradeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexTrade to fetch.
+     */
+    where: ForexTradeWhereUniqueInput
+  }
+
+  /**
+   * ForexTrade findFirst
+   */
+  export type ForexTradeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexTrade to fetch.
+     */
+    where?: ForexTradeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForexTrades to fetch.
+     */
+    orderBy?: ForexTradeOrderByWithRelationInput | ForexTradeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ForexTrades.
+     */
+    cursor?: ForexTradeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForexTrades from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForexTrades.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ForexTrades.
+     */
+    distinct?: ForexTradeScalarFieldEnum | ForexTradeScalarFieldEnum[]
+  }
+
+  /**
+   * ForexTrade findFirstOrThrow
+   */
+  export type ForexTradeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexTrade to fetch.
+     */
+    where?: ForexTradeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForexTrades to fetch.
+     */
+    orderBy?: ForexTradeOrderByWithRelationInput | ForexTradeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ForexTrades.
+     */
+    cursor?: ForexTradeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForexTrades from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForexTrades.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ForexTrades.
+     */
+    distinct?: ForexTradeScalarFieldEnum | ForexTradeScalarFieldEnum[]
+  }
+
+  /**
+   * ForexTrade findMany
+   */
+  export type ForexTradeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * Filter, which ForexTrades to fetch.
+     */
+    where?: ForexTradeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForexTrades to fetch.
+     */
+    orderBy?: ForexTradeOrderByWithRelationInput | ForexTradeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ForexTrades.
+     */
+    cursor?: ForexTradeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForexTrades from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForexTrades.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ForexTrades.
+     */
+    distinct?: ForexTradeScalarFieldEnum | ForexTradeScalarFieldEnum[]
+  }
+
+  /**
+   * ForexTrade create
+   */
+  export type ForexTradeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ForexTrade.
+     */
+    data: XOR<ForexTradeCreateInput, ForexTradeUncheckedCreateInput>
+  }
+
+  /**
+   * ForexTrade createMany
+   */
+  export type ForexTradeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ForexTrades.
+     */
+    data: ForexTradeCreateManyInput | ForexTradeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ForexTrade createManyAndReturn
+   */
+  export type ForexTradeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * The data used to create many ForexTrades.
+     */
+    data: ForexTradeCreateManyInput | ForexTradeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ForexTrade update
+   */
+  export type ForexTradeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ForexTrade.
+     */
+    data: XOR<ForexTradeUpdateInput, ForexTradeUncheckedUpdateInput>
+    /**
+     * Choose, which ForexTrade to update.
+     */
+    where: ForexTradeWhereUniqueInput
+  }
+
+  /**
+   * ForexTrade updateMany
+   */
+  export type ForexTradeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ForexTrades.
+     */
+    data: XOR<ForexTradeUpdateManyMutationInput, ForexTradeUncheckedUpdateManyInput>
+    /**
+     * Filter which ForexTrades to update
+     */
+    where?: ForexTradeWhereInput
+    /**
+     * Limit how many ForexTrades to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ForexTrade updateManyAndReturn
+   */
+  export type ForexTradeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * The data used to update ForexTrades.
+     */
+    data: XOR<ForexTradeUpdateManyMutationInput, ForexTradeUncheckedUpdateManyInput>
+    /**
+     * Filter which ForexTrades to update
+     */
+    where?: ForexTradeWhereInput
+    /**
+     * Limit how many ForexTrades to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ForexTrade upsert
+   */
+  export type ForexTradeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ForexTrade to update in case it exists.
+     */
+    where: ForexTradeWhereUniqueInput
+    /**
+     * In case the ForexTrade found by the `where` argument doesn't exist, create a new ForexTrade with this data.
+     */
+    create: XOR<ForexTradeCreateInput, ForexTradeUncheckedCreateInput>
+    /**
+     * In case the ForexTrade was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ForexTradeUpdateInput, ForexTradeUncheckedUpdateInput>
+  }
+
+  /**
+   * ForexTrade delete
+   */
+  export type ForexTradeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+    /**
+     * Filter which ForexTrade to delete.
+     */
+    where: ForexTradeWhereUniqueInput
+  }
+
+  /**
+   * ForexTrade deleteMany
+   */
+  export type ForexTradeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ForexTrades to delete
+     */
+    where?: ForexTradeWhereInput
+    /**
+     * Limit how many ForexTrades to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ForexTrade without action
+   */
+  export type ForexTradeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForexTrade
+     */
+    select?: ForexTradeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ForexTrade
+     */
+    omit?: ForexTradeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForexTradeInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model CompanyDirective
    */
 
@@ -27136,6 +29729,37 @@ export namespace Prisma {
   export type BondTradeScalarFieldEnum = (typeof BondTradeScalarFieldEnum)[keyof typeof BondTradeScalarFieldEnum]
 
 
+  export const ForexHoldingScalarFieldEnum: {
+    id: 'id',
+    gameId: 'gameId',
+    currency: 'currency',
+    units: 'units',
+    averageRateMinor: 'averageRateMinor',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ForexHoldingScalarFieldEnum = (typeof ForexHoldingScalarFieldEnum)[keyof typeof ForexHoldingScalarFieldEnum]
+
+
+  export const ForexTradeScalarFieldEnum: {
+    id: 'id',
+    gameId: 'gameId',
+    pair: 'pair',
+    currency: 'currency',
+    side: 'side',
+    units: 'units',
+    rateMinor: 'rateMinor',
+    grossMinor: 'grossMinor',
+    feeMinor: 'feeMinor',
+    netMinor: 'netMinor',
+    tick: 'tick',
+    idempotencyKey: 'idempotencyKey',
+    createdAt: 'createdAt'
+  };
+
+  export type ForexTradeScalarFieldEnum = (typeof ForexTradeScalarFieldEnum)[keyof typeof ForexTradeScalarFieldEnum]
+
+
   export const CompanyDirectiveScalarFieldEnum: {
     id: 'id',
     gameId: 'gameId',
@@ -27763,6 +30387,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionListRelationFilter
     bondHoldings?: BondHoldingListRelationFilter
     bondTrades?: BondTradeListRelationFilter
+    forexHoldings?: ForexHoldingListRelationFilter
+    forexTrades?: ForexTradeListRelationFilter
     directives?: CompanyDirectiveListRelationFilter
   }
 
@@ -27788,6 +30414,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionOrderByRelationAggregateInput
     bondHoldings?: BondHoldingOrderByRelationAggregateInput
     bondTrades?: BondTradeOrderByRelationAggregateInput
+    forexHoldings?: ForexHoldingOrderByRelationAggregateInput
+    forexTrades?: ForexTradeOrderByRelationAggregateInput
     directives?: CompanyDirectiveOrderByRelationAggregateInput
   }
 
@@ -27816,6 +30444,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionListRelationFilter
     bondHoldings?: BondHoldingListRelationFilter
     bondTrades?: BondTradeListRelationFilter
+    forexHoldings?: ForexHoldingListRelationFilter
+    forexTrades?: ForexTradeListRelationFilter
     directives?: CompanyDirectiveListRelationFilter
   }, "id">
 
@@ -28629,6 +31259,167 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"BondTrade"> | Date | string
   }
 
+  export type ForexHoldingWhereInput = {
+    AND?: ForexHoldingWhereInput | ForexHoldingWhereInput[]
+    OR?: ForexHoldingWhereInput[]
+    NOT?: ForexHoldingWhereInput | ForexHoldingWhereInput[]
+    id?: UuidFilter<"ForexHolding"> | string
+    gameId?: UuidFilter<"ForexHolding"> | string
+    currency?: StringFilter<"ForexHolding"> | string
+    units?: BigIntFilter<"ForexHolding"> | bigint | number
+    averageRateMinor?: BigIntFilter<"ForexHolding"> | bigint | number
+    updatedAt?: DateTimeFilter<"ForexHolding"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }
+
+  export type ForexHoldingOrderByWithRelationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    currency?: SortOrder
+    units?: SortOrder
+    averageRateMinor?: SortOrder
+    updatedAt?: SortOrder
+    game?: GameOrderByWithRelationInput
+  }
+
+  export type ForexHoldingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    gameId_currency?: ForexHoldingGameIdCurrencyCompoundUniqueInput
+    AND?: ForexHoldingWhereInput | ForexHoldingWhereInput[]
+    OR?: ForexHoldingWhereInput[]
+    NOT?: ForexHoldingWhereInput | ForexHoldingWhereInput[]
+    gameId?: UuidFilter<"ForexHolding"> | string
+    currency?: StringFilter<"ForexHolding"> | string
+    units?: BigIntFilter<"ForexHolding"> | bigint | number
+    averageRateMinor?: BigIntFilter<"ForexHolding"> | bigint | number
+    updatedAt?: DateTimeFilter<"ForexHolding"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }, "id" | "gameId_currency">
+
+  export type ForexHoldingOrderByWithAggregationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    currency?: SortOrder
+    units?: SortOrder
+    averageRateMinor?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ForexHoldingCountOrderByAggregateInput
+    _avg?: ForexHoldingAvgOrderByAggregateInput
+    _max?: ForexHoldingMaxOrderByAggregateInput
+    _min?: ForexHoldingMinOrderByAggregateInput
+    _sum?: ForexHoldingSumOrderByAggregateInput
+  }
+
+  export type ForexHoldingScalarWhereWithAggregatesInput = {
+    AND?: ForexHoldingScalarWhereWithAggregatesInput | ForexHoldingScalarWhereWithAggregatesInput[]
+    OR?: ForexHoldingScalarWhereWithAggregatesInput[]
+    NOT?: ForexHoldingScalarWhereWithAggregatesInput | ForexHoldingScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"ForexHolding"> | string
+    gameId?: UuidWithAggregatesFilter<"ForexHolding"> | string
+    currency?: StringWithAggregatesFilter<"ForexHolding"> | string
+    units?: BigIntWithAggregatesFilter<"ForexHolding"> | bigint | number
+    averageRateMinor?: BigIntWithAggregatesFilter<"ForexHolding"> | bigint | number
+    updatedAt?: DateTimeWithAggregatesFilter<"ForexHolding"> | Date | string
+  }
+
+  export type ForexTradeWhereInput = {
+    AND?: ForexTradeWhereInput | ForexTradeWhereInput[]
+    OR?: ForexTradeWhereInput[]
+    NOT?: ForexTradeWhereInput | ForexTradeWhereInput[]
+    id?: UuidFilter<"ForexTrade"> | string
+    gameId?: UuidFilter<"ForexTrade"> | string
+    pair?: StringFilter<"ForexTrade"> | string
+    currency?: StringFilter<"ForexTrade"> | string
+    side?: EnumOrderSideFilter<"ForexTrade"> | $Enums.OrderSide
+    units?: BigIntFilter<"ForexTrade"> | bigint | number
+    rateMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    grossMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    feeMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    netMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    tick?: IntFilter<"ForexTrade"> | number
+    idempotencyKey?: UuidFilter<"ForexTrade"> | string
+    createdAt?: DateTimeFilter<"ForexTrade"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }
+
+  export type ForexTradeOrderByWithRelationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    pair?: SortOrder
+    currency?: SortOrder
+    side?: SortOrder
+    units?: SortOrder
+    rateMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    game?: GameOrderByWithRelationInput
+  }
+
+  export type ForexTradeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    gameId_idempotencyKey?: ForexTradeGameIdIdempotencyKeyCompoundUniqueInput
+    AND?: ForexTradeWhereInput | ForexTradeWhereInput[]
+    OR?: ForexTradeWhereInput[]
+    NOT?: ForexTradeWhereInput | ForexTradeWhereInput[]
+    gameId?: UuidFilter<"ForexTrade"> | string
+    pair?: StringFilter<"ForexTrade"> | string
+    currency?: StringFilter<"ForexTrade"> | string
+    side?: EnumOrderSideFilter<"ForexTrade"> | $Enums.OrderSide
+    units?: BigIntFilter<"ForexTrade"> | bigint | number
+    rateMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    grossMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    feeMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    netMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    tick?: IntFilter<"ForexTrade"> | number
+    idempotencyKey?: UuidFilter<"ForexTrade"> | string
+    createdAt?: DateTimeFilter<"ForexTrade"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }, "id" | "gameId_idempotencyKey">
+
+  export type ForexTradeOrderByWithAggregationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    pair?: SortOrder
+    currency?: SortOrder
+    side?: SortOrder
+    units?: SortOrder
+    rateMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    _count?: ForexTradeCountOrderByAggregateInput
+    _avg?: ForexTradeAvgOrderByAggregateInput
+    _max?: ForexTradeMaxOrderByAggregateInput
+    _min?: ForexTradeMinOrderByAggregateInput
+    _sum?: ForexTradeSumOrderByAggregateInput
+  }
+
+  export type ForexTradeScalarWhereWithAggregatesInput = {
+    AND?: ForexTradeScalarWhereWithAggregatesInput | ForexTradeScalarWhereWithAggregatesInput[]
+    OR?: ForexTradeScalarWhereWithAggregatesInput[]
+    NOT?: ForexTradeScalarWhereWithAggregatesInput | ForexTradeScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"ForexTrade"> | string
+    gameId?: UuidWithAggregatesFilter<"ForexTrade"> | string
+    pair?: StringWithAggregatesFilter<"ForexTrade"> | string
+    currency?: StringWithAggregatesFilter<"ForexTrade"> | string
+    side?: EnumOrderSideWithAggregatesFilter<"ForexTrade"> | $Enums.OrderSide
+    units?: BigIntWithAggregatesFilter<"ForexTrade"> | bigint | number
+    rateMinor?: BigIntWithAggregatesFilter<"ForexTrade"> | bigint | number
+    grossMinor?: BigIntWithAggregatesFilter<"ForexTrade"> | bigint | number
+    feeMinor?: BigIntWithAggregatesFilter<"ForexTrade"> | bigint | number
+    netMinor?: BigIntWithAggregatesFilter<"ForexTrade"> | bigint | number
+    tick?: IntWithAggregatesFilter<"ForexTrade"> | number
+    idempotencyKey?: UuidWithAggregatesFilter<"ForexTrade"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"ForexTrade"> | Date | string
+  }
+
   export type CompanyDirectiveWhereInput = {
     AND?: CompanyDirectiveWhereInput | CompanyDirectiveWhereInput[]
     OR?: CompanyDirectiveWhereInput[]
@@ -29390,6 +32181,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -29414,6 +32207,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -29438,6 +32233,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -29462,6 +32259,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -30332,6 +33131,179 @@ export namespace Prisma {
     side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
     quantity?: IntFieldUpdateOperationsInput | number
     priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexHoldingCreateInput = {
+    id?: string
+    currency: string
+    units: bigint | number
+    averageRateMinor: bigint | number
+    updatedAt?: Date | string
+    game: GameCreateNestedOneWithoutForexHoldingsInput
+  }
+
+  export type ForexHoldingUncheckedCreateInput = {
+    id?: string
+    gameId: string
+    currency: string
+    units: bigint | number
+    averageRateMinor: bigint | number
+    updatedAt?: Date | string
+  }
+
+  export type ForexHoldingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    averageRateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    game?: GameUpdateOneRequiredWithoutForexHoldingsNestedInput
+  }
+
+  export type ForexHoldingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    averageRateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexHoldingCreateManyInput = {
+    id?: string
+    gameId: string
+    currency: string
+    units: bigint | number
+    averageRateMinor: bigint | number
+    updatedAt?: Date | string
+  }
+
+  export type ForexHoldingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    averageRateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexHoldingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    averageRateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexTradeCreateInput = {
+    id?: string
+    pair: string
+    currency: string
+    side: $Enums.OrderSide
+    units: bigint | number
+    rateMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+    game: GameCreateNestedOneWithoutForexTradesInput
+  }
+
+  export type ForexTradeUncheckedCreateInput = {
+    id?: string
+    gameId: string
+    pair: string
+    currency: string
+    side: $Enums.OrderSide
+    units: bigint | number
+    rateMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type ForexTradeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pair?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    side?: EnumOrderSideFieldUpdateOperationsInput | $Enums.OrderSide
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    rateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    game?: GameUpdateOneRequiredWithoutForexTradesNestedInput
+  }
+
+  export type ForexTradeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    pair?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    side?: EnumOrderSideFieldUpdateOperationsInput | $Enums.OrderSide
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    rateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexTradeCreateManyInput = {
+    id?: string
+    gameId: string
+    pair: string
+    currency: string
+    side: $Enums.OrderSide
+    units: bigint | number
+    rateMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type ForexTradeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pair?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    side?: EnumOrderSideFieldUpdateOperationsInput | $Enums.OrderSide
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    rateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexTradeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    pair?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    side?: EnumOrderSideFieldUpdateOperationsInput | $Enums.OrderSide
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    rateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
@@ -31273,6 +34245,18 @@ export namespace Prisma {
     none?: BondTradeWhereInput
   }
 
+  export type ForexHoldingListRelationFilter = {
+    every?: ForexHoldingWhereInput
+    some?: ForexHoldingWhereInput
+    none?: ForexHoldingWhereInput
+  }
+
+  export type ForexTradeListRelationFilter = {
+    every?: ForexTradeWhereInput
+    some?: ForexTradeWhereInput
+    none?: ForexTradeWhereInput
+  }
+
   export type CompanyDirectiveListRelationFilter = {
     every?: CompanyDirectiveWhereInput
     some?: CompanyDirectiveWhereInput
@@ -31316,6 +34300,14 @@ export namespace Prisma {
   }
 
   export type BondTradeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ForexHoldingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ForexTradeOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -32179,6 +35171,119 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumBondTradeSideFilter<$PrismaModel>
     _max?: NestedEnumBondTradeSideFilter<$PrismaModel>
+  }
+
+  export type ForexHoldingGameIdCurrencyCompoundUniqueInput = {
+    gameId: string
+    currency: string
+  }
+
+  export type ForexHoldingCountOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    currency?: SortOrder
+    units?: SortOrder
+    averageRateMinor?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForexHoldingAvgOrderByAggregateInput = {
+    units?: SortOrder
+    averageRateMinor?: SortOrder
+  }
+
+  export type ForexHoldingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    currency?: SortOrder
+    units?: SortOrder
+    averageRateMinor?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForexHoldingMinOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    currency?: SortOrder
+    units?: SortOrder
+    averageRateMinor?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForexHoldingSumOrderByAggregateInput = {
+    units?: SortOrder
+    averageRateMinor?: SortOrder
+  }
+
+  export type ForexTradeGameIdIdempotencyKeyCompoundUniqueInput = {
+    gameId: string
+    idempotencyKey: string
+  }
+
+  export type ForexTradeCountOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    pair?: SortOrder
+    currency?: SortOrder
+    side?: SortOrder
+    units?: SortOrder
+    rateMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ForexTradeAvgOrderByAggregateInput = {
+    units?: SortOrder
+    rateMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+  }
+
+  export type ForexTradeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    pair?: SortOrder
+    currency?: SortOrder
+    side?: SortOrder
+    units?: SortOrder
+    rateMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ForexTradeMinOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    pair?: SortOrder
+    currency?: SortOrder
+    side?: SortOrder
+    units?: SortOrder
+    rateMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ForexTradeSumOrderByAggregateInput = {
+    units?: SortOrder
+    rateMinor?: SortOrder
+    grossMinor?: SortOrder
+    feeMinor?: SortOrder
+    netMinor?: SortOrder
+    tick?: SortOrder
   }
 
   export type EnumDirectiveKindFilter<$PrismaModel = never> = {
@@ -33091,6 +36196,20 @@ export namespace Prisma {
     connect?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
   }
 
+  export type ForexHoldingCreateNestedManyWithoutGameInput = {
+    create?: XOR<ForexHoldingCreateWithoutGameInput, ForexHoldingUncheckedCreateWithoutGameInput> | ForexHoldingCreateWithoutGameInput[] | ForexHoldingUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: ForexHoldingCreateOrConnectWithoutGameInput | ForexHoldingCreateOrConnectWithoutGameInput[]
+    createMany?: ForexHoldingCreateManyGameInputEnvelope
+    connect?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+  }
+
+  export type ForexTradeCreateNestedManyWithoutGameInput = {
+    create?: XOR<ForexTradeCreateWithoutGameInput, ForexTradeUncheckedCreateWithoutGameInput> | ForexTradeCreateWithoutGameInput[] | ForexTradeUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: ForexTradeCreateOrConnectWithoutGameInput | ForexTradeCreateOrConnectWithoutGameInput[]
+    createMany?: ForexTradeCreateManyGameInputEnvelope
+    connect?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+  }
+
   export type CompanyDirectiveCreateNestedManyWithoutGameInput = {
     create?: XOR<CompanyDirectiveCreateWithoutGameInput, CompanyDirectiveUncheckedCreateWithoutGameInput> | CompanyDirectiveCreateWithoutGameInput[] | CompanyDirectiveUncheckedCreateWithoutGameInput[]
     connectOrCreate?: CompanyDirectiveCreateOrConnectWithoutGameInput | CompanyDirectiveCreateOrConnectWithoutGameInput[]
@@ -33178,6 +36297,20 @@ export namespace Prisma {
     connectOrCreate?: BondTradeCreateOrConnectWithoutGameInput | BondTradeCreateOrConnectWithoutGameInput[]
     createMany?: BondTradeCreateManyGameInputEnvelope
     connect?: BondTradeWhereUniqueInput | BondTradeWhereUniqueInput[]
+  }
+
+  export type ForexHoldingUncheckedCreateNestedManyWithoutGameInput = {
+    create?: XOR<ForexHoldingCreateWithoutGameInput, ForexHoldingUncheckedCreateWithoutGameInput> | ForexHoldingCreateWithoutGameInput[] | ForexHoldingUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: ForexHoldingCreateOrConnectWithoutGameInput | ForexHoldingCreateOrConnectWithoutGameInput[]
+    createMany?: ForexHoldingCreateManyGameInputEnvelope
+    connect?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+  }
+
+  export type ForexTradeUncheckedCreateNestedManyWithoutGameInput = {
+    create?: XOR<ForexTradeCreateWithoutGameInput, ForexTradeUncheckedCreateWithoutGameInput> | ForexTradeCreateWithoutGameInput[] | ForexTradeUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: ForexTradeCreateOrConnectWithoutGameInput | ForexTradeCreateOrConnectWithoutGameInput[]
+    createMany?: ForexTradeCreateManyGameInputEnvelope
+    connect?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
   }
 
   export type CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput = {
@@ -33375,6 +36508,34 @@ export namespace Prisma {
     deleteMany?: BondTradeScalarWhereInput | BondTradeScalarWhereInput[]
   }
 
+  export type ForexHoldingUpdateManyWithoutGameNestedInput = {
+    create?: XOR<ForexHoldingCreateWithoutGameInput, ForexHoldingUncheckedCreateWithoutGameInput> | ForexHoldingCreateWithoutGameInput[] | ForexHoldingUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: ForexHoldingCreateOrConnectWithoutGameInput | ForexHoldingCreateOrConnectWithoutGameInput[]
+    upsert?: ForexHoldingUpsertWithWhereUniqueWithoutGameInput | ForexHoldingUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: ForexHoldingCreateManyGameInputEnvelope
+    set?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+    disconnect?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+    delete?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+    connect?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+    update?: ForexHoldingUpdateWithWhereUniqueWithoutGameInput | ForexHoldingUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: ForexHoldingUpdateManyWithWhereWithoutGameInput | ForexHoldingUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: ForexHoldingScalarWhereInput | ForexHoldingScalarWhereInput[]
+  }
+
+  export type ForexTradeUpdateManyWithoutGameNestedInput = {
+    create?: XOR<ForexTradeCreateWithoutGameInput, ForexTradeUncheckedCreateWithoutGameInput> | ForexTradeCreateWithoutGameInput[] | ForexTradeUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: ForexTradeCreateOrConnectWithoutGameInput | ForexTradeCreateOrConnectWithoutGameInput[]
+    upsert?: ForexTradeUpsertWithWhereUniqueWithoutGameInput | ForexTradeUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: ForexTradeCreateManyGameInputEnvelope
+    set?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+    disconnect?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+    delete?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+    connect?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+    update?: ForexTradeUpdateWithWhereUniqueWithoutGameInput | ForexTradeUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: ForexTradeUpdateManyWithWhereWithoutGameInput | ForexTradeUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: ForexTradeScalarWhereInput | ForexTradeScalarWhereInput[]
+  }
+
   export type CompanyDirectiveUpdateManyWithoutGameNestedInput = {
     create?: XOR<CompanyDirectiveCreateWithoutGameInput, CompanyDirectiveUncheckedCreateWithoutGameInput> | CompanyDirectiveCreateWithoutGameInput[] | CompanyDirectiveUncheckedCreateWithoutGameInput[]
     connectOrCreate?: CompanyDirectiveCreateOrConnectWithoutGameInput | CompanyDirectiveCreateOrConnectWithoutGameInput[]
@@ -33547,6 +36708,34 @@ export namespace Prisma {
     update?: BondTradeUpdateWithWhereUniqueWithoutGameInput | BondTradeUpdateWithWhereUniqueWithoutGameInput[]
     updateMany?: BondTradeUpdateManyWithWhereWithoutGameInput | BondTradeUpdateManyWithWhereWithoutGameInput[]
     deleteMany?: BondTradeScalarWhereInput | BondTradeScalarWhereInput[]
+  }
+
+  export type ForexHoldingUncheckedUpdateManyWithoutGameNestedInput = {
+    create?: XOR<ForexHoldingCreateWithoutGameInput, ForexHoldingUncheckedCreateWithoutGameInput> | ForexHoldingCreateWithoutGameInput[] | ForexHoldingUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: ForexHoldingCreateOrConnectWithoutGameInput | ForexHoldingCreateOrConnectWithoutGameInput[]
+    upsert?: ForexHoldingUpsertWithWhereUniqueWithoutGameInput | ForexHoldingUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: ForexHoldingCreateManyGameInputEnvelope
+    set?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+    disconnect?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+    delete?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+    connect?: ForexHoldingWhereUniqueInput | ForexHoldingWhereUniqueInput[]
+    update?: ForexHoldingUpdateWithWhereUniqueWithoutGameInput | ForexHoldingUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: ForexHoldingUpdateManyWithWhereWithoutGameInput | ForexHoldingUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: ForexHoldingScalarWhereInput | ForexHoldingScalarWhereInput[]
+  }
+
+  export type ForexTradeUncheckedUpdateManyWithoutGameNestedInput = {
+    create?: XOR<ForexTradeCreateWithoutGameInput, ForexTradeUncheckedCreateWithoutGameInput> | ForexTradeCreateWithoutGameInput[] | ForexTradeUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: ForexTradeCreateOrConnectWithoutGameInput | ForexTradeCreateOrConnectWithoutGameInput[]
+    upsert?: ForexTradeUpsertWithWhereUniqueWithoutGameInput | ForexTradeUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: ForexTradeCreateManyGameInputEnvelope
+    set?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+    disconnect?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+    delete?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+    connect?: ForexTradeWhereUniqueInput | ForexTradeWhereUniqueInput[]
+    update?: ForexTradeUpdateWithWhereUniqueWithoutGameInput | ForexTradeUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: ForexTradeUpdateManyWithWhereWithoutGameInput | ForexTradeUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: ForexTradeScalarWhereInput | ForexTradeScalarWhereInput[]
   }
 
   export type CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput = {
@@ -34159,6 +37348,34 @@ export namespace Prisma {
     upsert?: GameUpsertWithoutBondTradesInput
     connect?: GameWhereUniqueInput
     update?: XOR<XOR<GameUpdateToOneWithWhereWithoutBondTradesInput, GameUpdateWithoutBondTradesInput>, GameUncheckedUpdateWithoutBondTradesInput>
+  }
+
+  export type GameCreateNestedOneWithoutForexHoldingsInput = {
+    create?: XOR<GameCreateWithoutForexHoldingsInput, GameUncheckedCreateWithoutForexHoldingsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutForexHoldingsInput
+    connect?: GameWhereUniqueInput
+  }
+
+  export type GameUpdateOneRequiredWithoutForexHoldingsNestedInput = {
+    create?: XOR<GameCreateWithoutForexHoldingsInput, GameUncheckedCreateWithoutForexHoldingsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutForexHoldingsInput
+    upsert?: GameUpsertWithoutForexHoldingsInput
+    connect?: GameWhereUniqueInput
+    update?: XOR<XOR<GameUpdateToOneWithWhereWithoutForexHoldingsInput, GameUpdateWithoutForexHoldingsInput>, GameUncheckedUpdateWithoutForexHoldingsInput>
+  }
+
+  export type GameCreateNestedOneWithoutForexTradesInput = {
+    create?: XOR<GameCreateWithoutForexTradesInput, GameUncheckedCreateWithoutForexTradesInput>
+    connectOrCreate?: GameCreateOrConnectWithoutForexTradesInput
+    connect?: GameWhereUniqueInput
+  }
+
+  export type GameUpdateOneRequiredWithoutForexTradesNestedInput = {
+    create?: XOR<GameCreateWithoutForexTradesInput, GameUncheckedCreateWithoutForexTradesInput>
+    connectOrCreate?: GameCreateOrConnectWithoutForexTradesInput
+    upsert?: GameUpsertWithoutForexTradesInput
+    connect?: GameWhereUniqueInput
+    update?: XOR<XOR<GameUpdateToOneWithWhereWithoutForexTradesInput, GameUpdateWithoutForexTradesInput>, GameUncheckedUpdateWithoutForexTradesInput>
   }
 
   export type GameCreateNestedOneWithoutDirectivesInput = {
@@ -35101,6 +38318,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -35124,6 +38343,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -35592,6 +38813,72 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ForexHoldingCreateWithoutGameInput = {
+    id?: string
+    currency: string
+    units: bigint | number
+    averageRateMinor: bigint | number
+    updatedAt?: Date | string
+  }
+
+  export type ForexHoldingUncheckedCreateWithoutGameInput = {
+    id?: string
+    currency: string
+    units: bigint | number
+    averageRateMinor: bigint | number
+    updatedAt?: Date | string
+  }
+
+  export type ForexHoldingCreateOrConnectWithoutGameInput = {
+    where: ForexHoldingWhereUniqueInput
+    create: XOR<ForexHoldingCreateWithoutGameInput, ForexHoldingUncheckedCreateWithoutGameInput>
+  }
+
+  export type ForexHoldingCreateManyGameInputEnvelope = {
+    data: ForexHoldingCreateManyGameInput | ForexHoldingCreateManyGameInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ForexTradeCreateWithoutGameInput = {
+    id?: string
+    pair: string
+    currency: string
+    side: $Enums.OrderSide
+    units: bigint | number
+    rateMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type ForexTradeUncheckedCreateWithoutGameInput = {
+    id?: string
+    pair: string
+    currency: string
+    side: $Enums.OrderSide
+    units: bigint | number
+    rateMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type ForexTradeCreateOrConnectWithoutGameInput = {
+    where: ForexTradeWhereUniqueInput
+    create: XOR<ForexTradeCreateWithoutGameInput, ForexTradeUncheckedCreateWithoutGameInput>
+  }
+
+  export type ForexTradeCreateManyGameInputEnvelope = {
+    data: ForexTradeCreateManyGameInput | ForexTradeCreateManyGameInput[]
+    skipDuplicates?: boolean
+  }
+
   export type CompanyDirectiveCreateWithoutGameInput = {
     id?: string
     companySymbol: string
@@ -36043,6 +39330,69 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"BondTrade"> | Date | string
   }
 
+  export type ForexHoldingUpsertWithWhereUniqueWithoutGameInput = {
+    where: ForexHoldingWhereUniqueInput
+    update: XOR<ForexHoldingUpdateWithoutGameInput, ForexHoldingUncheckedUpdateWithoutGameInput>
+    create: XOR<ForexHoldingCreateWithoutGameInput, ForexHoldingUncheckedCreateWithoutGameInput>
+  }
+
+  export type ForexHoldingUpdateWithWhereUniqueWithoutGameInput = {
+    where: ForexHoldingWhereUniqueInput
+    data: XOR<ForexHoldingUpdateWithoutGameInput, ForexHoldingUncheckedUpdateWithoutGameInput>
+  }
+
+  export type ForexHoldingUpdateManyWithWhereWithoutGameInput = {
+    where: ForexHoldingScalarWhereInput
+    data: XOR<ForexHoldingUpdateManyMutationInput, ForexHoldingUncheckedUpdateManyWithoutGameInput>
+  }
+
+  export type ForexHoldingScalarWhereInput = {
+    AND?: ForexHoldingScalarWhereInput | ForexHoldingScalarWhereInput[]
+    OR?: ForexHoldingScalarWhereInput[]
+    NOT?: ForexHoldingScalarWhereInput | ForexHoldingScalarWhereInput[]
+    id?: UuidFilter<"ForexHolding"> | string
+    gameId?: UuidFilter<"ForexHolding"> | string
+    currency?: StringFilter<"ForexHolding"> | string
+    units?: BigIntFilter<"ForexHolding"> | bigint | number
+    averageRateMinor?: BigIntFilter<"ForexHolding"> | bigint | number
+    updatedAt?: DateTimeFilter<"ForexHolding"> | Date | string
+  }
+
+  export type ForexTradeUpsertWithWhereUniqueWithoutGameInput = {
+    where: ForexTradeWhereUniqueInput
+    update: XOR<ForexTradeUpdateWithoutGameInput, ForexTradeUncheckedUpdateWithoutGameInput>
+    create: XOR<ForexTradeCreateWithoutGameInput, ForexTradeUncheckedCreateWithoutGameInput>
+  }
+
+  export type ForexTradeUpdateWithWhereUniqueWithoutGameInput = {
+    where: ForexTradeWhereUniqueInput
+    data: XOR<ForexTradeUpdateWithoutGameInput, ForexTradeUncheckedUpdateWithoutGameInput>
+  }
+
+  export type ForexTradeUpdateManyWithWhereWithoutGameInput = {
+    where: ForexTradeScalarWhereInput
+    data: XOR<ForexTradeUpdateManyMutationInput, ForexTradeUncheckedUpdateManyWithoutGameInput>
+  }
+
+  export type ForexTradeScalarWhereInput = {
+    AND?: ForexTradeScalarWhereInput | ForexTradeScalarWhereInput[]
+    OR?: ForexTradeScalarWhereInput[]
+    NOT?: ForexTradeScalarWhereInput | ForexTradeScalarWhereInput[]
+    id?: UuidFilter<"ForexTrade"> | string
+    gameId?: UuidFilter<"ForexTrade"> | string
+    pair?: StringFilter<"ForexTrade"> | string
+    currency?: StringFilter<"ForexTrade"> | string
+    side?: EnumOrderSideFilter<"ForexTrade"> | $Enums.OrderSide
+    units?: BigIntFilter<"ForexTrade"> | bigint | number
+    rateMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    grossMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    feeMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    netMinor?: BigIntFilter<"ForexTrade"> | bigint | number
+    tick?: IntFilter<"ForexTrade"> | number
+    idempotencyKey?: UuidFilter<"ForexTrade"> | string
+    createdAt?: DateTimeFilter<"ForexTrade"> | Date | string
+  }
+
   export type CompanyDirectiveUpsertWithWhereUniqueWithoutGameInput = {
     where: CompanyDirectiveWhereUniqueInput
     update: XOR<CompanyDirectiveUpdateWithoutGameInput, CompanyDirectiveUncheckedUpdateWithoutGameInput>
@@ -36094,6 +39444,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -36117,6 +39469,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -36222,6 +39576,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -36245,6 +39601,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -36331,6 +39689,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -36354,6 +39714,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -36461,6 +39823,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -36484,6 +39848,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -36825,6 +40191,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -36848,6 +40216,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -36924,6 +40294,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -36947,6 +40319,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -37141,6 +40515,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -37164,6 +40540,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -37240,6 +40618,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -37263,6 +40643,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -37329,6 +40711,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -37352,6 +40736,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -37428,6 +40814,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -37451,6 +40839,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -37517,6 +40907,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -37540,6 +40932,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -37579,6 +40973,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -37602,6 +40998,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -37625,6 +41023,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -37648,6 +41048,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -37687,6 +41089,8 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -37710,6 +41114,240 @@ export namespace Prisma {
     playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameCreateWithoutForexHoldingsInput = {
+    id?: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutGamesInput
+    character?: CharacterCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioCreateNestedOneWithoutGameInput
+    orders?: OrderCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutForexHoldingsInput = {
+    id?: string
+    userId: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    character?: CharacterUncheckedCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioUncheckedCreateNestedOneWithoutGameInput
+    orders?: OrderUncheckedCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryUncheckedCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleUncheckedCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointUncheckedCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventUncheckedCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutForexHoldingsInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutForexHoldingsInput, GameUncheckedCreateWithoutForexHoldingsInput>
+  }
+
+  export type GameUpsertWithoutForexHoldingsInput = {
+    update: XOR<GameUpdateWithoutForexHoldingsInput, GameUncheckedUpdateWithoutForexHoldingsInput>
+    create: XOR<GameCreateWithoutForexHoldingsInput, GameUncheckedCreateWithoutForexHoldingsInput>
+    where?: GameWhereInput
+  }
+
+  export type GameUpdateToOneWithWhereWithoutForexHoldingsInput = {
+    where?: GameWhereInput
+    data: XOR<GameUpdateWithoutForexHoldingsInput, GameUncheckedUpdateWithoutForexHoldingsInput>
+  }
+
+  export type GameUpdateWithoutForexHoldingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutGamesNestedInput
+    character?: CharacterUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUpdateOneWithoutGameNestedInput
+    orders?: OrderUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutForexHoldingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    character?: CharacterUncheckedUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUncheckedUpdateOneWithoutGameNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUncheckedUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUncheckedUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUncheckedUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUncheckedUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameCreateWithoutForexTradesInput = {
+    id?: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutGamesInput
+    character?: CharacterCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioCreateNestedOneWithoutGameInput
+    orders?: OrderCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutForexTradesInput = {
+    id?: string
+    userId: string
+    seed: bigint | number
+    status?: $Enums.GameStatus
+    tick?: number
+    startDate?: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    character?: CharacterUncheckedCreateNestedOneWithoutGameInput
+    portfolio?: PortfolioUncheckedCreateNestedOneWithoutGameInput
+    orders?: OrderUncheckedCreateNestedManyWithoutGameInput
+    ledgerEntries?: LedgerEntryUncheckedCreateNestedManyWithoutGameInput
+    expenseRules?: ExpenseRuleUncheckedCreateNestedManyWithoutGameInput
+    pricePoints?: PricePointUncheckedCreateNestedManyWithoutGameInput
+    lifeEvents?: LifeEventUncheckedCreateNestedManyWithoutGameInput
+    marketEvents?: MarketEventUncheckedCreateNestedManyWithoutGameInput
+    playerAchievements?: PlayerAchievementUncheckedCreateNestedManyWithoutGameInput
+    futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
+    bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
+    bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutForexTradesInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutForexTradesInput, GameUncheckedCreateWithoutForexTradesInput>
+  }
+
+  export type GameUpsertWithoutForexTradesInput = {
+    update: XOR<GameUpdateWithoutForexTradesInput, GameUncheckedUpdateWithoutForexTradesInput>
+    create: XOR<GameCreateWithoutForexTradesInput, GameUncheckedCreateWithoutForexTradesInput>
+    where?: GameWhereInput
+  }
+
+  export type GameUpdateToOneWithWhereWithoutForexTradesInput = {
+    where?: GameWhereInput
+    data: XOR<GameUpdateWithoutForexTradesInput, GameUncheckedUpdateWithoutForexTradesInput>
+  }
+
+  export type GameUpdateWithoutForexTradesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutGamesNestedInput
+    character?: CharacterUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUpdateOneWithoutGameNestedInput
+    orders?: OrderUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutForexTradesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    seed?: BigIntFieldUpdateOperationsInput | bigint | number
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    tick?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    character?: CharacterUncheckedUpdateOneWithoutGameNestedInput
+    portfolio?: PortfolioUncheckedUpdateOneWithoutGameNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutGameNestedInput
+    ledgerEntries?: LedgerEntryUncheckedUpdateManyWithoutGameNestedInput
+    expenseRules?: ExpenseRuleUncheckedUpdateManyWithoutGameNestedInput
+    pricePoints?: PricePointUncheckedUpdateManyWithoutGameNestedInput
+    lifeEvents?: LifeEventUncheckedUpdateManyWithoutGameNestedInput
+    marketEvents?: MarketEventUncheckedUpdateManyWithoutGameNestedInput
+    playerAchievements?: PlayerAchievementUncheckedUpdateManyWithoutGameNestedInput
+    futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
+    bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
+    bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -37734,6 +41372,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutDirectivesInput = {
@@ -37757,6 +41397,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutDirectivesInput = {
@@ -37796,6 +41438,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutDirectivesInput = {
@@ -37819,6 +41463,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameCreateWithoutLedgerEntriesInput = {
@@ -37841,6 +41487,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -37864,6 +41512,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -37961,6 +41611,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -37984,6 +41636,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -38221,6 +41875,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -38244,6 +41900,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -38283,6 +41941,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -38306,6 +41966,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -38329,6 +41991,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -38352,6 +42016,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -38391,6 +42057,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -38414,6 +42082,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -38437,6 +42107,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -38460,6 +42132,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -38499,6 +42173,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -38522,6 +42198,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -38581,6 +42259,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveCreateNestedManyWithoutGameInput
   }
 
@@ -38604,6 +42284,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedCreateNestedManyWithoutGameInput
     bondHoldings?: BondHoldingUncheckedCreateNestedManyWithoutGameInput
     bondTrades?: BondTradeUncheckedCreateNestedManyWithoutGameInput
+    forexHoldings?: ForexHoldingUncheckedCreateNestedManyWithoutGameInput
+    forexTrades?: ForexTradeUncheckedCreateNestedManyWithoutGameInput
     directives?: CompanyDirectiveUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -38662,6 +42344,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -38685,6 +42369,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -38743,6 +42429,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUpdateManyWithoutGameNestedInput
   }
 
@@ -38766,6 +42454,8 @@ export namespace Prisma {
     futuresPositions?: FuturesPositionUncheckedUpdateManyWithoutGameNestedInput
     bondHoldings?: BondHoldingUncheckedUpdateManyWithoutGameNestedInput
     bondTrades?: BondTradeUncheckedUpdateManyWithoutGameNestedInput
+    forexHoldings?: ForexHoldingUncheckedUpdateManyWithoutGameNestedInput
+    forexTrades?: ForexTradeUncheckedUpdateManyWithoutGameNestedInput
     directives?: CompanyDirectiveUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -38895,6 +42585,29 @@ export namespace Prisma {
     side: $Enums.BondTradeSide
     quantity: number
     priceMinor: bigint | number
+    grossMinor: bigint | number
+    feeMinor: bigint | number
+    netMinor: bigint | number
+    tick: number
+    idempotencyKey: string
+    createdAt?: Date | string
+  }
+
+  export type ForexHoldingCreateManyGameInput = {
+    id?: string
+    currency: string
+    units: bigint | number
+    averageRateMinor: bigint | number
+    updatedAt?: Date | string
+  }
+
+  export type ForexTradeCreateManyGameInput = {
+    id?: string
+    pair: string
+    currency: string
+    side: $Enums.OrderSide
+    units: bigint | number
+    rateMinor: bigint | number
     grossMinor: bigint | number
     feeMinor: bigint | number
     netMinor: bigint | number
@@ -39278,6 +42991,75 @@ export namespace Prisma {
     side?: EnumBondTradeSideFieldUpdateOperationsInput | $Enums.BondTradeSide
     quantity?: IntFieldUpdateOperationsInput | number
     priceMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexHoldingUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    averageRateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexHoldingUncheckedUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    averageRateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexHoldingUncheckedUpdateManyWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    averageRateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexTradeUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pair?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    side?: EnumOrderSideFieldUpdateOperationsInput | $Enums.OrderSide
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    rateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexTradeUncheckedUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pair?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    side?: EnumOrderSideFieldUpdateOperationsInput | $Enums.OrderSide
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    rateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    netMinor?: BigIntFieldUpdateOperationsInput | bigint | number
+    tick?: IntFieldUpdateOperationsInput | number
+    idempotencyKey?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForexTradeUncheckedUpdateManyWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pair?: StringFieldUpdateOperationsInput | string
+    currency?: StringFieldUpdateOperationsInput | string
+    side?: EnumOrderSideFieldUpdateOperationsInput | $Enums.OrderSide
+    units?: BigIntFieldUpdateOperationsInput | bigint | number
+    rateMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     grossMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     feeMinor?: BigIntFieldUpdateOperationsInput | bigint | number
     netMinor?: BigIntFieldUpdateOperationsInput | bigint | number

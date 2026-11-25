@@ -7,6 +7,14 @@
 import { Prisma } from "@/generated/prisma/index";
 import { fillBuy, fillSell, FillError } from "./trade-fill";
 import { prisma } from "@/server/db";
+import { futuresPnlMinor } from "@/domain/futures";
+import { economySnapshot } from "@/domain/economy";
+import { buildBondMarket } from "@/domain/bonds";
+import {
+  buildOrderBook,
+  executeMarketOrder,
+  matchLimitOrder,
+} from "@/domain/market/order-book";
 
 type Tx = Prisma.TransactionClient;
 
@@ -76,6 +84,18 @@ export async function placeOrder(
     });
     if (!point) throw new TradeError("UNKNOWN_ASSET", "No price for this game yet.");
 
+    // Every market and stock/crypto limit order runs through the same
+    // algorithmic book, so displayed depth and executed prices agree.
+    const book = buildOrderBook({
+      symbol: asset.symbol,
+      midPriceMinor: point.priceMinor,
+      tick: game.tick,
+    });
+    const execution =
+      input.type === "MARKET"
+        ? executeMarketOrder(input.side, input.quantity, book)
+        : matchLimitOrder(input.side, input.quantity, input.limitPriceMinor!, book);
+
     const order = await tx.order.create({
       data: {
         gameId: game.id,
@@ -86,12 +106,12 @@ export async function placeOrder(
         limitPriceMinor: input.type === "LIMIT" ? input.limitPriceMinor! : null,
         tickPlaced: game.tick,
         idempotencyKey: input.idempotencyKey,
-        status: input.type === "LIMIT" ? "PENDING" : "PENDING",
+        status: "PENDING",
       },
     });
 
-    if (input.type === "LIMIT") {
-      // Resting order; advanceGame resolves against the next tick price.
+    if (!execution) {
+      // A limit that does not cross rests; advanceGame resolves it later.
       return { orderId: order.id, status: "PENDING", replayed: false };
     }
 
@@ -102,7 +122,7 @@ export async function placeOrder(
         orderId: order.id,
         assetId: asset.id,
         quantity: input.quantity,
-        priceMinor: point.priceMinor,
+        priceMinor: execution.averagePriceMinor,
         tick: game.tick,
       };
       if (input.side === "BUY") {
@@ -267,12 +287,53 @@ export async function portfolioSnapshot(userId: string): Promise<PortfolioSnapsh
     0n,
   );
 
+  // Include open futures equity and bond holdings so net worth matches the dashboard.
+  const openFutures = await prisma.futuresPosition.findMany({
+    where: { gameId: game.id, status: "OPEN" },
+  });
+  let futuresEquityMinor = 0n;
+  if (openFutures.length > 0) {
+    const futuresPoints = await prisma.pricePoint.findMany({
+      where: {
+        gameId: game.id,
+        tick: game.tick,
+        assetId: { in: openFutures.map((p) => p.assetId) },
+      },
+    });
+    const futuresPriceMap = new Map(futuresPoints.map((p) => [p.assetId, p.priceMinor]));
+    for (const position of openFutures) {
+      const mark = futuresPriceMap.get(position.assetId) ?? position.entryPriceMinor;
+      futuresEquityMinor +=
+        position.marginMinor +
+        futuresPnlMinor(position.side, position.entryPriceMinor, mark, position.quantity);
+    }
+  }
+
+  const bondHoldings = await prisma.bondHolding.findMany({ where: { gameId: game.id } });
+  let bondValueMinor = 0n;
+  if (bondHoldings.length > 0) {
+    const assets = await prisma.asset.findMany({ orderBy: { symbol: "asc" } });
+    const world = economySnapshot({
+      seed: game.seed,
+      assets,
+      pace: "MONTH",
+      monthsElapsed: game.tick,
+      startYear: game.startDate.getUTCFullYear(),
+      startMonth: game.startDate.getUTCMonth() + 1,
+    });
+    const instruments = buildBondMarket(world.bonds, game.tick);
+    for (const holding of bondHoldings) {
+      const instrument = instruments.find((c) => c.key === holding.bondKey);
+      bondValueMinor += (instrument?.priceMinor ?? 0n) * BigInt(holding.quantity);
+    }
+  }
+
   return {
     cashMinor: portfolio.cashMinor,
     holdings,
     holdingsValueMinor,
     portfolioValue: holdingsValueMinor,
-    netWorthMinor: portfolio.cashMinor + holdingsValueMinor,
+    netWorthMinor: portfolio.cashMinor + holdingsValueMinor + futuresEquityMinor + bondValueMinor,
     pendingOrders: pendingOrders.map((order) => ({
       id: order.id,
       symbol: order.asset.symbol,

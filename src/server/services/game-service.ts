@@ -19,6 +19,7 @@ import { monthlyPay } from "@/domain/payroll";
 import { nextPrice } from "@/domain/market/prices";
 import { economySnapshot, sectorPressure } from "@/domain/economy";
 import { buildBondMarket } from "@/domain/bonds";
+import { FOREX_PAIRS, forexCrossRates, forexQuotes } from "@/domain/forex";
 import { rollMarketEvent, shockForSector, shockForAsset } from "@/domain/market/events";
 import { MAX_SAVE_SLOTS } from "@/domain/saves";
 import {
@@ -304,12 +305,6 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
     // ---- Futures mark-to-market: liquidate positions whose equity hit zero
     await settleFutures(tx, game.id, target, freshPrices);
 
-    // ---- Single settled cash write before limit fills ------------------
-    await tx.portfolio.update({
-      where: { id: portfolio.id },
-      data: { cashMinor: cash },
-    });
-
     // ---- Resting limit orders fill against the new tick ----------------
     const resting = await tx.order.findMany({
       where: { gameId: game.id, status: "PENDING" },
@@ -359,7 +354,8 @@ export async function advanceGame(userId: string): Promise<AdvanceOutcome> {
       bestRealizedMinor: await bestRealized(tx, game.id),
       netWorthMinor:
         (await netWorthOf(tx, portfolio.id, cash, freshPrices)) +
-        (await bondValueOf(tx, game.id, world.bonds, target)),
+        (await bondValueOf(tx, game.id, world.bonds, target)) +
+        (await forexValueOf(tx, game.id, game.seed, target)),
       completedEducationCount: await tx.education.count({
         where: { characterId: character.id, status: "COMPLETED", knowledgeGain: { gte: 40 } },
       }),
@@ -394,7 +390,7 @@ function marketShock(
 async function findGameForUpdate(tx: Tx, userId: string) {
   const game = await tx.game.findFirst({
     where: { userId, status: "ACTIVE" },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: "desc" },
   });
   if (!game) throw new GameError("NO_GAME", "Create a character first.");
   await tx.$queryRaw`SELECT id FROM "games" WHERE id = ${game.id} FOR UPDATE`;
@@ -414,6 +410,27 @@ async function bondValueOf(
     const instrument = instruments.find((candidate) => candidate.key === holding.bondKey);
     return total + (instrument?.priceMinor ?? 0n) * BigInt(holding.quantity);
   }, 0n);
+}
+
+/** Rupiah bid value of every forex balance at a given tick. */
+async function forexValueOf(
+  db: Tx | typeof prisma,
+  gameId: string,
+  seed: bigint,
+  tick: number,
+): Promise<bigint> {
+  const rows = await db.forexHolding.findMany({ where: { gameId } });
+  if (rows.length === 0) return 0n;
+  const cross = forexCrossRates(forexQuotes(seed, tick));
+  let value = 0n;
+  for (const row of rows) {
+    const pair = FOREX_PAIRS.find((candidate) => candidate.base === row.currency);
+    const mid = cross[row.currency as keyof typeof cross] ?? 0;
+    if (!pair || mid === 0) continue;
+    const bid = mid * (1 - pair.spreadBp / 10_000);
+    value += BigInt(Math.round(bid * 100)) * row.units;
+  }
+  return value;
 }
 
 async function netWorthOf(
@@ -869,6 +886,9 @@ export async function gameSnapshot(userId: string): Promise<GameSnapshot | null>
     });
     bondValue = await bondValueOf(prisma, game.id, world.bonds, game.tick);
   }
+
+  const forexValue = await forexValueOf(prisma, game.id, game.seed, game.tick);
+  portfolioValue += forexValue;
 
   const activeCareer = game.character.careers[0];
   const salaryNet = activeCareer ? monthlyPay(activeCareer.annualSalaryMinor, game.tick).minor : 0n;

@@ -5,6 +5,7 @@
 import { prisma } from "@/server/db";
 import { MAX_SAVE_SLOTS } from "@/domain/saves";
 import { BACKGROUNDS, type BackgroundKey } from "@/domain/character";
+import { FOREX_PAIRS, forexCrossRates, forexQuotes } from "@/domain/forex";
 
 export interface SaveSlotView {
   id: string;
@@ -35,6 +36,7 @@ export async function listSaveSlots(userId: string): Promise<SaveSlotView[]> {
     include: {
       character: true,
       portfolio: { include: { holdings: true } },
+      forexHoldings: true,
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -58,6 +60,13 @@ export async function listSaveSlots(userId: string): Promise<SaveSlotView[]> {
       return total + BigInt(holding.quantity) * price;
     }, 0n);
     const cashMinor = game.portfolio?.cashMinor ?? 0n;
+    const cross = forexCrossRates(forexQuotes(game.seed, game.tick));
+    const forexValue = game.forexHoldings.reduce((total, holding) => {
+      const pair = FOREX_PAIRS.find((candidate) => candidate.base === holding.currency);
+      const mid = cross[holding.currency as keyof typeof cross] ?? 0;
+      if (!pair || mid === 0) return total;
+      return total + BigInt(Math.round(mid * (1 - pair.spreadBp / 10_000) * 100)) * holding.units;
+    }, 0n);
     const background = (game.character?.background ?? "SCHOLAR") as BackgroundKey;
 
     return {
@@ -68,8 +77,10 @@ export async function listSaveSlots(userId: string): Promise<SaveSlotView[]> {
       tick: game.tick,
       status: game.status as "ACTIVE" | "PAUSED",
       cashMinor,
-      netWorthMinor: cashMinor + marketValue,
-      holdingsCount: holdings.filter((holding) => holding.quantity > 0).length,
+      netWorthMinor: cashMinor + marketValue + forexValue,
+      holdingsCount:
+        holdings.filter((holding) => holding.quantity > 0).length +
+        game.forexHoldings.length,
       updatedAt: game.updatedAt,
     };
   });
