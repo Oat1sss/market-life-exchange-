@@ -111,7 +111,7 @@ const STEPS = [
   {
     number: "01",
     title: "Buka akun demo",
-    body: "Pilih profil trader dan mulai dengan saldo virtual Rp 100.000,00. Tanpa KTP, tanpa deposit.",
+    body: "Pilih profil trader dan mulai dengan saldo virtual Rp 10.000.000.000,00. Tanpa KTP, tanpa deposit.",
   },
   {
     number: "02",

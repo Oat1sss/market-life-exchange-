@@ -7,6 +7,8 @@ import {
   type PortfolioSnapshot,
 } from "@/server/services/trade-service";
 import { gameSnapshot } from "@/server/services/game-service";
+import { futuresSnapshot } from "@/server/services/futures-service";
+import { PositionsTable } from "@/components/game/positions-table";
 import { currency } from "@/domain/money";
 import { SpotOrderForm } from "@/components/game/spot-order-form";
 import { Sparkline, type ChartPoint } from "@/components/game/price-chart";
@@ -38,7 +40,13 @@ export default async function PortfolioPage() {
   const game = await gameSnapshot(userId);
   if (!game) redirect("/play/new");
 
-  const portfolio = await portfolioSnapshot(userId);
+  const [portfolio, futures] = await Promise.all([
+    portfolioSnapshot(userId),
+    futuresSnapshot(userId),
+  ]);
+  const futuresPositions = futures?.positions ?? [];
+  const futuresEquity = futures?.equityMinor ?? 0n;
+  const futuresUnrealized = futures?.unrealizedMinor ?? 0n;
   const holdings = portfolio?.holdings ?? [];
   const pendingOrders = portfolio?.pendingOrders ?? [];
   const history = portfolio?.history ?? [];
@@ -67,8 +75,10 @@ export default async function PortfolioPage() {
 
   const cashMinor = portfolio?.cashMinor ?? game.cashMinor;
   const holdingsValue = portfolio?.holdingsValueMinor ?? 0n;
-  const netWorth = cashMinor + holdingsValue;
-  const unrealized = holdings.reduce((sum, holding) => sum + holding.unrealizedMinor, 0n);
+  const netWorth = cashMinor + holdingsValue + futuresEquity;
+  const unrealized =
+    holdings.reduce((sum, holding) => sum + holding.unrealizedMinor, 0n) +
+    futuresUnrealized;
   const allocation =
     netWorth > 0n ? Number((holdingsValue * 10_000n) / netWorth) / 100 : 0;
 
@@ -103,7 +113,7 @@ export default async function PortfolioPage() {
           label="Total ekuitas"
           value={currency(netWorth)}
           tone="brand"
-          hint={`${holdings.length} aset · ${pendingOrders.length} order aktif`}
+          hint={`${holdings.length} aset · ${futuresPositions.length} posisi futures · ${pendingOrders.length} order aktif`}
           icon={<IconPie className="h-4 w-4" />}
         />
         <StatCard
@@ -122,7 +132,7 @@ export default async function PortfolioPage() {
           label="Unrealized P&L"
           value={`${unrealized > 0n ? "+" : ""}${currency(unrealized)}`}
           tone={unrealized > 0n ? "up" : unrealized < 0n ? "down" : "default"}
-          hint="Perubahan nilai aset terhadap harga beli"
+          hint="Spot dan futures terhadap harga masuk"
           icon={<IconChartUp className="h-4 w-4" />}
         />
       </dl>
@@ -178,6 +188,25 @@ export default async function PortfolioPage() {
               }
             />
             <HoldingsTable holdings={holdings} sparks={sparkBySymbol} />
+          </Panel>
+
+          <Panel>
+            <PanelHeader
+              title="Posisi futures"
+              subtitle={`Ekuitas margin ${currency(futuresEquity)} · unrealized ${futuresUnrealized > 0n ? "+" : ""}${currency(futuresUnrealized)}`}
+              action={
+                <Link
+                  href="/play/crypto"
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-gold transition hover:text-gold/80"
+                >
+                  Buka terminal
+                  <IconArrowRight className="h-3 w-3" />
+                </Link>
+              }
+            />
+            <div className="p-4">
+              <PositionsTable positions={futuresPositions} />
+            </div>
           </Panel>
 
           <Panel>

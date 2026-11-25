@@ -128,6 +128,7 @@ export type PlayerAchievement = $Result.DefaultSelection<Prisma.$PlayerAchieveme
 export namespace $Enums {
   export const GameStatus: {
   ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
   RETIRED: 'RETIRED',
   DECEASED: 'DECEASED'
 };

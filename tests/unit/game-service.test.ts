@@ -51,7 +51,7 @@ describe("Task 4: createGame and initial game transaction", () => {
     });
 
     expect(gameId).toBeDefined();
-    expect(await canCreateGame(userId)).toBe(false);
+    expect(await canCreateGame(userId)).toBe(true); // slot 2-5 masih kosong
 
     // Verify game row
     const game = await prisma.game.findUniqueOrThrow({
@@ -75,7 +75,7 @@ describe("Task 4: createGame and initial game transaction", () => {
     expect(game.character?.knowledge).toBe(70);
 
     // Verify portfolio: demo accounts start with 10,000,000 minor units (100,000 credits)
-    expect(game.portfolio?.cashMinor).toBe(10_000_000n);
+    expect(game.portfolio?.cashMinor).toBe(1_000_000_000_000n);
 
     // Demo exchange has no bills to pay
     expect(game.expenseRules.length).toBe(0);
@@ -102,8 +102,8 @@ describe("Task 4: createGame and initial game transaction", () => {
     });
     expect(entries.length).toBe(1);
     expect(entries[0]!.reason).toBe("DEPOSIT");
-    expect(entries[0]!.amountMinor).toBe(10_000_000n);
-    expect(entries[0]!.balanceAfterMinor).toBe(10_000_000n);
+    expect(entries[0]!.amountMinor).toBe(1_000_000_000_000n);
+    expect(entries[0]!.balanceAfterMinor).toBe(1_000_000_000_000n);
   });
 });
 
@@ -119,7 +119,7 @@ describe("Task 5: advanceGame and dashboard snapshot", () => {
     const initialSnapshot = await gameSnapshot(userId);
     expect(initialSnapshot).not.toBeNull();
     expect(initialSnapshot?.tick).toBe(0);
-    expect(initialSnapshot?.cashMinor).toBe(10_000_000n);
+    expect(initialSnapshot?.cashMinor).toBe(1_000_000_000_000n);
 
     // Advance 1 tick
     const outcome = await advanceGame(userId);
@@ -128,7 +128,7 @@ describe("Task 5: advanceGame and dashboard snapshot", () => {
     const afterAdvance = await gameSnapshot(userId);
     expect(afterAdvance?.tick).toBe(1);
     // No salary/expenses exist, so a market-only tick leaves cash untouched.
-    expect(afterAdvance?.cashMinor).toBe(10_000_000n);
+    expect(afterAdvance?.cashMinor).toBe(1_000_000_000_000n);
 
     // Check price points at tick 1
     const tick1Prices = await prisma.pricePoint.findMany({

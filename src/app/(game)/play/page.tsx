@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { maybeUserId } from "@/server/session";
 import { gameSnapshot } from "@/server/services/game-service";
 import { portfolioSnapshot } from "@/server/services/trade-service";
+import { futuresSnapshot } from "@/server/services/futures-service";
 import { prisma } from "@/server/db";
 import { currency } from "@/domain/money";
 import { BACKGROUNDS } from "@/domain/character";
@@ -72,10 +73,14 @@ export default async function ExchangeHome() {
   if (!userId) redirect("/login");
 
   const snapshot = await gameSnapshot(userId);
-  if (!snapshot) redirect("/play/new");
+  if (!snapshot) redirect("/play/start");
 
-  const portfolio = await portfolioSnapshot(userId);
+  const [portfolio, futures] = await Promise.all([
+    portfolioSnapshot(userId),
+    futuresSnapshot(userId),
+  ]);
   const holdings = portfolio?.holdings ?? [];
+  const futuresPositions = futures?.positions ?? [];
 
   const { rows, movers } = await loadMarket(snapshot.gameId, snapshot.tick);
   const gainers = movers.filter((row) => row.changePct > 0).slice(0, 4);
@@ -184,6 +189,92 @@ export default async function ExchangeHome() {
           icon={<IconChartUp className="h-4 w-4" />}
         />
       </dl>
+
+      {(() => {
+        const missions = [
+          {
+            label: "Beli aset pertama",
+            hint: "Pasar spot",
+            done: holdings.length > 0,
+            href: "/play/market",
+          },
+          {
+            label: "Diversifikasi 2 aset",
+            hint: "Portofolio",
+            done: holdings.length >= 2,
+            href: "/play/portfolio",
+          },
+          {
+            label: "Buka posisi futures",
+            hint: "Kripto 20x",
+            done: futuresPositions.length > 0,
+            href: "/play/crypto",
+          },
+          {
+            label: "Majukan 3 bulan",
+            hint: "Tick pasar",
+            done: snapshot.tick >= 3,
+            href: "/play",
+          },
+        ];
+        const completed = missions.filter((mission) => mission.done).length;
+        return (
+          <Panel>
+            <PanelHeader
+              title="Misi pemula"
+              subtitle={`${completed} dari ${missions.length} selesai · selesaikan untuk mengenal semua pasar`}
+              action={
+                <span className="text-[10px] font-black tabular-nums text-brand">
+                  {Math.round((completed / missions.length) * 100)}%
+                </span>
+              }
+            />
+            <div className="p-3">
+              <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-line">
+                <div
+                  className="h-full rounded-full bg-brand transition-all duration-700"
+                  style={{ width: `${(completed / missions.length) * 100}%` }}
+                />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {missions.map((mission) => (
+                  <Link
+                    key={mission.label}
+                    href={mission.href}
+                    className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 transition ${
+                      mission.done
+                        ? "border-up/25 bg-up/[0.06]"
+                        : "border-line bg-elevated hover:border-brand/40"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${
+                        mission.done
+                          ? "bg-up/20 text-up"
+                          : "bg-surface-2 text-muted"
+                      }`}
+                    >
+                      {mission.done ? "✓" : "•"}
+                    </span>
+                    <span className="min-w-0">
+                      <span
+                        className={`block truncate text-[11px] font-bold ${
+                          mission.done ? "text-up" : "text-white"
+                        }`}
+                      >
+                        {mission.label}
+                      </span>
+                      <span className="block text-[9px] text-muted">
+                        {mission.hint}
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </Panel>
+        );
+      })()}
 
       {snapshot.pendingLifeEvent ? (
         <LifeEventCard

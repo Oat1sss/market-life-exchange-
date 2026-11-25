@@ -15,6 +15,7 @@ datasource db {
 
 enum GameStatus {
   ACTIVE
+  PAUSED
   RETIRED
   DECEASED
 }

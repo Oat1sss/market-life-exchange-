@@ -233,7 +233,7 @@ describe("Fase 8: Invariants and Error Handling", () => {
         symbol: "NOVA",
         side: "BUY",
         type: "MARKET",
-        quantity: 1000,
+        quantity: 1_000_000_000,
         idempotencyKey: crypto.randomUUID(),
       }),
     ).rejects.toThrowError(/not enough cash|insufficient/i);

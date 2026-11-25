@@ -21,7 +21,7 @@ export default async function NewCharacterPage() {
   if (!userId) redirect("/login");
 
   const allowed = await canCreateGame(userId);
-  if (!allowed) redirect("/play");
+  if (!allowed) redirect("/play/start");
 
   const backgroundEntries = Object.entries(BACKGROUNDS).map(([key, bg]) => ({
     key,
@@ -35,7 +35,7 @@ export default async function NewCharacterPage() {
       <PageHeader
         eyebrow="MarketLife Exchange"
         title="Buka akun demo"
-        description="Buat akun trading simulasi dan mulai dengan saldo demo Rp 100.000,00. Tidak ada uang sungguhan yang digunakan — semua transaksi berjalan di pasar fiktif."
+        description="Buat akun trading simulasi dan mulai dengan saldo demo Rp 10.000.000.000,00. Tidak ada uang sungguhan yang digunakan — semua transaksi berjalan di pasar fiktif."
         actions={
           <Link
             href="/login"
@@ -55,7 +55,7 @@ export default async function NewCharacterPage() {
             </span>
           </div>
           <p className="mt-1.5 text-xl font-black tabular-nums text-white">
-            Rp 100.000,00
+            Rp 10.000.000.000,00
           </p>
           <p className="mt-1 text-[10px] text-muted">
             Bisa ditambah kapan saja lewat dompet demo.

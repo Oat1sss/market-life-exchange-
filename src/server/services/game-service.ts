@@ -20,6 +20,7 @@ import { nextPrice } from "@/domain/market/prices";
 import { economySnapshot, sectorPressure } from "@/domain/economy";
 import { buildBondMarket } from "@/domain/bonds";
 import { rollMarketEvent, shockForSector, shockForAsset } from "@/domain/market/events";
+import { MAX_SAVE_SLOTS } from "@/domain/saves";
 import {
   delayedRepairFollowupCost,
   templateByKey,
@@ -36,7 +37,7 @@ import { futuresPnlMinor } from "@/domain/futures";
 
 // Demo exchange accounts start with a simulated balance so every market is
 // reachable on day one. Real funding is simulated through the deposit flow.
-const START_CASH_MINOR = 10_000_000n; // 100,000.00 demo credits
+const START_CASH_MINOR = 1_000_000_000_000n; // Rp 10.000.000.000,00 modal demo
 
 type Tx = Prisma.TransactionClient;
 
@@ -45,7 +46,8 @@ export class GameError extends Error {
     public code:
       | "NO_GAME" | "GAME_OVER" | "PENDING_EVENT" | "INSUFFICIENT_FUNDS"
       | "BAD_EVENT" | "NOT_PENDING" | "BAD_CHOICE" | "NAME_REQUIRED"
-      | "ALREADY_ENROLLED" | "UNKNOWN_PROGRAM" | "UNPAID_TUITION",
+      | "ALREADY_ENROLLED" | "UNKNOWN_PROGRAM" | "UNPAID_TUITION"
+      | "SLOTS_FULL",
     message: string,
   ) {
     super(message);
@@ -75,6 +77,22 @@ export async function createGame(
   const startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
   return prisma.$transaction(async (tx) => {
+    const usedSlots = await tx.game.count({
+      where: { userId, status: { in: ["ACTIVE", "PAUSED"] } },
+    });
+    if (usedSlots >= MAX_SAVE_SLOTS) {
+      throw new GameError(
+        "SLOTS_FULL",
+        `Semua ${MAX_SAVE_SLOTS} slot simpan sudah terisi. Hapus salah satu slot terlebih dahulu.`,
+      );
+    }
+
+    // Only one life is ACTIVE at a time; the previous one is parked as PAUSED.
+    await tx.game.updateMany({
+      where: { userId, status: "ACTIVE" },
+      data: { status: "PAUSED" },
+    });
+
     const game = await tx.game.create({
       data: { userId, seed: newSeed(), startDate },
     });
@@ -128,10 +146,10 @@ export async function createGame(
 }
 
 export async function canCreateGame(userId: string): Promise<boolean> {
-  const active = await prisma.game.findFirst({
-    where: { userId, status: "ACTIVE" },
+  const used = await prisma.game.count({
+    where: { userId, status: { in: ["ACTIVE", "PAUSED"] } },
   });
-  return !active;
+  return used < MAX_SAVE_SLOTS;
 }
 
 /* -------------------------------------------------------------------- */

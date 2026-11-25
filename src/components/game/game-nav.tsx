@@ -10,6 +10,7 @@ import {
   IconHome,
   IconPie,
   IconShield,
+  IconUser,
   IconWallet,
 } from "@/components/icons";
 import { cx } from "./ui";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { href: "/play/wallet", label: "Dompet", icon: IconWallet },
   { href: "/play/portfolio", label: "Portofolio", icon: IconPie },
   { href: "/play/forex", label: "Forex", icon: IconChartUp },
+  { href: "/play/start", label: "Slot", icon: IconUser },
   { href: "/play/arcade", label: "Arcade", icon: IconBolt },
 ] as const;
 

@@ -17,6 +17,11 @@ import {
   GameError,
 } from "@/server/services/game-service";
 import { BACKGROUNDS, type BackgroundKey } from "@/domain/character";
+import {
+  activateSaveSlot,
+  deleteSaveSlot,
+  SaveError,
+} from "@/server/services/save-service";
 
 export interface ActionState {
   error?: string;
@@ -57,6 +62,31 @@ export async function createCharacterAction(
     return { error: "Could not start this life. Try again." };
   }
   redirect("/play");
+}
+
+export async function activateSlotAction(formData: FormData): Promise<void> {
+  const userId = await requireUserId();
+  const gameId = clean(formData.get("gameId"));
+  if (!gameId) return;
+  try {
+    await activateSaveSlot(userId, gameId);
+  } catch (error) {
+    if (error instanceof SaveError) return;
+    throw error;
+  }
+  revalidatePath("/play");
+  revalidatePath("/play/start");
+  redirect("/play");
+}
+
+export async function deleteSlotAction(formData: FormData): Promise<void> {
+  const userId = await requireUserId();
+  const gameId = clean(formData.get("gameId"));
+  if (!gameId) return;
+  await deleteSaveSlot(userId, gameId);
+  revalidatePath("/play");
+  revalidatePath("/play/start");
+  redirect("/play/start");
 }
 
 export async function advanceAction(): Promise<ActionState> {

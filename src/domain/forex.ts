@@ -91,9 +91,116 @@ export const FOREX_PAIRS = [
     spreadBp: 6,
     note: "Dolar AS terhadap yen Jepang",
   },
+  {
+    symbol: "AUD/IDR",
+    base: "AUD",
+    quote: "IDR",
+    baseRate: 10_800,
+    decimals: 0,
+    spreadBp: 12,
+    note: "Dolar Australia terhadap rupiah",
+  },
+  {
+    symbol: "CAD/IDR",
+    base: "CAD",
+    quote: "IDR",
+    baseRate: 11_800,
+    decimals: 0,
+    spreadBp: 12,
+    note: "Dolar Kanada terhadap rupiah",
+  },
+  {
+    symbol: "CHF/IDR",
+    base: "CHF",
+    quote: "IDR",
+    baseRate: 18_300,
+    decimals: 0,
+    spreadBp: 14,
+    note: "Franc Swiss terhadap rupiah",
+  },
+  {
+    symbol: "CNY/IDR",
+    base: "CNY",
+    quote: "IDR",
+    baseRate: 2_250,
+    decimals: 0,
+    spreadBp: 10,
+    note: "Yuan Tiongkok terhadap rupiah",
+  },
+  {
+    symbol: "HKD/IDR",
+    base: "HKD",
+    quote: "IDR",
+    baseRate: 2_090,
+    decimals: 0,
+    spreadBp: 10,
+    note: "Dolar Hong Kong terhadap rupiah",
+  },
+  {
+    symbol: "KRW/IDR",
+    base: "KRW",
+    quote: "IDR",
+    baseRate: 11.8,
+    decimals: 2,
+    spreadBp: 12,
+    note: "Won Korea terhadap rupiah",
+  },
+  {
+    symbol: "THB/IDR",
+    base: "THB",
+    quote: "IDR",
+    baseRate: 480,
+    decimals: 0,
+    spreadBp: 12,
+    note: "Baht Thailand terhadap rupiah",
+  },
+  {
+    symbol: "MYR/IDR",
+    base: "MYR",
+    quote: "IDR",
+    baseRate: 3_650,
+    decimals: 0,
+    spreadBp: 10,
+    note: "Ringgit Malaysia terhadap rupiah",
+  },
+  {
+    symbol: "PHP/IDR",
+    base: "PHP",
+    quote: "IDR",
+    baseRate: 285,
+    decimals: 2,
+    spreadBp: 14,
+    note: "Peso Filipina terhadap rupiah",
+  },
+  {
+    symbol: "VND/IDR",
+    base: "VND",
+    quote: "IDR",
+    baseRate: 0.64,
+    decimals: 4,
+    spreadBp: 16,
+    note: "Dong Vietnam terhadap rupiah",
+  },
 ] as const satisfies readonly ForexPairDefinition[];
 
-export const FOREX_CURRENCIES = ["IDR", "USD", "EUR", "GBP", "JPY", "SGD"] as const;
+export const FOREX_CURRENCIES = [
+  "IDR",
+  "USD",
+  "EUR",
+  "GBP",
+  "JPY",
+  "SGD",
+  "AUD",
+  "CAD",
+  "CHF",
+  "CNY",
+  "HKD",
+  "KRW",
+  "THB",
+  "MYR",
+  "PHP",
+  "VND",
+] as const;
 export type ForexCurrency = (typeof FOREX_CURRENCIES)[number];
 
 export const CURRENCY_LABELS: Record<ForexCurrency, string> = {
@@ -103,6 +210,16 @@ export const CURRENCY_LABELS: Record<ForexCurrency, string> = {
   GBP: "Poundsterling Inggris",
   JPY: "Yen Jepang",
   SGD: "Dolar Singapura",
+  AUD: "Dolar Australia",
+  CAD: "Dolar Kanada",
+  CHF: "Franc Swiss",
+  CNY: "Yuan Tiongkok",
+  HKD: "Dolar Hong Kong",
+  KRW: "Won Korea Selatan",
+  THB: "Baht Thailand",
+  MYR: "Ringgit Malaysia",
+  PHP: "Peso Filipina",
+  VND: "Dong Vietnam",
 };
 
 export interface ForexQuote {
@@ -138,25 +255,32 @@ function rng(seed: number) {
   };
 }
 
+const RATE_FALLBACKS: Record<ForexCurrency, number> = {
+  IDR: 1,
+  USD: 16_250,
+  EUR: 17_640,
+  GBP: 20_620,
+  JPY: 106.4,
+  SGD: 12_080,
+  AUD: 10_800,
+  CAD: 11_800,
+  CHF: 18_300,
+  CNY: 2_250,
+  HKD: 2_090,
+  KRW: 11.8,
+  THB: 480,
+  MYR: 3_650,
+  PHP: 285,
+  VND: 0.64,
+};
+
 /** Rupiah per one unit of each currency, built from the IDR legs. */
 export function forexCrossRates(quotes: readonly ForexQuote[]): Record<ForexCurrency, number> {
-  const rates: Record<ForexCurrency, number> = {
-    IDR: 1,
-    USD: 0,
-    EUR: 0,
-    GBP: 0,
-    JPY: 0,
-    SGD: 0,
-  };
+  const rates = { ...RATE_FALLBACKS };
   for (const quote of quotes) {
     if (quote.quote !== "IDR") continue;
     rates[quote.base as ForexCurrency] = quote.rate;
   }
-  rates.USD ||= 16_250;
-  rates.EUR ||= 17_640;
-  rates.GBP ||= 20_620;
-  rates.JPY ||= 106.4;
-  rates.SGD ||= 12_080;
   return rates;
 }
 

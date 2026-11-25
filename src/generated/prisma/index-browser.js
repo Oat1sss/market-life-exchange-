@@ -390,6 +390,7 @@ exports.Prisma.JsonNullValueFilter = {
 };
 exports.GameStatus = exports.$Enums.GameStatus = {
   ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
   RETIRED: 'RETIRED',
   DECEASED: 'DECEASED'
 };
